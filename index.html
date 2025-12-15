@@ -7,18 +7,23 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        background: #eef1f5;
+        background: linear-gradient(135deg, #6dd5fa, #2980b9);
         margin: 0;
         padding: 20px;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
       }
 
       .container {
+        width: 100%;
         max-width: 500px;
-        margin: auto;
+        margin: 40px auto;
         background: white;
         padding: 25px;
         border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       }
 
       h1, h2 {
@@ -59,11 +64,12 @@
       }
 
       label {
-        font-size: 16px;
+        font-size: 18px;
         display: flex;
+        justify-content: center;
         align-items: center;
-        gap: 8px;
-        margin: 10px 0;
+        gap: 10px;
+        margin: 15px 0;
       }
     </style>
   </head>
@@ -102,94 +108,3 @@
       </div>
 
       <!-- ✅ Login (email only for 13+) -->
-      <h2>Login</h2>
-      <input id="loginEmail" type="email" placeholder="Email">
-      <input id="loginPassword" type="password" placeholder="Password">
-      <button id="loginButton">Log In</button>
-
-      <!-- ✅ Status message -->
-      <h2>Status</h2>
-      <p id="status"></p>
-
-    </div>
-
-    <!-- ✅ Public environment variables -->
-    <script>
-      window.env = {
-        NEXT_PUBLIC_SUPABASE_URL: "https://ytgwxpxjivruoewxbuyr.supabase.co",
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Z3d4cHhqaXZydW9ld3hidXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODMxODcsImV4cCI6MjA4MDA1OTE4N30.YMWdo_dRFKt5uufujOZ9BKe-Ygdc0fau1qVnltfmP6o"
-      };
-    </script>
-
-    <!-- ✅ Supabase logic -->
-    <script type="module">
-      import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-      const supabase = createClient(
-        window.env.NEXT_PUBLIC_SUPABASE_URL,
-        window.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
-
-      // ✅ Test button
-      document.getElementById("testButton").onclick = async () => {
-        const { error } = await supabase
-          .from("test_messages")
-          .insert([{ message: "Hello from my website!" }]);
-
-        document.getElementById("status").innerText =
-          error ? "Error: " + error.message : "Success! Message sent to Supabase.";
-      };
-
-      // ✅ Age check logic
-      const ageCheck = document.getElementById("ageCheck");
-      const signupEmailSection = document.getElementById("signupEmailSection");
-      const signupUsernameSection = document.getElementById("signupUsernameSection");
-
-      ageCheck.onchange = () => {
-        if (ageCheck.checked) {
-          signupEmailSection.style.display = "block";
-          signupUsernameSection.style.display = "none";
-        } else {
-          signupEmailSection.style.display = "none";
-          signupUsernameSection.style.display = "block";
-        }
-      };
-
-      // ✅ Signup (13+)
-      document.getElementById("signupButton").onclick = async () => {
-        const email = document.getElementById("signupEmail").value;
-        const password = document.getElementById("signupPassword").value;
-
-        const { error } = await supabase.auth.signUp({ email, password });
-
-        document.getElementById("status").innerText =
-          error ? "Signup error: " + error.message : "Signup successful! Check your email.";
-      };
-
-      // ✅ Signup (under 13)
-      document.getElementById("signupUserButton").onclick = async () => {
-        const username = document.getElementById("signupUsername").value;
-        const password = document.getElementById("signupUserPassword").value;
-
-        const { error } = await supabase
-          .from("child_users")
-          .insert([{ username, password }]);
-
-        document.getElementById("status").innerText =
-          error ? "Signup error: " + error.message : "Under-13 account created!";
-      };
-
-      // ✅ Login (13+ only)
-      document.getElementById("loginButton").onclick = async () => {
-        const email = document.getElementById("loginEmail").value;
-        const password = document.getElementById("loginPassword").value;
-
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-        document.getElementById("status").innerText =
-          error ? "Login error: " + error.message : "Login successful!";
-      };
-    </script>
-
-  </body>
-</html>
