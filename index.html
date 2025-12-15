@@ -4,10 +4,28 @@
     <title>My First Render Site</title>
   </head>
   <body>
+
     <h1>Hello! Your site is working.</h1>
     <p>This is the simplest possible setup.</p>
 
+    <!-- Test Supabase button -->
     <button id="testButton">Send Test to Supabase</button>
+
+    <!-- Signup form -->
+    <h2>Create Account</h2>
+    <input id="signupEmail" type="email" placeholder="Email">
+    <input id="signupPassword" type="password" placeholder="Password">
+    <button id="signupButton">Sign Up</button>
+
+    <!-- Login form -->
+    <h2>Login</h2>
+    <input id="loginEmail" type="email" placeholder="Email">
+    <input id="loginPassword" type="password" placeholder="Password">
+    <button id="loginButton">Log In</button>
+
+    <!-- Status message -->
+    <h2>Status</h2>
+    <p id="status"></p>
 
     <!-- Public environment variables -->
     <script>
@@ -17,7 +35,7 @@
       };
     </script>
 
-    <!-- Supabase code -->
+    <!-- Supabase logic -->
     <script type="module">
       import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -26,6 +44,7 @@
         window.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       );
 
+      // Test button
       document.getElementById("testButton").onclick = async () => {
         const { data, error } = await supabase
           .from("test_messages")
@@ -37,6 +56,45 @@
           alert("Success! Message sent to Supabase.");
         }
       };
+
+      // Signup
+      document.getElementById("signupButton").onclick = async () => {
+        const email = document.getElementById("signupEmail").value;
+        const password = document.getElementById("signupPassword").value;
+
+        const { error } = await supabase.auth.signUp({
+          email: email,
+          password: password
+        });
+
+        if (error) {
+          document.getElementById("status").innerText =
+            "Signup error: " + error.message;
+        } else {
+          document.getElementById("status").innerText =
+            "Signup successful! Check your email.";
+        }
+      };
+
+      // Login
+      document.getElementById("loginButton").onclick = async () => {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+        if (error) {
+          document.getElementById("status").innerText =
+            "Login error: " + error.message;
+        } else {
+          document.getElementById("status").innerText =
+            "Login successful!";
+        }
+      };
     </script>
+
   </body>
 </html>
