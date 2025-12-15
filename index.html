@@ -3,7 +3,7 @@
   <head>
     <title>My First Render Site</title>
 
-    <!-- ✅ Modern clean design -->
+    <!-- Design / CSS -->
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -81,17 +81,17 @@
       <h1>Hello! Your site is working.</h1>
       <p style="text-align:center;">Welcome to your first Supabase-powered website.</p>
 
-      <!-- ✅ Test Supabase button -->
+      <!-- Test Supabase button -->
       <button id="testButton">Send Test to Supabase</button>
 
-      <!-- ✅ Age Check -->
+      <!-- Age Check -->
       <h2>Age Check</h2>
       <label>
         <input type="checkbox" id="ageCheck">
         Are you 13+?
       </label>
 
-      <!-- ✅ Signup for 13+ (email required) -->
+      <!-- Signup for 13+ (email required) -->
       <div id="signupEmailSection" style="display:none;">
         <h2>Create Account (13+)</h2>
         <input id="signupEmail" type="email" placeholder="Email">
@@ -99,7 +99,7 @@
         <button id="signupButton">Sign Up</button>
       </div>
 
-      <!-- ✅ Signup for under 13 (username only) -->
+      <!-- Signup for under 13 (username only) -->
       <div id="signupUsernameSection" style="display:none;">
         <h2>Create Account (Under 13)</h2>
         <input id="signupUsername" type="text" placeholder="Username">
@@ -107,19 +107,19 @@
         <button id="signupUserButton">Sign Up Without Email</button>
       </div>
 
-      <!-- ✅ Login (email only for 13+) -->
+      <!-- Login (email only for 13+) -->
       <h2>Login</h2>
       <input id="loginEmail" type="email" placeholder="Email">
       <input id="loginPassword" type="password" placeholder="Password">
       <button id="loginButton">Log In</button>
 
-      <!-- ✅ Status message -->
+      <!-- Status message -->
       <h2>Status</h2>
       <p id="status"></p>
 
     </div>
 
-    <!-- ✅ Public environment variables -->
+    <!-- Public environment variables -->
     <script>
       window.env = {
         NEXT_PUBLIC_SUPABASE_URL: "https://ytgwxpxjivruoewxbuyr.supabase.co",
@@ -127,7 +127,7 @@
       };
     </script>
 
-    <!-- ✅ Supabase logic -->
+    <!-- Supabase logic -->
     <script type="module">
       import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -136,7 +136,7 @@
         window.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       );
 
-      // ✅ Test button
+      // Test button
       document.getElementById("testButton").onclick = async () => {
         const { error } = await supabase
           .from("test_messages")
@@ -146,7 +146,7 @@
           error ? "Error: " + error.message : "Success! Message sent to Supabase.";
       };
 
-      // ✅ Age check logic
+      // Age check logic
       const ageCheck = document.getElementById("ageCheck");
       const signupEmailSection = document.getElementById("signupEmailSection");
       const signupUsernameSection = document.getElementById("signupUsernameSection");
@@ -161,7 +161,7 @@
         }
       };
 
-      // ✅ Signup (13+)
+      // Signup (13+)
       document.getElementById("signupButton").onclick = async () => {
         const email = document.getElementById("signupEmail").value;
         const password = document.getElementById("signupPassword").value;
@@ -172,7 +172,7 @@
           error ? "Signup error: " + error.message : "Signup successful! Check your email.";
       };
 
-      // ✅ Signup (under 13)
+      // Signup (under 13)
       document.getElementById("signupUserButton").onclick = async () => {
         const username = document.getElementById("signupUsername").value;
         const password = document.getElementById("signupUserPassword").value;
@@ -181,11 +181,16 @@
           .from("child_users")
           .insert([{ username, password }]);
 
-        document.getElementById("status").innerText =
-          error ? "Signup error: " + error.message : "Under-13 account created!";
+        if (error) {
+          document.getElementById("status").innerText =
+            "Signup error: " + error.message;
+        } else {
+          // after signup, go to parent confirmation page
+          window.location.href = "parent-confirm.html";
+        }
       };
 
-      // ✅ Login (13+ only)
+      // Login (13+ only)
       document.getElementById("loginButton").onclick = async () => {
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
