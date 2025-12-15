@@ -2,49 +2,118 @@
 <html>
   <head>
     <title>My First Render Site</title>
+
+    <!-- ✅ Modern clean design -->
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #eef1f5;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 500px;
+        margin: auto;
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      }
+
+      h1, h2 {
+        color: #333;
+        text-align: center;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 5px;
+      }
+
+      button:hover {
+        background: #45a049;
+      }
+
+      #status {
+        font-weight: bold;
+        color: #444;
+        margin-top: 10px;
+        text-align: center;
+      }
+
+      label {
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 10px 0;
+      }
+    </style>
   </head>
+
   <body>
 
-    <h1>Hello! Your site is working.</h1>
-    <p>This is the simplest possible setup.</p>
+    <div class="container">
 
-    <!-- Test Supabase button -->
-    <button id="testButton">Send Test to Supabase</button>
+      <h1>Hello! Your site is working.</h1>
+      <p style="text-align:center;">Welcome to your first Supabase-powered website.</p>
 
-    <!-- Age Check -->
-    <h2>Age Check</h2>
-    <label>
-      <input type="checkbox" id="ageCheck">
-      Are you 13+?
-    </label>
+      <!-- ✅ Test Supabase button -->
+      <button id="testButton">Send Test to Supabase</button>
 
-    <!-- Signup for 13+ (email required) -->
-    <div id="signupEmailSection" style="display:none;">
-      <h2>Create Account (13+)</h2>
-      <input id="signupEmail" type="email" placeholder="Email">
-      <input id="signupPassword" type="password" placeholder="Password">
-      <button id="signupButton">Sign Up</button>
+      <!-- ✅ Age Check -->
+      <h2>Age Check</h2>
+      <label>
+        <input type="checkbox" id="ageCheck">
+        Are you 13+?
+      </label>
+
+      <!-- ✅ Signup for 13+ (email required) -->
+      <div id="signupEmailSection" style="display:none;">
+        <h2>Create Account (13+)</h2>
+        <input id="signupEmail" type="email" placeholder="Email">
+        <input id="signupPassword" type="password" placeholder="Password">
+        <button id="signupButton">Sign Up</button>
+      </div>
+
+      <!-- ✅ Signup for under 13 (username only) -->
+      <div id="signupUsernameSection" style="display:none;">
+        <h2>Create Account (Under 13)</h2>
+        <input id="signupUsername" type="text" placeholder="Username">
+        <input id="signupUserPassword" type="password" placeholder="Password">
+        <button id="signupUserButton">Sign Up Without Email</button>
+      </div>
+
+      <!-- ✅ Login (email only for 13+) -->
+      <h2>Login</h2>
+      <input id="loginEmail" type="email" placeholder="Email">
+      <input id="loginPassword" type="password" placeholder="Password">
+      <button id="loginButton">Log In</button>
+
+      <!-- ✅ Status message -->
+      <h2>Status</h2>
+      <p id="status"></p>
+
     </div>
 
-    <!-- Signup for under 13 (username only) -->
-    <div id="signupUsernameSection" style="display:none;">
-      <h2>Create Account (Under 13)</h2>
-      <input id="signupUsername" type="text" placeholder="Username">
-      <input id="signupUserPassword" type="password" placeholder="Password">
-      <button id="signupUserButton">Sign Up Without Email</button>
-    </div>
-
-    <!-- Login (email only for 13+) -->
-    <h2>Login</h2>
-    <input id="loginEmail" type="email" placeholder="Email">
-    <input id="loginPassword" type="password" placeholder="Password">
-    <button id="loginButton">Log In</button>
-
-    <!-- Status message -->
-    <h2>Status</h2>
-    <p id="status"></p>
-
-    <!-- Public environment variables -->
+    <!-- ✅ Public environment variables -->
     <script>
       window.env = {
         NEXT_PUBLIC_SUPABASE_URL: "https://ytgwxpxjivruoewxbuyr.supabase.co",
@@ -52,7 +121,7 @@
       };
     </script>
 
-    <!-- Supabase logic -->
+    <!-- ✅ Supabase logic -->
     <script type="module">
       import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -61,20 +130,17 @@
         window.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       );
 
-      // Test button
+      // ✅ Test button
       document.getElementById("testButton").onclick = async () => {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from("test_messages")
           .insert([{ message: "Hello from my website!" }]);
 
-        if (error) {
-          alert("Error: " + error.message);
-        } else {
-          alert("Success! Message sent to Supabase.");
-        }
+        document.getElementById("status").innerText =
+          error ? "Error: " + error.message : "Success! Message sent to Supabase.";
       };
 
-      // Age check logic
+      // ✅ Age check logic
       const ageCheck = document.getElementById("ageCheck");
       const signupEmailSection = document.getElementById("signupEmailSection");
       const signupUsernameSection = document.getElementById("signupUsernameSection");
@@ -89,21 +155,18 @@
         }
       };
 
-      // Signup (13+)
+      // ✅ Signup (13+)
       document.getElementById("signupButton").onclick = async () => {
         const email = document.getElementById("signupEmail").value;
         const password = document.getElementById("signupPassword").value;
 
-        const { error } = await supabase.auth.signUp({
-          email: email,
-          password: password
-        });
+        const { error } = await supabase.auth.signUp({ email, password });
 
         document.getElementById("status").innerText =
           error ? "Signup error: " + error.message : "Signup successful! Check your email.";
       };
 
-      // Signup (under 13)
+      // ✅ Signup (under 13)
       document.getElementById("signupUserButton").onclick = async () => {
         const username = document.getElementById("signupUsername").value;
         const password = document.getElementById("signupUserPassword").value;
@@ -116,15 +179,12 @@
           error ? "Signup error: " + error.message : "Under-13 account created!";
       };
 
-      // Login (13+ only)
+      // ✅ Login (13+ only)
       document.getElementById("loginButton").onclick = async () => {
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
 
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
 
         document.getElementById("status").innerText =
           error ? "Login error: " + error.message : "Login successful!";
