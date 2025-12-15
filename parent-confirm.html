@@ -60,11 +60,19 @@
       background: #e85a4f;
     }
 
-    #status {
+    #status, #confirmStatus {
       text-align: center;
       font-weight: bold;
       margin-top: 10px;
       color: #444;
+    }
+
+    #resendButton {
+      background: #6a5acd;
+    }
+
+    #resendButton:hover {
+      background: #5a4abc;
     }
   </style>
 </head>
@@ -80,8 +88,10 @@
     <input id="parentEmail" type="email" placeholder="Parent's Email">
 
     <button id="sendParentEmail">Send Confirmation Email</button>
+    <button id="resendButton">Resend Email</button>
 
     <p id="status"></p>
+    <p id="confirmStatus"></p>
   </div>
 
   <script>
@@ -99,6 +109,7 @@
       window.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
 
+    // ✅ Send first confirmation email
     document.getElementById("sendParentEmail").onclick = async () => {
       const username = document.getElementById("childUsername").value;
       const parentEmail = document.getElementById("parentEmail").value;
@@ -120,7 +131,7 @@
         return;
       }
 
-      // Send email to parent (magic link)
+      // Send email to parent
       const { error: emailError } = await supabase.auth.signInWithOtp({
         email: parentEmail,
         options: {
@@ -133,6 +144,54 @@
           ? "Error sending email: " + emailError.message
           : "Confirmation email sent to parent!";
     };
+
+    // ✅ Resend email (works even if parent already exists)
+    document.getElementById("resendButton").onclick = async () => {
+      const parentEmail = document.getElementById("parentEmail").value;
+
+      if (!parentEmail) {
+        document.getElementById("status").innerText =
+          "Enter the parent email first.";
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email: parentEmail,
+        options: {
+          emailRedirectTo: "https://YOUR-SITE-URL.com/parent-dashboard.html"
+        }
+      });
+
+      document.getElementById("status").innerText =
+        error
+          ? "Error resending email: " + error.message
+          : "A new confirmation email has been sent!";
+    };
+
+    // ✅ Check parent confirmation status every 3 seconds
+    setInterval(async () => {
+      const username = document.getElementById("childUsername").value;
+      const parentEmail = document.getElementById("parentEmail").value;
+
+      if (!username || !parentEmail) return;
+
+      const { data } = await supabase
+        .from("parent_confirmations")
+        .select("*")
+        .eq("child_username", username)
+        .eq("parent_email", parentEmail)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (data && data.length > 0) {
+        const confirmed = data[0].confirmed;
+
+        document.getElementById("confirmStatus").innerText =
+          confirmed
+            ? "✅ Parent has approved your account!"
+            : "⏳ Waiting for parent approval...";
+      }
+    }, 3000);
   </script>
 
 </body>
