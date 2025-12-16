@@ -1,206 +1,164 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>My First Render Site</title>
+<head>
+  <title>My First Render Site</title>
 
-    <!-- Design / CSS -->
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #6dd5fa, #2980b9);
-        margin: 0;
-        padding: 20px;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-      }
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #6dd5fa, #2980b9);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
 
-      .container {
-        width: 100%;
-        max-width: 500px;
-        margin: 40px auto;
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      margin: 40px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
 
-      h1, h2 {
-        color: #333;
-        text-align: center;
-      }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
 
-      input {
-        width: 100%;
-        padding: 12px;
-        margin: 8px 0;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        font-size: 15px;
-      }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
 
-      button {
-        width: 100%;
-        padding: 12px;
-        background: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 16px;
-        margin-top: 5px;
-      }
+    button {
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
 
-      button:hover {
-        background: #45a049;
-      }
+    button:hover {
+      background: #45a049;
+    }
 
-      #status {
-        font-weight: bold;
-        color: #444;
-        margin-top: 10px;
-        text-align: center;
-      }
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
 
-      label {
-        font-size: 18px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        margin: 15px 0;
-      }
-    </style>
-  </head>
+    label {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 15px 0;
+    }
+  </style>
+</head>
 
-  <body>
+<body>
 
-    <div class="container">
+<div class="container">
+  <h1>Hello! Your site is working.</h1>
 
-      <h1>Hello! Your site is working.</h1>
-      <p style="text-align:center;">Welcome to your first Supabase-powered website.</p>
+  <button id="testButton">Send Test to Supabase</button>
 
-      <!-- Test Supabase button -->
-      <button id="testButton">Send Test to Supabase</button>
+  <h2>Age Check</h2>
+  <label>
+    <input type="checkbox" id="ageCheck">
+    Are you 13 or older?
+  </label>
 
-      <!-- Age Check -->
-      <h2>Age Check</h2>
-      <label>
-        <input type="checkbox" id="ageCheck">
-        Are you 13+?
-      </label>
+  <!-- 13+ signup -->
+  <div id="signupEmailSection" style="display:none;">
+    <h2>Create Account (13+)</h2>
+    <input id="signupEmail" type="email" placeholder="Email">
+    <input id="signupPassword" type="password" placeholder="Password">
+    <button id="signupButton">Sign Up</button>
+  </div>
 
-      <!-- Signup for 13+ (email required) -->
-      <div id="signupEmailSection" style="display:none;">
-        <h2>Create Account (13+)</h2>
-        <input id="signupEmail" type="email" placeholder="Email">
-        <input id="signupPassword" type="password" placeholder="Password">
-        <button id="signupButton">Sign Up</button>
-      </div>
+  <!-- Under 13 signup -->
+  <div id="signupUsernameSection" style="display:none;">
+    <h2>Create Account (Under 13)</h2>
+    <input id="signupUsername" type="text" placeholder="Username">
+    <button id="signupUserButton">Create Child Account</button>
+  </div>
 
-      <!-- Signup for under 13 (username only) -->
-      <div id="signupUsernameSection" style="display:none;">
-        <h2>Create Account (Under 13)</h2>
-        <input id="signupUsername" type="text" placeholder="Username">
-        <input id="signupUserPassword" type="password" placeholder="Password">
-        <button id="signupUserButton">Sign Up Without Email</button>
-      </div>
+  <h2>Login (13+)</h2>
+  <input id="loginEmail" type="email" placeholder="Email">
+  <input id="loginPassword" type="password" placeholder="Password">
+  <button id="loginButton">Log In</button>
 
-      <!-- Login (email only for 13+) -->
-      <h2>Login</h2>
-      <input id="loginEmail" type="email" placeholder="Email">
-      <input id="loginPassword" type="password" placeholder="Password">
-      <button id="loginButton">Log In</button>
+  <p id="status"></p>
+</div>
 
-      <!-- Status message -->
-      <h2>Status</h2>
-      <p id="status"></p>
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    </div>
+  const supabase = createClient(
+    "https://ytgwxpxjivruoewxbuyr.supabase.co",
+    "YOUR_ANON_KEY"
+  );
 
-    <!-- Public environment variables -->
-    <script>
-      window.env = {
-        NEXT_PUBLIC_SUPABASE_URL: "https://ytgwxpxjivruoewxbuyr.supabase.co",
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Z3d4cHhqaXZydW9ld3hidXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODMxODcsImV4cCI6MjA4MDA1OTE4N30.YMWdo_dRFKt5uufujOZ9BKe-Ygdc0fau1qVnltfmP6o"
-      };
-    </script>
+  const status = document.getElementById("status");
 
-    <!-- Supabase logic -->
-    <script type="module">
-      import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  // Test Supabase
+  document.getElementById("testButton").onclick = async () => {
+    const { error } = await supabase
+      .from("test_messages")
+      .insert([{ message: "Hello from my website!" }]);
 
-      const supabase = createClient(
-        window.env.NEXT_PUBLIC_SUPABASE_URL,
-        window.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
+    status.innerText = error ? error.message : "Supabase works!";
+  };
 
-      // Test button
-      document.getElementById("testButton").onclick = async () => {
-        const { error } = await supabase
-          .from("test_messages")
-          .insert([{ message: "Hello from my website!" }]);
+  // Age toggle
+  ageCheck.onchange = () => {
+    signupEmailSection.style.display = ageCheck.checked ? "block" : "none";
+    signupUsernameSection.style.display = ageCheck.checked ? "none" : "block";
+  };
 
-        document.getElementById("status").innerText =
-          error ? "Error: " + error.message : "Success! Message sent to Supabase.";
-      };
+  // Signup 13+
+  signupButton.onclick = async () => {
+    const email = signupEmail.value;
+    const password = signupPassword.value;
 
-      // Age check logic
-      const ageCheck = document.getElementById("ageCheck");
-      const signupEmailSection = document.getElementById("signupEmailSection");
-      const signupUsernameSection = document.getElementById("signupUsernameSection");
+    const { error } = await supabase.auth.signUp({ email, password });
+    status.innerText = error ? error.message : "Check your email to confirm.";
+  };
 
-      ageCheck.onchange = () => {
-        if (ageCheck.checked) {
-          signupEmailSection.style.display = "block";
-          signupUsernameSection.style.display = "none";
-        } else {
-          signupEmailSection.style.display = "none";
-          signupUsernameSection.style.display = "block";
-        }
-      };
+  // Signup under 13
+  signupUserButton.onclick = async () => {
+    const username = signupUsername.value;
 
-      // Signup (13+)
-      document.getElementById("signupButton").onclick = async () => {
-        const email = document.getElementById("signupEmail").value;
-        const password = document.getElementById("signupPassword").value;
+    const { error } = await supabase
+      .from("child_users")
+      .insert([{ username }]);
 
-        const { error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      status.innerText = error.message;
+    } else {
+      window.location.href = "parent-confirm.html?child=" + username;
+    }
+  };
 
-        document.getElementById("status").innerText =
-          error ? "Signup error: " + error.message : "Signup successful! Check your email.";
-      };
+  // Login
+  loginButton.onclick = async () => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginEmail.value,
+      password: loginPassword.value
+    });
 
-      // Signup (under 13)
-      document.getElementById("signupUserButton").onclick = async () => {
-        const username = document.getElementById("signupUsername").value;
-        const password = document.getElementById("signupUserPassword").value;
+    status.innerText = error ? error.message : "Logged in!";
+  };
+</script>
 
-        const { error } = await supabase
-          .from("child_users")
-          .insert([{ username, password }]);
-
-        if (error) {
-          document.getElementById("status").innerText =
-            "Signup error: " + error.message;
-        } else {
-          // after signup, go to parent confirmation page
-          window.location.href = "parent-confirm.html";
-        }
-      };
-
-      // Login (13+ only)
-      document.getElementById("loginButton").onclick = async () => {
-        const email = document.getElementById("loginEmail").value;
-        const password = document.getElementById("loginPassword").value;
-
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-        document.getElementById("status").innerText =
-          error ? "Login error: " + error.message : "Login successful!";
-      };
-    </script>
-
-  </body>
+</body>
 </html>
