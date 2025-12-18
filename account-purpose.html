@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Choose Account Purpose</title>
+  <style>
+    body { font-family: Arial; text-align: center; background: #f0f8ff; padding: 50px; }
+    .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    label { display: block; margin: 15px 0; font-size: 18px; }
+    button { padding: 12px 20px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Choose Your Account Purpose</h1>
+
+  <label><input type="checkbox" id="learningWithGames"> Learning (with games)</label>
+  <label><input type="checkbox" id="pureLearning"> Pure Learning</label>
+  <label><input type="checkbox" id="gaming"> Gaming</label>
+  <label><input type="checkbox" id="shopping"> Shopping</label>
+
+  <button id="saveBtn">Save Preferences</button>
+  <p id="status"></p>
+</div>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  // 🔑 Replace with your Supabase URL and anon key
+  const supabase = createClient("https://ytgwxpxjivruoewxbuyr.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Z3d4cHhqaXZydW9ld3hidXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODMxODcsImV4cCI6MjA4MDA1OTE4N30.YMWdo_dRFKt5uufujOZ9BKe-Ygdc0fau1qVnltfmP6o");
+  const status = document.getElementById("status");
+
+  // 1️⃣ Check if the user is logged in
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    status.innerText = "You are not logged in. Please log in first.";
+    document.getElementById("saveBtn").disabled = true;
+    throw new Error("User not logged in");
+  }
+
+  const username = session.user.email; // Use email as unique identifier
+
+  // 2️⃣ Load existing preferences
+  const { data: prefs } = await supabase
+    .from("user_preferences")
+    .select("*")
+    .eq("username", username)
+    .single();
+
+  if (prefs) {
+    document.getElementById("learningWithGames").checked = prefs.learning_with_games;
+    document.getElementById("pureLearning").checked = prefs.pure_learning;
+    document.getElementById("gaming").checked = prefs.gaming;
+    document.getElementById("shopping").checked = prefs.shopping;
+  }
+
+  // 3️⃣ Save button
+  document.getElementById("saveBtn").onclick = async () => {
+    const learningWithGames = document.getElementById("learningWithGames").checked;
+    const pureLearning = document.getElementById("pureLearning").checked;
+    const gaming = document.getElementById("gaming").checked;
+    const shopping = document.getElementById("shopping").checked;
+
+    if (prefs) {
+      // Update existing preferences
+      const { error } = await supabase
+        .from("user_preferences")
+        .update({
+          learning_with_games: learningWithGames,
+          pure_learning: pureLearning,
+          gaming,
+          shopping,
+          updated_at: new Date()
+        })
+        .eq("username", username);
+      status.innerText = error ? error.message : "Preferences updated!";
+    } else {
+      // Insert new preferences
+      const { error } = await supabase
+        .from("user_preferences")
+        .insert({
+          username,
+          learning_with_games: learningWithGames,
+          pure_learning: pureLearning,
+          gaming,
+          shopping
+        });
+      status.innerText = error ? error.message : "Preferences saved!";
+    }
+
+    // Redirect to dashboard or game selection after 1s
+    setTimeout(() => window.location.href = "dashboard.html", 1000);
+  };
+</script>
+
+</body>
+</html>
