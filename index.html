@@ -5,6 +5,7 @@
   <title>My First Render Site</title>
 
   <style>
+    :root { --card-bg: #ffffff; --accent: #4CAF50; --accent-hover: #45a049; }
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #6dd5fa, #2980b9);
@@ -18,17 +19,33 @@
 
     .container {
       width: 100%;
-      max-width: 500px;
+      max-width: 700px;
       margin: 40px auto;
-      background: white;
-      padding: 25px;
+      background: var(--card-bg);
+      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+      box-sizing: border-box;
     }
 
-    h1, h2 {
-      text-align: center;
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
       color: #333;
+    }
+
+    .top-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
 
     input, button {
@@ -41,85 +58,114 @@
       box-sizing: border-box;
     }
 
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
     button {
-      background: #4CAF50;
+      background: var(--accent);
       color: white;
       cursor: pointer;
+      border: none;
     }
 
     button:hover {
-      background: #45a049;
+      background: var(--accent-hover);
     }
 
     #status {
       margin-top: 15px;
       font-weight: bold;
       text-align: center;
+      min-height: 1.2em;
     }
 
     label {
       display: flex;
-      justify-content: center;
+      align-items: center;
       gap: 10px;
-      margin: 15px 0;
+      margin: 12px 0;
+    }
+
+    /* make the small test button not full width */
+    #testButton {
+      width: auto;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 520px) {
+      .two-column { grid-template-columns: 1fr; }
+      .header { flex-direction: column; align-items: stretch; gap: 10px; }
+      #testButton { justify-self: end; }
     }
   </style>
 </head>
 
 <body>
+  <div class="container">
+    <div class="header">
+      <h1>Hello! Your site is working.</h1>
+      <div class="top-controls">
+        <!-- Test button placed at the side -->
+        <button id="testButton">Send Test to Supabase</button>
+      </div>
+    </div>
 
-<div class="container">
-  <h1>Hello! Your site is working.</h1>
+    <div class="content">
+      <h2>Age Check</h2>
+      <label>
+        <input type="checkbox" id="ageCheck">
+        Are you 13 or older?
+      </label>
 
-  <button id="testButton">Send Test to Supabase</button>
+      <div class="two-column">
+        <!-- 13+ signup -->
+        <div id="signupEmailSection" style="display:none;">
+          <h3>Create Account (13+)</h3>
+          <input id="signupEmail" type="email" placeholder="Email">
+          <input id="signupPassword" type="password" placeholder="Password">
+          <button id="signupButton">Sign Up</button>
+        </div>
 
-  <h2>Age Check</h2>
-  <label>
-    <input type="checkbox" id="ageCheck">
-    Are you 13 or older?
-  </label>
+        <!-- Under 13 signup -->
+        <div id="signupUsernameSection" style="display:none;">
+          <h3>Create Account (Under 13)</h3>
+          <input id="signupUsername" type="text" placeholder="Username">
+          <button id="signupUserButton">Create Child Account</button>
+        </div>
+      </div>
 
-  <!-- 13+ signup -->
-  <div id="signupEmailSection" style="display:none;">
-    <h2>Create Account (13+)</h2>
-    <input id="signupEmail" type="email" placeholder="Email">
-    <input id="signupPassword" type="password" placeholder="Password">
-    <button id="signupButton">Sign Up</button>
+      <h2>Login (13+)</h2>
+      <input id="loginEmail" type="email" placeholder="Email">
+      <input id="loginPassword" type="password" placeholder="Password">
+      <button id="loginButton">Log In</button>
+
+      <p id="status"></p>
+    </div>
   </div>
-
-  <!-- Under 13 signup -->
-  <div id="signupUsernameSection" style="display:none;">
-    <h2>Create Account (Under 13)</h2>
-    <input id="signupUsername" type="text" placeholder="Username">
-    <button id="signupUserButton">Create Child Account</button>
-  </div>
-
-  <h2>Login (13+)</h2>
-  <input id="loginEmail" type="email" placeholder="Email">
-  <input id="loginPassword" type="password" placeholder="Password">
-  <button id="loginButton">Log In</button>
-
-  <p id="status"></p>
-</div>
 
 <script type="module">
   // --------------------------
-  // CONFIG — replace these
+  // CONFIG — replace these values with your project info
   // --------------------------
-  const SUPABASE_URL = "https://ytgwxpxjivruoewxbuyr.supabase.co"; // replace with your project URL
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Z3d4cHhqaXZydW9ld3hidXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODMxODcsImV4cCI6MjA4MDA1OTE4N30.YMWdo_dRFKt5uufujOZ9BKe-Ygdc0fau1qVnltfmP6o"; // replace with your public anon key
-  // Page to send users to after successful login:
-  const REDIRECT_AFTER_LOGIN = "/account-purpose.html"; // change to your app/dashboard page
+  // Put your project URL and anon key inside the quotes exactly.
+  const SUPABASE_URL = "https://YOUR-SUPABASE-PROJECT.supabase.co"; // <-- replace
+  const SUPABASE_ANON_KEY = "REDACTED_OR_ANON_KEY";               // <-- replace
+  // Where to send after successful login (change to your app page)
+  const REDIRECT_AFTER_LOGIN = "/app.html"; // e.g. "/dashboard.html" or "/app.html"
 
   // --------------------------
   // Supabase client
   // --------------------------
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-  const supabase = createClient(https://ytgwxpxjivruoewxbuyr.supabase.co, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Z3d4cHhqaXZydW9ld3hidXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODMxODcsImV4cCI6MjA4MDA1OTE4N30.YMWdo_dRFKt5uufujOZ9BKe-Ygdc0fau1qVnltfmP6o);
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // --------------------------
-  // Element references
+  // Element references (safe guards)
   // --------------------------
   const status = document.getElementById("status");
   const testButton = document.getElementById("testButton");
@@ -135,17 +181,13 @@
   const loginPassword = document.getElementById("loginPassword");
   const loginButton = document.getElementById("loginButton");
 
-  // --------------------------
-  // Helper: show status and console log
-  // --------------------------
   function showStatus(msg) {
-    status.innerText = msg;
+    if (status) status.innerText = msg;
     console.log(msg);
   }
 
   // --------------------------
-  // Optional: If someone visits this page and is already signed in,
-  // send them straight to the app (useful if they have an active session)
+  // Check for existing session on page load, redirect if signed in
   // --------------------------
   (async () => {
     try {
@@ -164,126 +206,127 @@
   })();
 
   // --------------------------
-  // Test Supabase insert
+  // Test button: insert test message
   // --------------------------
-  testButton.onclick = async () => {
-    try {
-      const { error } = await supabase
-        .from("test_messages")
-        .insert([{ message: "Hello from my website!" }]);
-      showStatus(error ? error.message : "Supabase works!");
-    } catch (err) {
-      console.error(err);
-      showStatus("Test failed (see console).");
-    }
-  };
+  if (testButton) {
+    testButton.addEventListener("click", async () => {
+      try {
+        const { error } = await supabase
+          .from("test_messages")
+          .insert([{ message: "Hello from my website!" }]);
+        if (error) {
+          showStatus("Test error: " + error.message);
+          console.error("insert error:", error);
+        } else {
+          showStatus("Supabase works!");
+          console.log("Test insert success");
+        }
+      } catch (err) {
+        console.error("Unexpected test error:", err);
+        showStatus("Test failed (see console).");
+      }
+    });
+  }
 
   // --------------------------
   // Age toggle UI
   // --------------------------
-  ageCheck.onchange = () => {
-    signupEmailSection.style.display = ageCheck.checked ? "block" : "none";
-    signupUsernameSection.style.display = ageCheck.checked ? "none" : "block";
-  };
+  if (ageCheck) {
+    ageCheck.addEventListener("change", () => {
+      if (signupEmailSection && signupUsernameSection) {
+        signupEmailSection.style.display = ageCheck.checked ? "block" : "none";
+        signupUsernameSection.style.display = ageCheck.checked ? "none" : "block";
+      }
+    });
+  }
 
   // --------------------------
   // Signup for 13+ (email + password)
   // --------------------------
-  signupButton.onclick = async () => {
-    const email = signupEmail.value;
-    const password = signupPassword.value;
-
-    if (!email || !password) {
-      showStatus("Please enter email and password.");
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      console.log("signUp result:", data, error);
-      if (error) {
-        showStatus(error.message);
-      } else {
-        // If your Supabase auth requires email confirmation, the user must check their email.
-        showStatus("Check your email to confirm (if required).");
+  if (signupButton) {
+    signupButton.addEventListener("click", async () => {
+      const email = signupEmail?.value?.trim();
+      const password = signupPassword?.value;
+      if (!email || !password) {
+        showStatus("Please enter email and password.");
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      showStatus("Sign up failed (see console).");
-    }
-  };
+      try {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        console.log("signUp result:", data, error);
+        if (error) {
+          showStatus(error.message);
+        } else {
+          showStatus("Check your email to confirm (if required).");
+        }
+      } catch (err) {
+        console.error("Sign up failed:", err);
+        showStatus("Sign up failed (see console).");
+      }
+    });
+  }
 
   // --------------------------
   // Signup for under 13 (create child user row)
   // --------------------------
-  signupUserButton.onclick = async () => {
-    const username = signupUsername.value && signupUsername.value.trim();
-    if (!username) {
-      showStatus("Please enter a username.");
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from("child_users")
-        .insert([{ username }]);
-
-      if (error) {
-        showStatus(error.message);
-      } else {
-        // Send parent to a confirmation page (unchanged from your original flow)
-        window.location.href = "parent-confirm.html?child=" + encodeURIComponent(username);
+  if (signupUserButton) {
+    signupUserButton.addEventListener("click", async () => {
+      const username = signupUsername?.value?.trim();
+      if (!username) {
+        showStatus("Please enter a username.");
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      showStatus("Could not create child account (see console).");
-    }
-  };
+      try {
+        const { error } = await supabase
+          .from("child_users")
+          .insert([{ username }]);
+        if (error) {
+          showStatus(error.message);
+          console.error("child_users insert error:", error);
+        } else {
+          window.location.href = "parent-confirm.html?child=" + encodeURIComponent(username);
+        }
+      } catch (err) {
+        console.error("Create child account failed:", err);
+        showStatus("Could not create child account (see console).");
+      }
+    });
+  }
 
   // --------------------------
   // LOGIN: immediate redirect on successful sign-in
   // --------------------------
-  loginButton.onclick = async () => {
-    const email = loginEmail.value;
-    const password = loginPassword.value;
-
-    if (!email || !password) {
-      showStatus("Please enter email and password.");
-      return;
-    }
-
-    try {
-      // signInWithPassword returns data and error; data.session exists on success
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      console.log("signIn result:", data, error);
-
-      if (error) {
-        // Could be wrong credentials, unconfirmed email, etc.
-        showStatus(error.message);
+  if (loginButton) {
+    loginButton.addEventListener("click", async () => {
+      const email = loginEmail?.value?.trim();
+      const password = loginPassword?.value;
+      if (!email || !password) {
+        showStatus("Please enter email and password.");
         return;
       }
-
-      // If session exists immediately, redirect
-      if (data?.session) {
-        showStatus("Logged in! Redirecting…");
-        // Redirect to your app page — change REDIRECT_AFTER_LOGIN at top if needed
-        window.location.href = REDIRECT_AFTER_LOGIN;
-        return;
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        console.log("signIn result:", data, error);
+        if (error) {
+          showStatus(error.message);
+          return;
+        }
+        if (data?.session) {
+          showStatus("Logged in! Redirecting…");
+          window.location.href = REDIRECT_AFTER_LOGIN;
+          return;
+        }
+        // No immediate session — often means email confirmation required
+        showStatus("Signed in but no session found. Check email confirmation if required.");
+      } catch (err) {
+        console.error("Login error:", err);
+        showStatus("Login failed (see console).");
       }
-
-      // No session returned immediately. This can happen if the account requires email confirmation.
-      showStatus("Signed in but no session found. Check email confirmation if required.");
-      // If you want to try redirecting anyway (some setups produce session later), you could:
-      // window.location.href = REDIRECT_AFTER_LOGIN;
-    } catch (err) {
-      console.error("Login error:", err);
-      showStatus("Login failed (see console).");
-    }
-  };
+    });
+  }
 </script>
 
 </body>
