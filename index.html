@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8" />
   <title>My First Render Site</title>
 
   <style>
@@ -37,6 +38,7 @@
       border-radius: 6px;
       border: 1px solid #ccc;
       font-size: 15px;
+      box-sizing: border-box;
     }
 
     button {
@@ -101,62 +103,186 @@
 </div>
 
 <script type="module">
+  // --------------------------
+  // CONFIG — replace these
+  // --------------------------
+  const SUPABASE_URL = "https://YOUR-SUPABASE-PROJECT.supabase.co"; // replace with your project URL
+  const SUPABASE_ANON_KEY = "REDACTED_OR_ANON_KEY"; // replace with your public anon key
+  // Page to send users to after successful login:
+  const REDIRECT_AFTER_LOGIN = "/app.html"; // change to your app/dashboard page
+
+  // --------------------------
+  // Supabase client
+  // --------------------------
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const supabase = createClient(
-    "https://ytgwxpxjivruoewxbuyr.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Z3d4cHhqaXZydW9ld3hidXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODMxODcsImV4cCI6MjA4MDA1OTE4N30.YMWdo_dRFKt5uufujOZ9BKe-Ygdc0fau1qVnltfmP6o"
-  );
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // --------------------------
+  // Element references
+  // --------------------------
   const status = document.getElementById("status");
+  const testButton = document.getElementById("testButton");
+  const ageCheck = document.getElementById("ageCheck");
+  const signupEmailSection = document.getElementById("signupEmailSection");
+  const signupUsernameSection = document.getElementById("signupUsernameSection");
+  const signupEmail = document.getElementById("signupEmail");
+  const signupPassword = document.getElementById("signupPassword");
+  const signupButton = document.getElementById("signupButton");
+  const signupUsername = document.getElementById("signupUsername");
+  const signupUserButton = document.getElementById("signupUserButton");
+  const loginEmail = document.getElementById("loginEmail");
+  const loginPassword = document.getElementById("loginPassword");
+  const loginButton = document.getElementById("loginButton");
 
-  // Test Supabase
-  document.getElementById("testButton").onclick = async () => {
-    const { error } = await supabase
-      .from("test_messages")
-      .insert([{ message: "Hello from my website!" }]);
+  // --------------------------
+  // Helper: show status and console log
+  // --------------------------
+  function showStatus(msg) {
+    status.innerText = msg;
+    console.log(msg);
+  }
 
-    status.innerText = error ? error.message : "Supabase works!";
+  // --------------------------
+  // Optional: If someone visits this page and is already signed in,
+  // send them straight to the app (useful if they have an active session)
+  // --------------------------
+  (async () => {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.warn("getSession error:", error);
+        return;
+      }
+      if (data?.session) {
+        console.log("User already signed in, redirecting...");
+        window.location.href = REDIRECT_AFTER_LOGIN;
+      }
+    } catch (err) {
+      console.error("Error checking session on load:", err);
+    }
+  })();
+
+  // --------------------------
+  // Test Supabase insert
+  // --------------------------
+  testButton.onclick = async () => {
+    try {
+      const { error } = await supabase
+        .from("test_messages")
+        .insert([{ message: "Hello from my website!" }]);
+      showStatus(error ? error.message : "Supabase works!");
+    } catch (err) {
+      console.error(err);
+      showStatus("Test failed (see console).");
+    }
   };
 
-  // Age toggle
+  // --------------------------
+  // Age toggle UI
+  // --------------------------
   ageCheck.onchange = () => {
     signupEmailSection.style.display = ageCheck.checked ? "block" : "none";
     signupUsernameSection.style.display = ageCheck.checked ? "none" : "block";
   };
 
-  // Signup 13+
+  // --------------------------
+  // Signup for 13+ (email + password)
+  // --------------------------
   signupButton.onclick = async () => {
     const email = signupEmail.value;
     const password = signupPassword.value;
 
-    const { error } = await supabase.auth.signUp({ email, password });
-    status.innerText = error ? error.message : "Check your email to confirm.";
-  };
+    if (!email || !password) {
+      showStatus("Please enter email and password.");
+      return;
+    }
 
-  // Signup under 13
-  signupUserButton.onclick = async () => {
-    const username = signupUsername.value;
-
-    const { error } = await supabase
-      .from("child_users")
-      .insert([{ username }]);
-
-    if (error) {
-      status.innerText = error.message;
-    } else {
-      window.location.href = "parent-confirm.html?child=" + username;
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      console.log("signUp result:", data, error);
+      if (error) {
+        showStatus(error.message);
+      } else {
+        // If your Supabase auth requires email confirmation, the user must check their email.
+        showStatus("Check your email to confirm (if required).");
+      }
+    } catch (err) {
+      console.error(err);
+      showStatus("Sign up failed (see console).");
     }
   };
 
-  // Login
-  loginButton.onclick = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail.value,
-      password: loginPassword.value
-    });
+  // --------------------------
+  // Signup for under 13 (create child user row)
+  // --------------------------
+  signupUserButton.onclick = async () => {
+    const username = signupUsername.value && signupUsername.value.trim();
+    if (!username) {
+      showStatus("Please enter a username.");
+      return;
+    }
 
-    status.innerText = error ? error.message : "Logged in!";
+    try {
+      const { error } = await supabase
+        .from("child_users")
+        .insert([{ username }]);
+
+      if (error) {
+        showStatus(error.message);
+      } else {
+        // Send parent to a confirmation page (unchanged from your original flow)
+        window.location.href = "parent-confirm.html?child=" + encodeURIComponent(username);
+      }
+    } catch (err) {
+      console.error(err);
+      showStatus("Could not create child account (see console).");
+    }
+  };
+
+  // --------------------------
+  // LOGIN: immediate redirect on successful sign-in
+  // --------------------------
+  loginButton.onclick = async () => {
+    const email = loginEmail.value;
+    const password = loginPassword.value;
+
+    if (!email || !password) {
+      showStatus("Please enter email and password.");
+      return;
+    }
+
+    try {
+      // signInWithPassword returns data and error; data.session exists on success
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      console.log("signIn result:", data, error);
+
+      if (error) {
+        // Could be wrong credentials, unconfirmed email, etc.
+        showStatus(error.message);
+        return;
+      }
+
+      // If session exists immediately, redirect
+      if (data?.session) {
+        showStatus("Logged in! Redirecting…");
+        // Redirect to your app page — change REDIRECT_AFTER_LOGIN at top if needed
+        window.location.href = REDIRECT_AFTER_LOGIN;
+        return;
+      }
+
+      // No session returned immediately. This can happen if the account requires email confirmation.
+      showStatus("Signed in but no session found. Check email confirmation if required.");
+      // If you want to try redirecting anyway (some setups produce session later), you could:
+      // window.location.href = REDIRECT_AFTER_LOGIN;
+    } catch (err) {
+      console.error("Login error:", err);
+      showStatus("Login failed (see console).");
+    }
   };
 </script>
 
