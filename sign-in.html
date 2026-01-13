@@ -1,1 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Template — Sign In</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <main class="card center">
+    <h1 class="brand">MyApp</h1>
 
+    <div class="tabs">
+      <button id="tab-signin" class="tab active">Sign In</button>
+      <button id="tab-signup" class="tab">Sign Up</button>
+    </div>
+
+    <form id="authForm" class="form">
+      <label>
+        Email
+        <input id="email" type="email" placeholder="you@example.com" required>
+      </label>
+
+      <label>
+        Password
+        <input id="password" type="password" placeholder="At least 6 characters" minlength="6" required>
+      </label>
+
+      <button id="submitBtn" class="btn primary" type="submit">Sign In</button>
+
+      <p class="small muted">Or try with demo account <strong>demo@demo.test / password</strong></p>
+
+      <p id="status" class="status" aria-live="polite"></p>
+    </form>
+
+    <footer class="foot">
+      <p>Built as a minimal template — protected homepage after sign in.</p>
+    </footer>
+  </main>
+
+  <script src="assets/auth.js" defer></script>
+  <script>
+    // Page-specific logic
+    const tabSignIn = document.getElementById('tab-signin');
+    const tabSignUp = document.getElementById('tab-signup');
+    const submitBtn = document.getElementById('submitBtn');
+    const authForm = document.getElementById('authForm');
+    const statusEl = document.getElementById('status');
+
+    let mode = 'signin'; // or 'signup'
+    function setMode(m) {
+      mode = m;
+      tabSignIn.classList.toggle('active', m === 'signin');
+      tabSignUp.classList.toggle('active', m === 'signup');
+      submitBtn.textContent = m === 'signin' ? 'Sign In' : 'Create Account';
+      statusEl.textContent = '';
+    }
+
+    tabSignIn.addEventListener('click', () => setMode('signin'));
+    tabSignUp.addEventListener('click', () => setMode('signup'));
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+
+      try {
+        if (mode === 'signup') {
+          const r = register(email, password);
+          if (!r.ok) {
+            statusEl.textContent = r.message;
+            statusEl.className = 'status error';
+            return;
+          }
+          statusEl.textContent = 'Account created. Signing you in…';
+          statusEl.className = 'status success';
+          // auto-login after signup
+          login(email, password);
+          window.location.href = 'home.html';
+          return;
+        }
+
+        // Sign in flow
+        const r = login(email, password);
+        if (!r.ok) {
+          statusEl.textContent = r.message;
+          statusEl.className = 'status error';
+          return;
+        }
+        statusEl.textContent = 'Signed in — redirecting…';
+        statusEl.className = 'status success';
+        // small delay so user sees message
+        setTimeout(() => window.location.href = 'home.html', 300);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Unexpected error — check console.';
+        statusEl.className = 'status error';
+      }
+    });
+
+    // Pre-create demo user if not exists
+    (function ensureDemo() {
+      const demoEmail = 'demo@demo.test';
+      const demoPass = 'password';
+      const users = getUsers();
+      if (!users.find(u => u.email === demoEmail)) {
+        users.push({ email: demoEmail, password: demoPass, createdAt: Date.now() });
+        saveUsers(users);
+      }
+    })();
+  </script>
+</body>
+</html>
