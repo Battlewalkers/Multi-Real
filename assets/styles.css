@@ -1,1 +1,62 @@
+:root{
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --accent:#2563eb;
+  --accent-600:#1e40af;
+  --muted:#6b7280;
+  --danger:#ef4444;
+  --radius:12px;
+  --shadow: 0 8px 30px rgba(17,24,39,0.08);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
 
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:#111}
+.center{max-width:420px;width:92%;margin:40px auto;}
+
+/* Card */
+.card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);}
+
+/* Topbar/brand */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 20px;
+  background:linear-gradient(90deg,#fff,#fff);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.04);
+}
+.brand{font-weight:700;color:var(--accent);font-size:18px}
+
+/* Form */
+.form{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+label{display:flex;flex-direction:column;font-size:14px;color:var(--muted)}
+input[type="email"],input[type="password"],input[type="text"],textarea{
+  margin-top:8px;padding:10px 12px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px;
+}
+.btn{display:inline-block;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+.btn.primary{background:var(--accent);color:white}
+.btn.outline{background:transparent;border:1px solid #e6e9ef;padding:8px 12px;border-radius:8px}
+.btn.danger{background:var(--danger);color:white}
+
+.tabs{display:flex;gap:8px;margin-bottom:10px}
+.tab{flex:1;padding:8px;border-radius:8px;background:#f8fafc;border:1px solid #eef2ff;cursor:pointer}
+.tab.active{background:linear-gradient(90deg,var(--accent),var(--accent-600));color:white;border:0}
+
+/* small utilities */
+.small{font-size:13px;color:var(--muted)}
+.muted{color:var(--muted)}
+.status{min-height:1.2em;margin-top:8px}
+.status.error{color:var(--danger)}
+.status.success{color:green}
+.welcome{margin-right:8px;color:var(--muted)}
+
+.container{max-width:980px;margin:28px auto;padding:0 20px}
+.card + .card{margin-top:16px}
+
+/* responsive */
+@media (max-width:520px){
+  .center{margin:16px auto}
+  .topbar{flex-direction:column;align-items:flex-start;gap:8px}
+}
