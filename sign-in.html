@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MyApp — Sign In</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <main class="card center">
+    <h1 class="brand">MyApp</h1>
+
+    <div class="tabs">
+      <button id="tab-signin" class="tab active">Sign In</button>
+      <button id="tab-signup" class="tab">Sign Up</button>
+    </div>
+
+    <form id="authForm" class="form">
+      <label>
+        Email
+        <input id="email" type="email" placeholder="you@example.com" required>
+      </label>
+
+      <label>
+        Password
+        <input id="password" type="password" placeholder="At least 6 characters" minlength="6" required>
+      </label>
+
+      <button id="submitBtn" class="btn primary" type="submit">Sign In</button>
+
+      <p class="small muted">
+        Demo account: <strong>demo@demo.test</strong> / <strong>password</strong>
+      </p>
+
+      <p id="status" class="status" aria-live="polite"></p>
+    </form>
+
+    <footer class="foot">
+      <p class="small muted">Demo sign-in page</p>
+    </footer>
+  </main>
+
+  <!-- Auth system -->
+  <script src="assets/auth.js" defer></script>
+
+  <!-- Page logic -->
+  <script>
+    const tabSignIn = document.getElementById('tab-signin');
+    const tabSignUp = document.getElementById('tab-signup');
+    const submitBtn = document.getElementById('submitBtn');
+    const authForm = document.getElementById('authForm');
+    const statusEl = document.getElementById('status');
+
+    let mode = 'signin';
+
+    function setMode(newMode) {
+      mode = newMode;
+      tabSignIn.classList.toggle('active', mode === 'signin');
+      tabSignUp.classList.toggle('active', mode === 'signup');
+      submitBtn.textContent = mode === 'signin' ? 'Sign In' : 'Create Account';
+      statusEl.textContent = '';
+      statusEl.className = 'status';
+    }
+
+    tabSignIn.addEventListener('click', () => setMode('signin'));
+    tabSignUp.addEventListener('click', () => setMode('signup'));
+
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (mode === 'signup') {
+        const result = register(email, password);
+
+        if (!result.ok) {
+          statusEl.textContent = result.message;
+          statusEl.className = 'status error';
+          return;
+        }
+
+        statusEl.textContent = 'Account created! Redirecting...';
+        statusEl.className = 'status success';
+
+        window.location.href = 'home.html';
+        return;
+      }
+
+      // Sign in
+      const result = login(email, password);
+
+      if (!result.ok) {
+        statusEl.textContent = result.message;
+        statusEl.className = 'status error';
+        return;
+      }
+
+      statusEl.textContent = 'Signed in! Redirecting...';
+      statusEl.className = 'status success';
+
+      setTimeout(() => {
+        window.location.href = 'home.html';
+      }, 300);
+    });
+  </script>
+</body>
+</html>
