@@ -3,71 +3,75 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Template — Home</title>
+  <title>MyApp — Sign In</title>
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">MyApp</div>
-    <div class="actions">
-      <span id="welcome" class="welcome">Welcome</span>
-      <button id="signOutBtn" class="btn outline">Sign Out</button>
-    </div>
-  </header>
 
-  <main class="container">
-    <section class="card">
-      <h2>Protected Homepage</h2>
-      <p>This page is protected and requires signing in. The template uses a simple client-side session (localStorage) suitable for demo and prototyping.</p>
+<main class="card center">
+  <h1 class="brand">MyApp</h1>
 
-      <div id="contentArea">
-        <!-- dynamic content -->
-      </div>
-    </section>
+  <div class="tabs">
+    <button id="tab-signin" class="tab active">Sign In</button>
+    <button id="tab-signup" class="tab">Sign Up</button>
+  </div>
 
-    <section class="card">
-      <h3>Quick Actions</h3>
-      <button id="profileBtn" class="btn">View Profile</button>
-      <button id="clearDataBtn" class="btn danger">Clear Demo Data</button>
-    </section>
-  </main>
+  <form id="authForm" class="form">
+    <label>
+      Email
+      <input id="email" type="email" required>
+    </label>
 
-  <script src="assets/auth.js" defer></script>
-  <script>
-    // Protect the page and show user info
-    const signOutBtn = document.getElementById('signOutBtn');
-    const welcome = document.getElementById('welcome');
-    const contentArea = document.getElementById('contentArea');
-    const profileBtn = document.getElementById('profileBtn');
-    const clearDataBtn = document.getElementById('clearDataBtn');
+    <label>
+      Password
+      <input id="password" type="password" minlength="6" required>
+    </label>
 
-    const session = getSession();
-    if (!session) {
-      // Not signed in — redirect
-      window.location.href = 'signin.html';
-    } else {
-      welcome.textContent = session.email;
-      contentArea.innerHTML = `
-        <p><strong>Email:</strong> ${session.email}</p>
-        <p><em>Signed in at:</em> ${new Date(session.signedAt).toLocaleString()}</p>
-      `;
+    <button class="btn primary" type="submit" id="submitBtn">Sign In</button>
+
+    <p id="status" class="status"></p>
+  </form>
+</main>
+
+<script src="assets/auth.js"></script>
+
+<script>
+  const tabSignIn = document.getElementById('tab-signin');
+  const tabSignUp = document.getElementById('tab-signup');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusEl = document.getElementById('status');
+
+  let mode = 'signin';
+
+  tabSignIn.onclick = () => {
+    mode = 'signin';
+    submitBtn.textContent = 'Sign In';
+  };
+
+  tabSignUp.onclick = () => {
+    mode = 'signup';
+    submitBtn.textContent = 'Create Account';
+  };
+
+  document.getElementById('authForm').onsubmit = (e) => {
+    e.preventDefault();
+
+    const email = email.value.trim();
+    const password = password.value;
+
+    const result =
+      mode === 'signup'
+        ? register(email, password)
+        : login(email, password);
+
+    if (!result.ok) {
+      statusEl.textContent = result.message;
+      return;
     }
 
-    signOutBtn.addEventListener('click', () => {
-      logout();
-      window.location.href = 'signin.html';
-    });
+    window.location.href = 'home.html';
+  };
+</script>
 
-    profileBtn.addEventListener('click', () => {
-      alert('Profile — email: ' + session.email + '\\nThis is a demo profile.');
-    });
-
-    clearDataBtn.addEventListener('click', () => {
-      if (!confirm('Remove demo users and sign out?')) return;
-      clearDemoData();
-      logout();
-      window.location.href = 'signin.html';
-    });
-  </script>
 </body>
 </html>
