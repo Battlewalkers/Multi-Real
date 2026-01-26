@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MyApp — Home</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">MyApp</div>
+  <button id="signOutBtn">Sign Out</button>
+</header>
+
+<main class="container">
+  <h2 id="welcome"></h2>
+
+  <section class="card">
+    <h3>Gaming</h3>
+    <p>Games and fun content here.</p>
+  </section>
+
+  <section class="card">
+    <h3>Shopping</h3>
+    <p>Products and store links here.</p>
+  </section>
+
+  <section class="card">
+    <h3>Learning</h3>
+    <p>Tutorials and lessons here.</p>
+  </section>
+</main>
+
+<script src="assets/auth.js"></script>
+
+<script>
+  const session = getSession();
+
+  if (!session) {
+    window.location.href = 'index.html';
+  } else {
+    document.getElementById('welcome').textContent =
+      'Welcome, ' + session.email;
+  }
+
+  document.getElementById('signOutBtn').onclick = () => {
+    logout();
+    window.location.href = 'index.html';
+  };
+</script>
+
+</body>
+</html>
