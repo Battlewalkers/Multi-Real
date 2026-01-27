@@ -8,34 +8,40 @@
 </head>
 <body>
 
-<main class="card center">
-  <h1 class="brand">MyApp</h1>
+<main class="center">
+  <div class="card" style="width: 340px;">
+    <h1 class="brand" style="text-align:center;">MyApp</h1>
 
-  <div class="tabs">
-    <button id="tab-signin" class="tab active">Sign In</button>
-    <button id="tab-signup" class="tab">Sign Up</button>
+    <div class="tabs">
+      <button id="tab-signin" class="tab active" type="button">Sign In</button>
+      <button id="tab-signup" class="tab" type="button">Sign Up</button>
+    </div>
+
+    <form id="authForm" class="form">
+      <label>
+        Email
+        <input id="email" type="email" required>
+      </label>
+
+      <label>
+        Password
+        <input id="password" type="password" minlength="6" required>
+      </label>
+
+      <button class="primary" type="submit" id="submitBtn">
+        Sign In
+      </button>
+
+      <p id="status" class="status"></p>
+    </form>
   </div>
-
-  <form id="authForm" class="form">
-    <label>
-      Email
-      <input id="email" type="email" required>
-    </label>
-
-    <label>
-      Password
-      <input id="password" type="password" minlength="6" required>
-    </label>
-
-    <button class="btn primary" type="submit" id="submitBtn">Sign In</button>
-
-    <p id="status" class="status"></p>
-  </form>
 </main>
 
 <script src="assets/auth.js"></script>
 
 <script>
+  // Get elements
+  const authForm = document.getElementById('authForm');
   const tabSignIn = document.getElementById('tab-signin');
   const tabSignUp = document.getElementById('tab-signup');
   const submitBtn = document.getElementById('submitBtn');
@@ -45,27 +51,34 @@
 
   tabSignIn.onclick = () => {
     mode = 'signin';
+    tabSignIn.classList.add('active');
+    tabSignUp.classList.remove('active');
     submitBtn.textContent = 'Sign In';
+    statusEl.textContent = '';
   };
 
   tabSignUp.onclick = () => {
     mode = 'signup';
+    tabSignUp.classList.add('active');
+    tabSignIn.classList.remove('active');
     submitBtn.textContent = 'Create Account';
+    statusEl.textContent = '';
   };
 
-  document.getElementById('authForm').onsubmit = (e) => {
+  authForm.onsubmit = (e) => {
     e.preventDefault();
 
-    const email = email.value.trim();
-    const password = password.value;
+    const emailValue = document.getElementById('email').value.trim();
+    const passwordValue = document.getElementById('password').value;
 
     const result =
       mode === 'signup'
-        ? register(email, password)
-        : login(email, password);
+        ? register(emailValue, passwordValue)
+        : login(emailValue, passwordValue);
 
     if (!result.ok) {
       statusEl.textContent = result.message;
+      statusEl.className = 'status error';
       return;
     }
 
