@@ -16,42 +16,33 @@
 <main class="container">
   <h2>🎮 Games</h2>
 
-  <!-- GAME CARD -->
-  <section class="card">
+  <!-- CLICKER GAME CARD -->
+  <section class="card game-card" id="clickerGame">
     <h3>🖱️ Clicker Game</h3>
-    <p>Click the button as many times as you can!</p>
-
-    <h1 id="score">0</h1>
-
-    <button class="primary" id="clickBtn">
-      Click Me!
-    </button>
+    <p>Click, upgrade, and grow your score!</p>
   </section>
 
+  <!-- FUTURE GAME CARD -->
+  <section class="card game-card">
+    <h3>🧠 Coming Soon</h3>
+    <p>More games are on the way</p>
+  </section>
 </main>
 
 <script src="assets/auth.js"></script>
 
 <script>
-  // Make sure user is logged in
   const session = getSession();
   if (!session) {
     window.location.href = 'index.html';
   }
 
-  // Back button
   document.getElementById('backBtn').onclick = () => {
     window.location.href = 'home.html';
   };
 
-  // Simple click game logic
-  let score = 0;
-  const scoreEl = document.getElementById('score');
-  const clickBtn = document.getElementById('clickBtn');
-
-  clickBtn.onclick = () => {
-    score++;
-    scoreEl.textContent = score;
+  document.getElementById('clickerGame').onclick = () => {
+    window.location.href = 'clicker.html';
   };
 </script>
 
