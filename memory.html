@@ -10,13 +10,14 @@
 
 <header class="topbar">
   <div class="brand">Multi</div>
-  <button id="backBtn">← Games</button>
+  <button onclick="goBack()">← Games</button>
 </header>
 
 <main class="container">
 
   <h2 style="text-align:center;">🧠 Memory Match</h2>
 
+  <!-- CONTROLS -->
   <div style="text-align:center; margin-bottom:20px;">
     <label>
       Difficulty:
@@ -27,16 +28,19 @@
       </select>
     </label>
 
-    <button id="startBtn" class="primary">Start Game</button>
+    <br><br>
+
+    <!-- DIRECT BUTTON ACTION -->
+    <button class="primary" onclick="startGame()">Start Game</button>
   </div>
 
+  <!-- GAME BOARD -->
   <div id="gameBoard"></div>
 
+  <!-- WIN SCREEN -->
   <div id="winScreen" style="display:none; text-align:center; margin-top:30px;">
     <h2>🎉 You Win!</h2>
-    <button class="primary" onclick="window.location.href='games.html'">
-      Back to Games
-    </button>
+    <button class="primary" onclick="goBack()">Back to Games</button>
   </div>
 
 </main>
@@ -44,38 +48,11 @@
 <script src="assets/auth.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-
+  // LOGIN CHECK
   const session = getSession();
   if (!session) {
     window.location.href = 'index.html';
   }
 
-  document.getElementById('backBtn').onclick = () => {
-    window.location.href = 'games.html';
-  };
-
-  const board = document.getElementById('gameBoard');
-  const winScreen = document.getElementById('winScreen');
-  const startBtn = document.getElementById('startBtn');
-  const difficulty = document.getElementById('difficulty');
-
-  let firstCard = null;
-  let lockBoard = false;
-  let matches = 0;
-  let totalPairs = 0;
-
-  startBtn.addEventListener('click', startGame);
-
-  function startGame() {
-    board.innerHTML = '';
-    winScreen.style.display = 'none';
-    firstCard = null;
-    lockBoard = false;
-    matches = 0;
-
-    const size = Number(difficulty.value);
-    totalPairs = (size * size) / 2;
-
-    board.style.display = 'grid';
-    board.style.gridTe
+  function goBack() {
+    window
