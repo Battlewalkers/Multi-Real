@@ -166,36 +166,47 @@ button {
 .container .card {
   margin-bottom: 20px;
 }
-/* ===== FIX NAVBAR TELEPORT GLITCH ===== */
+/* ===== CLEAN NAVBAR (NO BOXES) ===== */
 
-.navbar {
+.nav {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: white;
+  background: #ffffff;
+  padding: 16px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 24px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
 
-.logo {
+.nav-left {
   font-size: 1.6rem;
-  font-weight: bold;
+  font-weight: 700;
   color: #4f46e5;
 }
 
-.nav-links button {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  margin-left: 16px;
-  cursor: pointer;
+.nav-right a {
+  margin-left: 22px;
+  text-decoration: none;
   font-weight: 600;
   color: #333;
+  cursor: pointer;
+  position: relative;
 }
 
-.nav-links button:hover {
-  color: #4f46e5;
+.nav-right a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0%;
+  height: 3px;
+  background: #4f46e5;
+  transition: 0.3s ease;
+  border-radius: 5px;
+}
+
+.nav-right a:hover::after {
+  width: 100%;
 }
