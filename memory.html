@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Multi — Memory Match</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Multi</div>
+  <button id="backBtn">← Games</button>
+</header>
+
+<main class="container">
+  <h2 style="text-align:center;">🧠 Memory Match</h2>
+
+  <div id="gameBoard" style="
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:15px;
+    max-width:400px;
+    margin: 0 auto;
+  ">
+  </div>
+
+  <p style="text-align:center; margin-top:20px;">
+    Matches: <span id="matches">0</span>
+  </p>
+</main>
+
+<script src="assets/auth.js"></script>
+
+<script>
+  const session = getSession();
+  if (!session) {
+    window.location.href = 'index.html';
+  }
+
+  document.getElementById('backBtn').onclick = () => {
+    window.location.href = 'games.html';
+  };
+
+  const symbols = ['🍎','🍎','🍌','🍌','🍇','🍇','🍓','🍓'];
+  let shuffled = symbols.sort(() => Math.random() - 0.5);
+
+  const board = document.getElementById('gameBoard');
+  const matchesEl = document.getElementById('matches');
+
+  let firstCard = null;
+  let lockBoard = false;
+  let matches = 0;
+
+  shuffled.forEach(symbol => {
+    const card = document.createElement('div');
+    card.textContent = '❓';
+    card.dataset.symbol = symbol;
+
+    card.style.cssText = `
+      background:white;
+      border-radius:12px;
+      height:80px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:2rem;
+      cursor:pointer;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    `;
+
+    card.onclick = () => {
+      if (lockBoard || card.textContent !== '❓') return;
+
+      card.textContent = symbol;
+
+      if (!firstCard) {
+        firstCard = card;
+        return;
+      }
+
+      if (firstCard.dataset.symbol === symbol) {
+        matches++;
+        matchesEl.textContent = matches;
+        firstCard = null;
+      } else {
+        lockBoard = true;
+        setTimeout(() => {
+          firstCard.textContent = '❓';
+          card.textContent = '❓';
+          firstCard = null;
+          lockBoard = false;
+        }, 800);
+      }
+    };
+
+    board.appendChild(card);
+  });
+</script>
+
+</body>
+</html>
