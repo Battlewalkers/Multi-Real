@@ -1,59 +1,148 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<title>Sign Up - Multi</title>
-<style>
-body {
-  font-family:'Comic Sans MS', cursive;
-  background:#FFD700;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-
-.box {
-  background:white;
-  padding:40px;
-  border-radius:20px;
-  width:320px;
-  box-shadow:0 5px 20px rgba(0,0,0,0.2);
-  text-align:center;
-}
-
-input {
-  width:100%;
-  padding:10px;
-  margin:10px 0;
-  border-radius:10px;
-  border:1px solid #ccc;
-}
-
-button {
-  background:#2196F3;
-  color:white;
-  border:none;
-  padding:12px;
-  width:100%;
-  border-radius:12px;
-  font-size:16px;
-  cursor:pointer;
-}
-
-a { color:#4CAF50; text-decoration:none; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Multi — Sign In</title>
+  <link rel="stylesheet" href="assets/styles.css">
 </head>
-
 <body>
 
-<div class="box">
-  <h2>📝 Sign Up</h2>
-  <input placeholder="Username">
-  <input type="email" placeholder="Email">
-  <input type="password" placeholder="Password">
-  <button>Create Account</button>
-  <p>Already have an account? <a href="login.html">Login</a></p>
-</div>
+<main class="center">
+  <div class="card" style="width: 360px;">
+    <h1 class="brand" style="text-align:center;">Multi</h1>
+
+    <div class="tabs">
+      <button id="tab-signin" class="tab active" type="button">Sign In</button>
+      <button id="tab-signup" class="tab" type="button">Sign Up</button>
+    </div>
+
+    <form id="authForm" class="form">
+
+      <label>
+        Username
+        <input id="username" type="text" required>
+      </label>
+
+      <label>
+        Password
+        <input id="password" type="password" minlength="6" required>
+      </label>
+
+      <div id="ageSection" style="display:none; font-size:0.9rem;">
+        <label>
+          <input type="radio" name="age" value="13plus">
+          I am 13 years or older
+        </label>
+
+        <label>
+          <input type="radio" name="age" value="under13">
+          I am under 13
+        </label>
+      </div>
+
+      <label id="parentEmailSection" style="display:none;">
+        Parent / Guardian Email
+        <input id="parentEmail" type="email">
+      </label>
+
+      <button class="primary" type="submit" id="submitBtn">
+        Sign In
+      </button>
+
+      <p id="status" class="status"></p>
+    </form>
+  </div>
+</main>
+
+<script src="assets/auth.js"></script>
+
+<script>
+  const authForm = document.getElementById('authForm');
+  const tabSignIn = document.getElementById('tab-signin');
+  const tabSignUp = document.getElementById('tab-signup');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusEl = document.getElementById('status');
+
+  const ageSection = document.getElementById('ageSection');
+  const parentEmailSection = document.getElementById('parentEmailSection');
+
+  let mode = 'signin';
+
+  tabSignIn.onclick = () => {
+    mode = 'signin';
+    tabSignIn.classList.add('active');
+    tabSignUp.classList.remove('active');
+    submitBtn.textContent = 'Sign In';
+    ageSection.style.display = 'none';
+    parentEmailSection.style.display = 'none';
+    statusEl.textContent = '';
+  };
+
+  tabSignUp.onclick = () => {
+    mode = 'signup';
+    tabSignUp.classList.add('active');
+    tabSignIn.classList.remove('active');
+    submitBtn.textContent = 'Create Account';
+    ageSection.style.display = 'block';
+    statusEl.textContent = '';
+  };
+
+  ageSection.addEventListener('change', () => {
+    const ageValue = document.querySelector('input[name="age"]:checked')?.value;
+    parentEmailSection.style.display =
+      ageValue === 'under13' ? 'block' : 'none';
+  });
+
+  authForm.onsubmit = (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const ageValue = document.querySelector('input[name="age"]:checked')?.value;
+    const parentEmail = document.getElementById('parentEmail').value.trim();
+
+    if (mode === 'signup') {
+      if (!ageValue) {
+        statusEl.textContent = 'Please select your age group.';
+        statusEl.className = 'status error';
+        return;
+      }
+
+      if (ageValue === 'under13' && !parentEmail) {
+        statusEl.textContent = 'Parent email is required for under 13 users.';
+        statusEl.className = 'status error';
+        return;
+      }
+
+      const result = register({
+        username,
+        password,
+        isUnder13: ageValue === 'under13',
+        parentEmail
+      });
+
+      if (!result.ok) {
+        statusEl.textContent = result.message;
+        statusEl.className = 'status error';
+        return;
+      }
+
+      window.location.href = 'home.html';
+      return;
+    }
+
+    const result = login(username, password);
+
+    if (!result.ok) {
+      statusEl.textContent = result.message;
+      statusEl.className = 'status error';
+      return;
+    }
+
+    window.location.href = 'home.html';
+  };
+</script>
 
 </body>
 </html>
