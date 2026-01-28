@@ -14,32 +14,57 @@
 </header>
 
 <main class="container">
-  <h2>🖱️ Clicker Game</h2>
 
-  <section class="card">
-    <h1 id="score">0</h1>
-    <p>Points</p>
+  <h2 style="text-align:center;">💰 Clicker Game</h2>
 
-    <button class="primary" id="clickBtn">
-      Click!
-    </button>
-  </section>
+  <!-- GAME LAYOUT -->
+  <div style="
+    display:flex;
+    gap:20px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+  ">
 
-  <section class="card">
-    <h3>🛒 Upgrades</h3>
-
-    <p>
-      Auto Clicker (+1 per second)<br>
-      Cost: <span id="autoCost">10</span>
+    <!-- LEFT UPGRADE -->
+    <section class="card" style="width:220px; text-align:center;">
+      <h3>🤖 Auto Clicker</h3>
+      <p>+1 money / second</p>
+      <p>Owned: <span id="autoOwned">0</span></p>
+      <p>Cost: <span id="autoCost">10</span></p>
       <button id="buyAuto">Buy</button>
-    </p>
+    </section>
 
-    <p>
-      Multiplier (x2 clicks)<br>
-      Cost: <span id="multiCost">25</span>
+    <!-- CENTER CLICK BUTTON -->
+    <section class="card" style="width:260px; text-align:center;">
+      <h1 style="font-size:2.5rem;">💰</h1>
+      <h1 id="score">0</h1>
+      <p>Money</p>
+
+      <button
+        id="clickBtn"
+        style="
+          font-size:2rem;
+          padding:20px 30px;
+          border-radius:50%;
+          cursor:pointer;
+        "
+      >
+        💰
+      </button>
+    </section>
+
+    <!-- RIGHT UPGRADE -->
+    <section class="card" style="width:220px; text-align:center;">
+      <h3>✨ Multiplier</h3>
+      <p>x2 per click</p>
+      <p>Level: <span id="multiLevel">1</span></p>
+      <p>Cost: <span id="multiCost">25</span></p>
       <button id="buyMulti">Buy</button>
-    </p>
-  </section>
+    </section>
+
+  </div>
+
 </main>
 
 <script src="assets/auth.js"></script>
@@ -54,49 +79,57 @@
     window.location.href = 'games.html';
   };
 
-  let score = 0;
+  // GAME DATA
+  let money = 0;
   let clickPower = 1;
   let autoClickers = 0;
 
   let autoCost = 10;
   let multiCost = 25;
 
-  const scoreEl = document.getElementById('score');
+  const moneyEl = document.getElementById('score');
 
-  function updateScore() {
-    scoreEl.textContent = Math.floor(score);
+  function updateUI() {
+    moneyEl.textContent = Math.floor(money);
+    document.getElementById('autoCost').textContent = autoCost;
+    document.getElementById('multiCost').textContent = multiCost;
+    document.getElementById('autoOwned').textContent = autoClickers;
+    document.getElementById('multiLevel').textContent = clickPower;
   }
 
+  // CLICK MONEY
   document.getElementById('clickBtn').onclick = () => {
-    score += clickPower;
-    updateScore();
+    money += clickPower;
+    updateUI();
   };
 
+  // BUY AUTO CLICKER
   document.getElementById('buyAuto').onclick = () => {
-    if (score >= autoCost) {
-      score -= autoCost;
+    if (money >= autoCost) {
+      money -= autoCost;
       autoClickers++;
       autoCost = Math.floor(autoCost * 1.5);
-      document.getElementById('autoCost').textContent = autoCost;
-      updateScore();
+      updateUI();
     }
   };
 
+  // BUY MULTIPLIER
   document.getElementById('buyMulti').onclick = () => {
-    if (score >= multiCost) {
-      score -= multiCost;
+    if (money >= multiCost) {
+      money -= multiCost;
       clickPower *= 2;
       multiCost = Math.floor(multiCost * 2);
-      document.getElementById('multiCost').textContent = multiCost;
-      updateScore();
+      updateUI();
     }
   };
 
-  // Auto clickers run every second
+  // AUTO CLICK EVERY SECOND
   setInterval(() => {
-    score += autoClickers;
-    updateScore();
+    money += autoClickers;
+    updateUI();
   }, 1000);
+
+  updateUI();
 </script>
 
 </body>
