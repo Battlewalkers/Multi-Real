@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MyApp — Sign In</title>
+  <title>Multi — Sign In</title>
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
 
 <main class="center">
   <div class="card" style="width: 360px;">
-    <h1 class="brand" style="text-align:center;">MyApp</h1>
+    <h1 class="brand" style="text-align:center;">Multi</h1>
 
     <div class="tabs">
       <button id="tab-signin" class="tab active" type="button">Sign In</button>
@@ -19,19 +19,16 @@
 
     <form id="authForm" class="form">
 
-      <!-- USERNAME -->
       <label>
         Username
         <input id="username" type="text" required>
       </label>
 
-      <!-- PASSWORD -->
       <label>
         Password
         <input id="password" type="password" minlength="6" required>
       </label>
 
-      <!-- AGE CHOICE (SIGN UP ONLY) -->
       <div id="ageSection" style="display:none; font-size:0.9rem;">
         <label>
           <input type="radio" name="age" value="13plus">
@@ -44,7 +41,6 @@
         </label>
       </div>
 
-      <!-- PARENT EMAIL (UNDER 13 ONLY) -->
       <label id="parentEmailSection" style="display:none;">
         Parent / Guardian Email
         <input id="parentEmail" type="email">
@@ -92,7 +88,6 @@
     statusEl.textContent = '';
   };
 
-  // Show parent email if under 13 selected
   ageSection.addEventListener('change', () => {
     const ageValue = document.querySelector('input[name="age"]:checked')?.value;
     parentEmailSection.style.display =
@@ -137,7 +132,6 @@
       return;
     }
 
-    // SIGN IN
     const result = login(username, password);
 
     if (!result.ok) {
