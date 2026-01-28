@@ -14,20 +14,34 @@
 </header>
 
 <main class="container">
+
   <h2 style="text-align:center;">🧠 Memory Match</h2>
 
-  <div id="gameBoard" style="
-    display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap:15px;
-    max-width:400px;
-    margin: 0 auto;
-  ">
+  <!-- DIFFICULTY SELECT -->
+  <div style="text-align:center; margin-bottom:20px;">
+    <label>
+      Difficulty:
+      <select id="difficulty">
+        <option value="4">4 × 4 (Easy)</option>
+        <option value="6">6 × 6 (Medium)</option>
+        <option value="10">10 × 10 (Hard)</option>
+      </select>
+    </label>
+
+    <button id="startBtn">Start Game</button>
   </div>
 
-  <p style="text-align:center; margin-top:20px;">
-    Matches: <span id="matches">0</span>
-  </p>
+  <!-- GAME BOARD -->
+  <div id="gameBoard"></div>
+
+  <!-- WIN SCREEN -->
+  <div id="winScreen" style="display:none; text-align:center; margin-top:30px;">
+    <h2>🎉 You Win!</h2>
+    <button class="primary" onclick="window.location.href='games.html'">
+      Back to Games
+    </button>
+  </div>
+
 </main>
 
 <script src="assets/auth.js"></script>
@@ -42,61 +56,27 @@
     window.location.href = 'games.html';
   };
 
-  const symbols = ['🍎','🍎','🍌','🍌','🍇','🍇','🍓','🍓'];
-  let shuffled = symbols.sort(() => Math.random() - 0.5);
-
   const board = document.getElementById('gameBoard');
-  const matchesEl = document.getElementById('matches');
+  const winScreen = document.getElementById('winScreen');
+  const startBtn = document.getElementById('startBtn');
 
   let firstCard = null;
   let lockBoard = false;
   let matches = 0;
+  let totalPairs = 0;
 
-  shuffled.forEach(symbol => {
-    const card = document.createElement('div');
-    card.textContent = '❓';
-    card.dataset.symbol = symbol;
+  startBtn.onclick = () => {
+    startGame();
+  };
 
-    card.style.cssText = `
-      background:white;
-      border-radius:12px;
-      height:80px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:2rem;
-      cursor:pointer;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    `;
+  function startGame() {
+    board.innerHTML = '';
+    winScreen.style.display = 'none';
+    firstCard = null;
+    lockBoard = false;
+    matches = 0;
 
-    card.onclick = () => {
-      if (lockBoard || card.textContent !== '❓') return;
+    const size = Number(document.getElementById('difficulty').value);
+    totalPairs = (size * size) / 2;
 
-      card.textContent = symbol;
-
-      if (!firstCard) {
-        firstCard = card;
-        return;
-      }
-
-      if (firstCard.dataset.symbol === symbol) {
-        matches++;
-        matchesEl.textContent = matches;
-        firstCard = null;
-      } else {
-        lockBoard = true;
-        setTimeout(() => {
-          firstCard.textContent = '❓';
-          card.textContent = '❓';
-          firstCard = null;
-          lockBoard = false;
-        }, 800);
-      }
-    };
-
-    board.appendChild(card);
-  });
-</script>
-
-</body>
-</html>
+    board.styl
