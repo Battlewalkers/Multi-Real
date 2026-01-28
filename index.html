@@ -142,16 +142,15 @@
 <body>
 
 <!-- Header -->
-<header>
+<nav class="navbar">
   <div class="logo">Multi</div>
-  <nav>
- <a onclick="goTo('index.html')" href="javascript:void(0)">Home</a>
-<a onclick="goTo('games.html')" href="javascript:void(0)">Games</a>
-<a onclick="goTo('index.html')" href="javascript:void(0)">Shop</a>
-<a onclick="goTo('login.html')" href="javascript:void(0)">Sign up</a>
-
-  </nav>
-</header>
+  <div class="nav-links">
+    <button onclick="goPage('index.html')">Home</button>
+    <button onclick="goPage('games.html')">Games</button>
+    <button onclick="goPage('login.html')">Login</button>
+    <button onclick="goPage('signup.html')">Sign Up</button>
+  </div>
+</nav>
 
 <!-- Hero Section -->
 <section class="hero" id="hero">
