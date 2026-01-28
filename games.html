@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Multi — Games</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Multi</div>
+  <button id="backBtn">← Back</button>
+</header>
+
+<main class="container">
+  <h2>🎮 Games</h2>
+
+  <!-- GAME CARD -->
+  <section class="card">
+    <h3>🖱️ Clicker Game</h3>
+    <p>Click the button as many times as you can!</p>
+
+    <h1 id="score">0</h1>
+
+    <button class="primary" id="clickBtn">
+      Click Me!
+    </button>
+  </section>
+
+</main>
+
+<script src="assets/auth.js"></script>
+
+<script>
+  // Make sure user is logged in
+  const session = getSession();
+  if (!session) {
+    window.location.href = 'index.html';
+  }
+
+  // Back button
+  document.getElementById('backBtn').onclick = () => {
+    window.location.href = 'home.html';
+  };
+
+  // Simple click game logic
+  let score = 0;
+  const scoreEl = document.getElementById('score');
+  const clickBtn = document.getElementById('clickBtn');
+
+  clickBtn.onclick = () => {
+    score++;
+    scoreEl.textContent = score;
+  };
+</script>
+
+</body>
+</html>
