@@ -1,148 +1,82 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Multi — Sign In</title>
-  <link rel="stylesheet" href="assets/styles.css">
+<title>Multi</title>
+<style>
+body{
+  font-family:'Comic Sans MS', cursive;
+  margin:0;
+  background:#f5f5f5;
+  text-align:center;
+}
+header{
+  background:#4CAF50;
+  padding:20px;
+  color:white;
+}
+nav a{
+  color:white;
+  margin:0 15px;
+  text-decoration:none;
+  font-weight:bold;
+}
+.hero{
+  background:#FFD700;
+  padding:80px 20px;
+}
+.hero button{
+  padding:15px 25px;
+  border:none;
+  border-radius:15px;
+  font-size:18px;
+  cursor:pointer;
+  background:#4CAF50;
+  color:white;
+}
+.features{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  padding:40px;
+}
+.card{
+  background:#FFEB3B;
+  padding:25px;
+  border-radius:20px;
+  width:220px;
+}
+footer{
+  background:#4CAF50;
+  color:white;
+  padding:15px;
+}
+</style>
 </head>
+
 <body>
 
-<main class="center">
-  <div class="card" style="width: 360px;">
-    <h1 class="brand" style="text-align:center;">Multi</h1>
+<header>
+  <h1>Multi</h1>
+  <nav>
+    <a href="games.html">Games</a>
+    <a href="login.html">Login</a>
+    <a href="signup.html">Sign Up</a>
+  </nav>
+</header>
 
-    <div class="tabs">
-      <button id="tab-signin" class="tab active" type="button">Sign In</button>
-      <button id="tab-signup" class="tab" type="button">Sign Up</button>
-    </div>
+<div class="hero">
+  <h2>Play • Learn • Shop</h2>
+  <p>All in one place</p>
+  <button onclick="location.href='signup.html'">Get Started</button>
+</div>
 
-    <form id="authForm" class="form">
+<div class="features">
+  <div class="card">🎮 Fun Games</div>
+  <div class="card">📚 Learning</div>
+  <div class="card">🛒 Shop</div>
+</div>
 
-      <label>
-        Username
-        <input id="username" type="text" required>
-      </label>
-
-      <label>
-        Password
-        <input id="password" type="password" minlength="6" required>
-      </label>
-
-      <div id="ageSection" style="display:none; font-size:0.9rem;">
-        <label>
-          <input type="radio" name="age" value="13plus">
-          I am 13 years or older
-        </label>
-
-        <label>
-          <input type="radio" name="age" value="under13">
-          I am under 13
-        </label>
-      </div>
-
-      <label id="parentEmailSection" style="display:none;">
-        Parent / Guardian Email
-        <input id="parentEmail" type="email">
-      </label>
-
-      <button class="primary" type="submit" id="submitBtn">
-        Sign In
-      </button>
-
-      <p id="status" class="status"></p>
-    </form>
-  </div>
-</main>
-
-<script src="assets/auth.js"></script>
-
-<script>
-  const authForm = document.getElementById('authForm');
-  const tabSignIn = document.getElementById('tab-signin');
-  const tabSignUp = document.getElementById('tab-signup');
-  const submitBtn = document.getElementById('submitBtn');
-  const statusEl = document.getElementById('status');
-
-  const ageSection = document.getElementById('ageSection');
-  const parentEmailSection = document.getElementById('parentEmailSection');
-
-  let mode = 'signin';
-
-  tabSignIn.onclick = () => {
-    mode = 'signin';
-    tabSignIn.classList.add('active');
-    tabSignUp.classList.remove('active');
-    submitBtn.textContent = 'Sign In';
-    ageSection.style.display = 'none';
-    parentEmailSection.style.display = 'none';
-    statusEl.textContent = '';
-  };
-
-  tabSignUp.onclick = () => {
-    mode = 'signup';
-    tabSignUp.classList.add('active');
-    tabSignIn.classList.remove('active');
-    submitBtn.textContent = 'Create Account';
-    ageSection.style.display = 'block';
-    statusEl.textContent = '';
-  };
-
-  ageSection.addEventListener('change', () => {
-    const ageValue = document.querySelector('input[name="age"]:checked')?.value;
-    parentEmailSection.style.display =
-      ageValue === 'under13' ? 'block' : 'none';
-  });
-
-  authForm.onsubmit = (e) => {
-    e.preventDefault();
-
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    const ageValue = document.querySelector('input[name="age"]:checked')?.value;
-    const parentEmail = document.getElementById('parentEmail').value.trim();
-
-    if (mode === 'signup') {
-      if (!ageValue) {
-        statusEl.textContent = 'Please select your age group.';
-        statusEl.className = 'status error';
-        return;
-      }
-
-      if (ageValue === 'under13' && !parentEmail) {
-        statusEl.textContent = 'Parent email is required for under 13 users.';
-        statusEl.className = 'status error';
-        return;
-      }
-
-      const result = register({
-        username,
-        password,
-        isUnder13: ageValue === 'under13',
-        parentEmail
-      });
-
-      if (!result.ok) {
-        statusEl.textContent = result.message;
-        statusEl.className = 'status error';
-        return;
-      }
-
-      window.location.href = 'home.html';
-      return;
-    }
-
-    const result = login(username, password);
-
-    if (!result.ok) {
-      statusEl.textContent = result.message;
-      statusEl.className = 'status error';
-      return;
-    }
-
-    window.location.href = 'home.html';
-  };
-</script>
+<footer>© 2026 Multi</footer>
 
 </body>
 </html>
