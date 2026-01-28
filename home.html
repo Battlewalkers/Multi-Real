@@ -16,9 +16,9 @@
 <main class="container">
   <h2 id="welcome"></h2>
 
-  <section class="card">
+  <section class="card" style="cursor:pointer;" id="gamesCard">
     <h3>🎮 Gaming</h3>
-    <p>Games and fun content here.</p>
+    <p>Play games and have fun</p>
   </section>
 
   <section class="card">
@@ -47,6 +47,11 @@
   document.getElementById('signOutBtn').onclick = () => {
     logout();
     window.location.href = 'index.html';
+  };
+
+  // Go to games page
+  document.getElementById('gamesCard').onclick = () => {
+    window.location.href = 'games.html';
   };
 </script>
 
