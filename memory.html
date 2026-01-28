@@ -47,4 +47,99 @@
 <script src="assets/auth.js"></script>
 
 <script>
-  // Check if t
+  // Check if the user is logged in
+  const session = getSession();
+  if (!session) {
+    window.location.href = 'index.html';
+  }
+
+  // Function for the "Back" button
+  function goBack() {
+    window.location.href = 'games.html';
+  }
+
+  // Variables for the game
+  const board = document.getElementById('gameBoard');
+  const winScreen = document.getElementById('winScreen');
+  let firstCard = null;
+  let secondCard = null;
+  let lockBoard = false;
+  let matches = 0;
+
+  // Start the game
+  function startGame() {
+    board.innerHTML = '';        // Clear previous board
+    winScreen.style.display = 'none'; // Hide win message
+    matches = 0;
+
+    const size = parseInt(document.getElementById('difficulty').value);
+    const totalCards = size * size;
+    const pairCount = totalCards / 2;
+
+    // Create pairs of numbers
+    let cards = [];
+    for (let i = 0; i < pairCount; i++) {
+      cards.push(i, i);
+    }
+
+    // Shuffle the cards randomly
+    cards.sort(() => Math.random() - 0.5);
+
+    // Set grid layout
+    board.style.display = 'grid';
+    board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    board.style.gap = '8px';
+
+    // Create buttons for each card
+    cards.forEach(value => {
+      const card = document.createElement('button');
+      card.textContent = '?';    // Hidden value
+      card.dataset.value = value;
+      card.style.height = '50px';
+      card.style.fontSize = '1.2rem';
+
+      card.onclick = () => flipCard(card);
+      board.appendChild(card);
+    });
+  }
+
+  // Flip a card when clicked
+  function flipCard(card) {
+    if (lockBoard || card === firstCard || card.textContent !== '?') return;
+
+    card.textContent = card.dataset.value;
+
+    if (!firstCard) {
+      firstCard = card;
+      return;
+    }
+
+    secondCard = card;
+    lockBoard = true;
+
+    if (firstCard.dataset.value === secondCard.dataset.value) {
+      matches++;
+      resetTurn();
+
+      if (matches === board.children.length / 2) {
+        winScreen.style.display = 'block';
+      }
+    } else {
+      setTimeout(() => {
+        firstCard.textContent = '?';
+        secondCard.textContent = '?';
+        resetTurn();
+      }, 700);
+    }
+  }
+
+  // Reset variables for the next turn
+  function resetTurn() {
+    firstCard = null;
+    secondCard = null;
+    lockBoard = false;
+  }
+</script>
+
+</body>
+</html>
