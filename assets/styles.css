@@ -1,3 +1,9 @@
+/* ===== RESET DEFAULT BROWSER STYLES ===== */
+a {
+  all: unset;
+  cursor: pointer;
+}
+
 /* ================================
    RESET & BASE
 ================================ */
