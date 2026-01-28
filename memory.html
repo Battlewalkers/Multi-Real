@@ -17,7 +17,7 @@
 
   <h2 style="text-align:center;">🧠 Memory Match</h2>
 
-  <!-- CONTROLS -->
+  <!-- Controls: difficulty selector and start button -->
   <div style="text-align:center; margin-bottom:20px;">
     <label>
       Difficulty:
@@ -30,14 +30,13 @@
 
     <br><br>
 
-    <!-- DIRECT BUTTON ACTION -->
     <button class="primary" onclick="startGame()">Start Game</button>
   </div>
 
-  <!-- GAME BOARD -->
+  <!-- Game board -->
   <div id="gameBoard"></div>
 
-  <!-- WIN SCREEN -->
+  <!-- Win screen -->
   <div id="winScreen" style="display:none; text-align:center; margin-top:30px;">
     <h2>🎉 You Win!</h2>
     <button class="primary" onclick="goBack()">Back to Games</button>
@@ -48,11 +47,4 @@
 <script src="assets/auth.js"></script>
 
 <script>
-  // LOGIN CHECK
-  const session = getSession();
-  if (!session) {
-    window.location.href = 'index.html';
-  }
-
-  function goBack() {
-    window
+  // Check if t
