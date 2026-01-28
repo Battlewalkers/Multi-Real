@@ -16,16 +16,14 @@
 <main class="container">
   <h2>🎮 Games</h2>
 
-  <!-- CLICKER GAME CARD -->
-  <section class="card game-card" id="clickerGame">
-    <h3>🖱️ Clicker Game</h3>
-    <p>Click, upgrade, and grow your score!</p>
+  <section class="card game-card" id="clickerGame" style="cursor:pointer;">
+    <h3>💰 Clicker Game</h3>
+    <p>Click, upgrade, and get rich</p>
   </section>
 
-  <!-- FUTURE GAME CARD -->
-  <section class="card game-card">
-    <h3>🧠 Coming Soon</h3>
-    <p>More games are on the way</p>
+  <section class="card game-card" id="memoryGame" style="cursor:pointer;">
+    <h3>🧠 Memory Match</h3>
+    <p>Test your memory skills</p>
   </section>
 </main>
 
@@ -43,6 +41,10 @@
 
   document.getElementById('clickerGame').onclick = () => {
     window.location.href = 'clicker.html';
+  };
+
+  document.getElementById('memoryGame').onclick = () => {
+    window.location.href = 'memory.html';
   };
 </script>
 
