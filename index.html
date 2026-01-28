@@ -9,16 +9,22 @@
     font-family: Arial, sans-serif;
     margin:0;
     padding:0;
-    background: #f5f5f5;
-    color: #333;
+    background: #fff;
+    color: #000;
+    scroll-behavior: smooth;
   }
   header {
+    position: fixed;
+    width: 100%;
+    top:0;
+    left:0;
     display:flex;
     justify-content: space-between;
     align-items:center;
-    padding: 20px 50px;
-    background: #4CAF50;
+    padding: 15px 50px;
+    background: #000;
     color: white;
+    z-index: 1000;
   }
   header a {
     color:white;
@@ -26,11 +32,14 @@
     margin-left: 20px;
     font-weight: bold;
   }
+  header a:hover {
+    color: #FFD700; /* gold/yellow highlight */
+  }
   .hero {
     text-align:center;
-    padding: 100px 20px;
-    background: linear-gradient(to right, #4CAF50, #81C784);
-    color:white;
+    padding: 120px 20px 80px 20px;
+    background: #FFD700;
+    color:#000;
   }
   .hero h1 {
     font-size: 48px;
@@ -47,22 +56,23 @@
     border:none;
     border-radius: 5px;
     cursor:pointer;
-    background:white;
-    color:#4CAF50;
+    background:#000;
+    color:#FFD700;
     font-weight:bold;
     transition:0.3s;
   }
   .hero button:hover {
-    background:#e0e0e0;
+    background:#333;
   }
   .features {
     display:flex;
     justify-content: space-around;
     padding: 60px 20px;
     flex-wrap:wrap;
+    background:#fff;
   }
   .feature {
-    background:white;
+    background:#f0f8ff; /* light blue */
     padding:30px;
     margin:10px;
     border-radius:10px;
@@ -72,13 +82,17 @@
   }
   .feature h3 {
     margin-bottom:15px;
-    color:#4CAF50;
+    color:#0000FF; /* blue headings */
   }
   footer {
     text-align:center;
     padding:20px;
-    background:#333;
+    background:#000;
     color:white;
+  }
+  /* Small adjustment so first section isn’t hidden under fixed header */
+  section {
+    scroll-margin-top: 70px;
   }
 </style>
 </head>
@@ -87,7 +101,7 @@
 <header>
   <div class="logo">Multi</div>
   <nav>
-    <a href="#">Home</a>
+    <a href="#hero">Home</a>
     <a href="#game">Game</a>
     <a href="#learn">Learn</a>
     <a href="#shop">Shop</a>
@@ -95,7 +109,7 @@
   </nav>
 </header>
 
-<section class="hero">
+<section class="hero" id="hero">
   <h1>Play. Learn. Shop. All in One Place.</h1>
   <p>Discover fun games, learn new skills, and explore our shop—all before you even sign up!</p>
   <button onclick="location.href='signup.html'">Get Started</button>
