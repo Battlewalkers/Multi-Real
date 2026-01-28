@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Multi — Clicker Game</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Multi</div>
+  <button id="backBtn">← Games</button>
+</header>
+
+<main class="container">
+  <h2>🖱️ Clicker Game</h2>
+
+  <section class="card">
+    <h1 id="score">0</h1>
+    <p>Points</p>
+
+    <button class="primary" id="clickBtn">
+      Click!
+    </button>
+  </section>
+
+  <section class="card">
+    <h3>🛒 Upgrades</h3>
+
+    <p>
+      Auto Clicker (+1 per second)<br>
+      Cost: <span id="autoCost">10</span>
+      <button id="buyAuto">Buy</button>
+    </p>
+
+    <p>
+      Multiplier (x2 clicks)<br>
+      Cost: <span id="multiCost">25</span>
+      <button id="buyMulti">Buy</button>
+    </p>
+  </section>
+</main>
+
+<script src="assets/auth.js"></script>
+
+<script>
+  const session = getSession();
+  if (!session) {
+    window.location.href = 'index.html';
+  }
+
+  document.getElementById('backBtn').onclick = () => {
+    window.location.href = 'games.html';
+  };
+
+  let score = 0;
+  let clickPower = 1;
+  let autoClickers = 0;
+
+  let autoCost = 10;
+  let multiCost = 25;
+
+  const scoreEl = document.getElementById('score');
+
+  function updateScore() {
+    scoreEl.textContent = Math.floor(score);
+  }
+
+  document.getElementById('clickBtn').onclick = () => {
+    score += clickPower;
+    updateScore();
+  };
+
+  document.getElementById('buyAuto').onclick = () => {
+    if (score >= autoCost) {
+      score -= autoCost;
+      autoClickers++;
+      autoCost = Math.floor(autoCost * 1.5);
+      document.getElementById('autoCost').textContent = autoCost;
+      updateScore();
+    }
+  };
+
+  document.getElementById('buyMulti').onclick = () => {
+    if (score >= multiCost) {
+      score -= multiCost;
+      clickPower *= 2;
+      multiCost = Math.floor(multiCost * 2);
+      document.getElementById('multiCost').textContent = multiCost;
+      updateScore();
+    }
+  };
+
+  // Auto clickers run every second
+  setInterval(() => {
+    score += autoClickers;
+    updateScore();
+  }, 1000);
+</script>
+
+</body>
+</html>
