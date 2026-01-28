@@ -24,7 +24,7 @@
       <select id="difficulty">
         <option value="4">4 × 4 (Easy)</option>
         <option value="6">6 × 6 (Medium)</option>
-        <option value="10">10 × 10 (Hard)</option>
+        <option value="8">8 × 8 (Hard)</option>
       </select>
     </label>
 
@@ -66,6 +66,9 @@
   let lockBoard = false;
   let matches = 0;
 
+  // List of symbols / emojis to use in cards
+  const symbols = ['🐶','🐱','🦊','🐸','🐵','🐼','🐨','🐯','🦁','🐷','🐔','🦄','🐙','🐢','🦉','🐧','🦖','🐬','🐝','🦋','🌸','🍎','🍕','⚡','⭐','🌙','🎵','🎈','🏀','🚀','🍩','🎁','💎'];
+
   // Start the game
   function startGame() {
     board.innerHTML = '';        // Clear previous board
@@ -76,13 +79,13 @@
     const totalCards = size * size;
     const pairCount = totalCards / 2;
 
-    // Create pairs of numbers
+    // Pick random symbols for pairs
     let cards = [];
-    for (let i = 0; i < pairCount; i++) {
-      cards.push(i, i);
-    }
+    const shuffledSymbols = [...symbols].sort(() => Math.random() - 0.5);
+    const selectedSymbols = shuffledSymbols.slice(0, pairCount);
+    selectedSymbols.forEach(sym => cards.push(sym, sym));
 
-    // Shuffle the cards randomly
+    // Shuffle the cards
     cards.sort(() => Math.random() - 0.5);
 
     // Set grid layout
@@ -96,7 +99,7 @@
       card.textContent = '?';    // Hidden value
       card.dataset.value = value;
       card.style.height = '50px';
-      card.style.fontSize = '1.2rem';
+      card.style.fontSize = '1.5rem';
 
       card.onclick = () => flipCard(card);
       board.appendChild(card);
