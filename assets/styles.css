@@ -167,22 +167,27 @@ button {
   margin-bottom: 20px;
 }
 
-/*===================================
-GAMES
-=================================== */
-.all-games {
-  padding: 40px 20px;
+/* ===== FORCE MULTI GAME GRID ===== */
+
+.multi-all-games {
+  padding: 50px 20px;
 }
 
-.games-grid {
+.multi-title {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 30px;
+}
+
+.multi-game-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+  gap: 24px !important;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.game-card {
+.multi-card {
   background: #ffeb3b;
   border-radius: 18px;
   padding: 22px;
@@ -190,15 +195,7 @@ GAMES
   box-shadow: 0 8px 18px rgba(0,0,0,0.15);
 }
 
-.game-card h3 {
-  margin-bottom: 8px;
-}
-
-.game-card p {
-  font-size: 14px;
-}
-
-.play-btn {
+.multi-card a {
   display: inline-block;
   margin-top: 12px;
   padding: 10px 22px;
@@ -208,6 +205,5 @@ GAMES
   text-decoration: none;
 }
 
-.play-btn:hover {
+.multi-card a:hover {
   background: #43a047;
-}
