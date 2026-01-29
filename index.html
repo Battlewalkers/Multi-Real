@@ -145,11 +145,11 @@
 <header>
   <div class="logo">Multi</div>
   <nav>
-    <a href="#hero">Home</a>
-    <a href="#game">Game</a>
-    <a href="#learn">Learn</a>
-    <a href="#shop">Shop</a>
-    <a href="#signup">Sign Up</a>
+    <a href="/index">Home</a>
+    <a href="/games">Game</a>
+    <a href="/index">Learn</a>
+    <a href="/index">Shop</a>
+    <a href="/login">Sign Up</a>
   </nav>
 </header>
 
@@ -191,5 +191,15 @@
   &copy; 2026 Multi. All rights reserved.
 </footer>
 
+<script>
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
+window.addEventListener('load', () => {
+  window.scrollTo(0, 0);
+});
+</script>
+  
 </body>
 </html>
