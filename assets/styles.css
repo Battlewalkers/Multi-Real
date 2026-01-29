@@ -166,3 +166,48 @@ button {
 .container .card {
   margin-bottom: 20px;
 }
+
+/*===================================
+GAMES
+=================================== */
+.all-games {
+  padding: 40px 20px;
+}
+
+.games-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.game-card {
+  background: #ffeb3b;
+  border-radius: 18px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
+
+.game-card h3 {
+  margin-bottom: 8px;
+}
+
+.game-card p {
+  font-size: 14px;
+}
+
+.play-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 22px;
+  background: #4caf50;
+  color: white;
+  border-radius: 20px;
+  text-decoration: none;
+}
+
+.play-btn:hover {
+  background: #43a047;
+}
