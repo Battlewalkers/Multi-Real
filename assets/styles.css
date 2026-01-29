@@ -1,3 +1,4 @@
+
 /* ================================
    RESET & BASE
 ================================ */
@@ -12,8 +13,10 @@ body {
   background: linear-gradient(135deg, #e0f2fe, #fef9c3);
 }
 
+}
+
 /* ================================
-   CENTER
+   CENTER LAYOUT
 ================================ */
 .center {
   width: 100%;
@@ -29,12 +32,112 @@ body {
   background: #ffffff;
   padding: 28px;
   border-radius: 16px;
+  width: 100%;
   max-width: 360px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
 /* ================================
-   TOP BAR
+   BRAND
+================================ */
+.brand {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #2563eb;
+  margin-bottom: 20px;
+}
+
+/* ================================
+   TABS
+================================ */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+/* ================================
+   FORM
+================================ */
+.form label {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.form input {
+  margin-top: 6px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  font-size: 1rem;
+}
+
+.form input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* ================================
+   BUTTONS
+================================ */
+button {
+  font-size: 1rem;
+}
+
+.primary {
+  width: 100%;
+  padding: 12px;
+  border-radius: 999px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.primary:hover {
+  background: #1d4ed8;
+}
+
+/* ================================
+   STATUS MESSAGES
+================================ */
+.status {
+  margin-top: 12px;
+  min-height: 1.2em;
+  font-size: 0.9rem;
+}
+
+.status.error {
+  color: #dc2626;
+}
+
+.status.success {
+  color: #16a34a;
+}
+
+/* ================================
+   HOME PAGE
 ================================ */
 .topbar {
   position: fixed;
@@ -46,69 +149,43 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-  z-index: 1000;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .container {
   margin-top: 100px;
-  max-width: 1200px;
+  max-width: 900px;
+  width: 100%;
   padding: 24px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-/* ================================
-   MULTI GAMES SECTION
-================================ */
+.container h2 {
+  margin-bottom: 20px;
+}
+
+.container .card {
+  margin-bottom: 20px;
+}
+
+/* ===== FORCE MULTI GAME GRID ===== */
+
 .multi-all-games {
-  padding: 60px 20px;
+  padding: 50px 20px;
 }
 
 .multi-title {
   text-align: center;
   font-size: 30px;
-  margin-bottom: 40px;
-  font-weight: 800;
+  margin-bottom: 30px;
 }
 
-/* 🔥 THIS IS THE IMPORTANT PART 🔥 */
-.multi-game-grid {
+..multi-game-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 25px;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: auto;
 }
-
-/* GAME CARD */
-.game-card {
-  background: #ffeb3b;
-  border-radius: 18px;
-  padding: 22px;
-  text-align: center;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-}
-
-/* PLAY BUTTON */
-.play-btn {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 10px 22px;
-  background: #4caf50;
-  color: white;
-  border-radius: 20px;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.play-btn:hover {
-  background: #43a047;
-}
-
-/* ================================
-   RESPONSIVE
-================================ */
 @media (max-width: 900px) {
   .multi-game-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -120,3 +197,64 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+}
+
+.multi-card {
+  background: #ffeb3b;
+  border-radius: 18px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
+
+.multi-card a {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 22px;
+  background: #4caf50;
+  color: white;
+  border-radius: 20px;
+  text-decoration: none;
+}
+
+.multi-card a:hover {
+  background: #43a047;
+}
+
+.multi-all-games {
+  padding: 60px 20px;
+}
+
+.multi-title {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 40px;
+}
+
+.multi-game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.multi-game-grid .game-card {
+  background: #ffeb3b;
+  border-radius: 18px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
+
+.multi-game-grid .play-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 22px;
+  background: #4caf50;
+  color: white;
+  border-radius: 20px;
+  text-decoration: none;
+}
+
