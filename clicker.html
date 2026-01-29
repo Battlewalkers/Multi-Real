@@ -1,19 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clicker Game</title>
 <style>
-body { font-family:'Comic Sans MS', cursive, sans-serif; text-align:center; padding:50px; background:#f5f5f5; }
-h1 { color:#4CAF50; }
-button { padding:20px; font-size:20px; background:#4CAF50; color:white; border:none; border-radius:12px; cursor:pointer; }
-button:hover { background:#43a047; }
-#score { font-size:24px; margin-top:20px; }
-</style></head>
+body{font-family:'Comic Sans MS',cursive,sans-serif;text-align:center;padding:50px;background:#f5f5f5;}
+h1{color:#4CAF50;}
+button{padding:20px;font-size:20px;background:#4CAF50;color:white;border:none;border-radius:12px;cursor:pointer;}
+button:hover{background:#43a047;}
+#score{font-size:24px;margin-top:20px;}
+.upgrade-btn{margin:10px;padding:8px 16px;background:#ff9800;color:white;border:none;border-radius:12px;cursor:pointer;}
+.upgrade-btn:hover{background:#fb8c00;}
+#achievements{margin-top:20px;font-size:18px;color:#4CAF50;}
+</style>
+</head>
 <body>
 <h1>🖱️ Clicker Game</h1>
 <button id="click-btn">Click Me!</button>
 <p id="score">Score: 0</p>
+<button class="upgrade-btn" id="upgrade-btn">Upgrade Click (+1)</button>
+<div id="achievements"></div>
 <script>
-let score=0;
-document.getElementById('click-btn').addEventListener('click',()=>{score++;document.getElementById('score').innerText='Score: '+score;});
-</script></body></html>
+let score=0,clickPower=1,achievements=[];
+const scoreEl=document.getElementById('score'),achEl=document.getElementById('achievements');
+document.getElementById('click-btn').addEventListener('click',()=>{
+  score+=clickPower; scoreEl.innerText='Score: '+score;
+  if(score>=10 && !achievements.includes('Novice Clicker')){achievements.push('Novice Clicker'); updateAchievements();}
+  if(score>=50 && !achievements.includes('Pro Clicker')){achievements.push('Pro Clicker'); updateAchievements();}
+});
+document.getElementById('upgrade-btn').addEventListener('click',()=>{
+  if(score>=20){clickPower++;score-=20;scoreEl.innerText='Score: '+score;}
+});
+function updateAchievements(){achEl.innerHTML='Achievements: '+achievements.join(', ');}
+</script>
+</body>
+</html>
