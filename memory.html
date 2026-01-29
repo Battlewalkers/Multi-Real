@@ -1,148 +1,28 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Multi — Memory Match</title>
-  <link rel="stylesheet" href="assets/styles.css">
-</head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Game</title>
+<style>
+body { font-family:'Comic Sans MS', cursive, sans-serif; display:flex; flex-direction:column; align-items:center; padding:50px; background:#f5f5f5; }
+h1 { color:#4CAF50; margin-bottom:20px; }
+.grid { display:grid; grid-template-columns: repeat(4, 80px); gap:10px; }
+.card { width:80px; height:80px; background:#FFEB3B; display:flex; justify-content:center; align-items:center; font-size:24px; cursor:pointer; border-radius:12px; }
+.card.flipped { background:#4CAF50; color:white; }
+</style></head>
 <body>
-
-<header class="topbar">
-  <div class="brand">Multi</div>
-  <button onclick="goBack()">← Games</button>
-</header>
-
-<main class="container">
-
-  <h2 style="text-align:center;">🧠 Memory Match</h2>
-
-  <!-- Controls: difficulty selector and start button -->
-  <div style="text-align:center; margin-bottom:20px;">
-    <label>
-      Difficulty:
-      <select id="difficulty">
-        <option value="4">4 × 4 (Easy)</option>
-        <option value="6">6 × 6 (Medium)</option>
-        <option value="8">8 × 8 (Hard)</option>
-      </select>
-    </label>
-
-    <br><br>
-
-    <button class="primary" onclick="startGame()">Start Game</button>
-  </div>
-
-  <!-- Game board -->
-  <div id="gameBoard"></div>
-
-  <!-- Win screen -->
-  <div id="winScreen" style="display:none; text-align:center; margin-top:30px;">
-    <h2>🎉 You Win!</h2>
-    <button class="primary" onclick="goBack()">Back to Games</button>
-  </div>
-
-</main>
-
-<script src="assets/auth.js"></script>
-
+<h1>🧠 Memory Game</h1>
+<div class="grid" id="grid"></div>
 <script>
-  // Check if the user is logged in
-  const session = getSession();
-  if (!session) {
-    window.location.href = 'index.html';
-  }
-
-  // Function for the "Back" button
-  function goBack() {
-    window.location.href = 'games.html';
-  }
-
-  // Variables for the game
-  const board = document.getElementById('gameBoard');
-  const winScreen = document.getElementById('winScreen');
-  let firstCard = null;
-  let secondCard = null;
-  let lockBoard = false;
-  let matches = 0;
-
-  // List of symbols / emojis to use in cards
-  const symbols = ['🐶','🐱','🦊','🐸','🐵','🐼','🐨','🐯','🦁','🐷','🐔','🦄','🐙','🐢','🦉','🐧','🦖','🐬','🐝','🦋','🌸','🍎','🍕','⚡','⭐','🌙','🎵','🎈','🏀','🚀','🍩','🎁','💎'];
-
-  // Start the game
-  function startGame() {
-    board.innerHTML = '';        // Clear previous board
-    winScreen.style.display = 'none'; // Hide win message
-    matches = 0;
-
-    const size = parseInt(document.getElementById('difficulty').value);
-    const totalCards = size * size;
-    const pairCount = totalCards / 2;
-
-    // Pick random symbols for pairs
-    let cards = [];
-    const shuffledSymbols = [...symbols].sort(() => Math.random() - 0.5);
-    const selectedSymbols = shuffledSymbols.slice(0, pairCount);
-    selectedSymbols.forEach(sym => cards.push(sym, sym));
-
-    // Shuffle the cards
-    cards.sort(() => Math.random() - 0.5);
-
-    // Set grid layout
-    board.style.display = 'grid';
-    board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-    board.style.gap = '8px';
-
-    // Create buttons for each card
-    cards.forEach(value => {
-      const card = document.createElement('button');
-      card.textContent = '?';    // Hidden value
-      card.dataset.value = value;
-      card.style.height = '50px';
-      card.style.fontSize = '1.5rem';
-
-      card.onclick = () => flipCard(card);
-      board.appendChild(card);
-    });
-  }
-
-  // Flip a card when clicked
-  function flipCard(card) {
-    if (lockBoard || card === firstCard || card.textContent !== '?') return;
-
-    card.textContent = card.dataset.value;
-
-    if (!firstCard) {
-      firstCard = card;
-      return;
-    }
-
-    secondCard = card;
-    lockBoard = true;
-
-    if (firstCard.dataset.value === secondCard.dataset.value) {
-      matches++;
-      resetTurn();
-
-      if (matches === board.children.length / 2) {
-        winScreen.style.display = 'block';
-      }
-    } else {
-      setTimeout(() => {
-        firstCard.textContent = '?';
-        secondCard.textContent = '?';
-        resetTurn();
-      }, 700);
-    }
-  }
-
-  // Reset variables for the next turn
-  function resetTurn() {
-    firstCard = null;
-    secondCard = null;
-    lockBoard = false;
-  }
-</script>
-
-</body>
-</html>
+const emojis=['🍎','🍌','🍇','🍓','🍎','🍌','🍇','🍓'];
+let firstCard=null,secondCard=null,lock=false;
+const grid=document.getElementById('grid');
+emojis.sort(()=>Math.random()-0.5).forEach((emoji)=>{
+const card=document.createElement('div');
+card.classList.add('card'); card.dataset.emoji=emoji;
+card.addEventListener('click',()=>{
+if(lock||card.classList.contains('flipped'))return;
+card.textContent=emoji; card.classList.add('flipped');
+if(!firstCard){firstCard=card;} else {secondCard=card; lock=true; setTimeout(()=>{if(firstCard.dataset.emoji!==secondCard.dataset.emoji){firstCard.textContent='';firstCard.classList.remove('flipped');secondCard.textContent='';secondCard.classList.remove('flipped');} firstCard=null;secondCard=null; lock=false;},1000);}
+}); grid.appendChild(card);
+});
+</script></body></html>
