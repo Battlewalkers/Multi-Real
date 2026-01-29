@@ -1,37 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clicker Game</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi — Clicker Game</title>
 <style>
-body{font-family:'Comic Sans MS',cursive,sans-serif;text-align:center;padding:50px;background:#f5f5f5;}
-h1{color:#4CAF50;}
-button{padding:20px;font-size:20px;background:#4CAF50;color:white;border:none;border-radius:12px;cursor:pointer;}
-button:hover{background:#43a047;}
-.upgrade-btn{margin:10px;padding:8px 16px;background:#ff9800;color:white;border:none;border-radius:12px;cursor:pointer;}
-.upgrade-btn:hover{background:#fb8c00;}
-#score{font-size:24px;margin-top:20px;}
-#achievements{margin-top:20px;font-size:18px;color:#4CAF50;}
+body { font-family:'Comic Sans MS',cursive,sans-serif; background:#f5f5f5; margin:0; padding:0; }
+header { background:#4CAF50; color:white; padding:15px; text-align:center; font-size:24px; position:sticky; top:0; }
+.container { padding:40px; display:flex; justify-content:center; flex-wrap:wrap; gap:20px; }
+.card { background:#FFEB3B; padding:20px; border-radius:20px; box-shadow:0 5px 15px rgba(0,0,0,0.2); text-align:center; min-width:200px; }
+button { padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:12px; cursor:pointer; font-size:16px; }
+button:hover { background:#43a047; }
+#clickBtn { font-size:2rem; padding:20px 30px; border-radius:50%; }
 </style>
 </head>
 <body>
-<h1>🖱️ Clicker Game</h1>
-<button id="click-btn">Click Me!</button>
-<p id="score">Score: 0</p>
-<button class="upgrade-btn" id="upgrade-btn">Upgrade Click (+1)</button>
-<div id="achievements"></div>
+<header>🎮 Clicker Game — <button onclick="window.location.href='games.html'">← Games</button></header>
+
+<div class="container">
+  <section class="card">
+    <h3>💰 Click</h3>
+    <h1 id="score">0</h1>
+    <button id="clickBtn">💰</button>
+    <p>Click power: <span id="clickPower">1</span></p>
+  </section>
+  <section class="card">
+    <h3>🤖 Auto Clicker</h3>
+    <p>+1 per second</p>
+    <p>Owned: <span id="autoOwned">0</span></p>
+    <p>Cost: <span id="autoCost">10</span></p>
+    <button id="buyAuto">Buy</button>
+  </section>
+  <section class="card">
+    <h3>✨ Multiplier</h3>
+    <p>x2 per click</p>
+    <p>Level: <span id="multiLevel">1</span></p>
+    <p>Cost: <span id="multiCost">25</span></p>
+    <button id="buyMulti">Buy</button>
+  </section>
+</div>
+
 <script>
-let score=0,clickPower=1,achievements=[];
-const scoreEl=document.getElementById('score'),achEl=document.getElementById('achievements');
-document.getElementById('click-btn').addEventListener('click',()=>{
-  score+=clickPower; scoreEl.innerText='Score: '+score;
-  if(score>=10 && !achievements.includes('Novice Clicker')){achievements.push('Novice Clicker'); updateAchievements();}
-  if(score>=50 && !achievements.includes('Pro Clicker')){achievements.push('Pro Clicker'); updateAchievements();}
-});
-document.getElementById('upgrade-btn').addEventListener('click',()=>{
-  if(score>=20){clickPower++;score-=20;scoreEl.innerText='Score: '+score;}
-});
-function updateAchievements(){achEl.innerHTML='Achievements: '+achievements.join(', ');}
-</script>
-</body>
-</html>
+let money=0, clickPower=1, autoClickers=0, autoCost=10, multiCost=25;
+const scoreEl=document.getElementById('score'), clickPowerEl=document.getElementById('clickPower'), autoOwnedEl=document.getElementB
