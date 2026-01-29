@@ -178,12 +178,25 @@ button {
   margin-bottom: 30px;
 }
 
-.multi-game-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-  gap: 24px !important;
+..multi-game-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: auto;
+}
+@media (max-width: 900px) {
+  .multi-game-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .multi-game-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 }
 
 .multi-card {
