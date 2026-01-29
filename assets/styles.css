@@ -206,3 +206,41 @@ button {
 
 .multi-card a:hover {
   background: #43a047;
+}
+
+.multi-all-games {
+  padding: 60px 20px;
+}
+
+.multi-title {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 40px;
+}
+
+.multi-game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.multi-game-grid .game-card {
+  background: #ffeb3b;
+  border-radius: 18px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
+
+.multi-game-grid .play-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 22px;
+  background: #4caf50;
+  color: white;
+  border-radius: 20px;
+  text-decoration: none;
+}
+
