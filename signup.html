@@ -65,6 +65,21 @@ h2 {
   color: #A7D129;
   margin-bottom: 20px;
 }
+
+.age-group {
+  display: none;
+}
+
+.parent-email {
+  display: none;
+}
+
+.error {
+  color: #FF4444;
+  font-size: 14px;
+  margin-top: 10px;
+  display: none;
+}
 </style>
 </head>
 
@@ -72,13 +87,98 @@ h2 {
 
 <div class="box">
   <h2>✏️ Sign Up</h2>
-  <input type="text" placeholder="Full Name">
-  <input type="email" placeholder="Email">
-  <input type="password" placeholder="Password">
-  <input type="password" placeholder="Confirm Password">
-  <button>Sign Up</button>
+  
+  <select id="ageGroup" class="age-group">
+    <option value="">Select your age group</option>
+    <option value="13plus">13 or older</option>
+    <option value="under13">Under 13</option>
+  </select>
+  
+  <input type="text" id="parentEmail" class="parent-email" placeholder="Parent/Guardian Email">
+  
+  <input type="text" id="fullName" placeholder="Full Name">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <input type="password" id="confirmPassword" placeholder="Confirm Password">
+  
+  <button onclick="validateForm()">Sign Up</button>
+  <p id="errorMessage" class="error"></p>
+  
   <p>Already have an account? <a href="login.html">Login</a></p>
 </div>
+
+<script>
+function validateForm() {
+  const ageGroup = document.getElementById('ageGroup');
+  const parentEmail = document.getElementById('parentEmail');
+  const fullName = document.getElementById('fullName');
+  const email = document.getElementById('email');
+  const password = document.getElementById('password');
+  const confirmPassword = document.getElementById('confirmPassword');
+  const errorMessage = document.getElementById('errorMessage');
+  
+  errorMessage.style.display = 'none';
+  
+  if (!ageGroup.value) {
+    errorMessage.textContent = 'Please select your age group';
+    errorMessage.style.display = 'block';
+    return;
+  }
+  
+  if (ageGroup.value === 'under13') {
+    if (!parentEmail.value || !isValidEmail(parentEmail.value)) {
+      errorMessage.textContent = 'Please enter a valid parent/guardian email';
+      errorMessage.style.display = 'block';
+      return;
+    }
+  }
+  
+  if (!fullName.value) {
+    errorMessage.textContent = 'Please enter your full name';
+    errorMessage.style.display = 'block';
+    return;
+  }
+  
+  if (!email.value || !isValidEmail(email.value)) {
+    errorMessage.textContent = 'Please enter a valid email address';
+    errorMessage.style.display = 'block';
+    return;
+  }
+  
+  if (!password.value) {
+    errorMessage.textContent = 'Please enter a password';
+    errorMessage.style.display = 'block';
+    return;
+  }
+  
+  if (password.value !== confirmPassword.value) {
+    errorMessage.textContent = 'Passwords do not match';
+    errorMessage.style.display = 'block';
+    return;
+  }
+  
+  // All validation passed
+  alert('Form submitted successfully!');
+  // Here you would typically submit the form data to your server
+}
+
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+document.getElementById('ageGroup').addEventListener('change', function() {
+  const parentEmailField = document.getElementById('parentEmail');
+  
+  if (this.value === 'under13') {
+    parentEmailField.style.display = 'block';
+    parentEmailField.required = true;
+  } else {
+    parentEmailField.style.display = 'none';
+    parentEmailField.required = false;
+  }
+});
+</script>
 
 </body>
 </html>
