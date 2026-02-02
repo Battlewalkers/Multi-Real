@@ -1,13 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multi — Learning</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi — Learning</title>
+  <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-<h1>Welcome to the Learning Page!</h1>
-<p>This is where your lessons will appear.</p>
-<a href="home.html">Go Back Home</a>
+
+<header class="topbar">
+  <div class="brand">Multi</div>
+  <button onclick="goBack()">← Home</button>
+</header>
+
+<main class="container">
+  <h2 style="text-align:center;">📚 Learning Page</h2>
+  <p style="text-align:center;">This is where your lessons will appear.</p>
+</main>
+
+<script src="assets/auth.js"></script>
+
+<script>
+  const session = getSession();
+  if (!session) {
+    window.location.href = 'index.html';
+  }
+
+  function goBack() {
+    window.location.href = 'home.html';
+  }
+</script>
+
 </body>
 </html>
