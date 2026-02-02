@@ -5,11 +5,12 @@
 <style>
 body {
   font-family:'Comic Sans MS', cursive;
-  background:#FFEB3B;
+  background: linear-gradient(135deg, #F9E492 0%, #A7D129 100%);
   display:flex;
   justify-content:center;
   align-items:center;
   height:100vh;
+  margin:0;
 }
 
 .box {
@@ -19,6 +20,7 @@ body {
   width:300px;
   box-shadow:0 5px 20px rgba(0,0,0,0.2);
   text-align:center;
+  border: 3px solid #A7D129;
 }
 
 input {
@@ -26,11 +28,18 @@ input {
   padding:10px;
   margin:10px 0;
   border-radius:10px;
-  border:1px solid #ccc;
+  border:2px solid #F9E492;
+  font-size:16px;
+}
+
+input:focus {
+  outline: none;
+  border-color: #A7D129;
+  box-shadow: 0 0 5px rgba(167, 209, 41, 0.3);
 }
 
 button {
-  background:#4CAF50;
+  background:#A7D129;
   color:white;
   border:none;
   padding:12px;
@@ -38,9 +47,87 @@ button {
   border-radius:12px;
   font-size:16px;
   cursor:pointer;
+  font-weight:bold;
+  transition: background 0.3s ease;
 }
 
-a { color:#2196F3; text-decoration:none; }
+button:hover {
+  background: #8AB229;
+}
+
+a { 
+  color:#F9E492; 
+  text-decoration:none; 
+  font-weight:bold;
+}
+
+h2 {
+  color: #A7D129;
+  margin-bottom: 20px;
+}
+
+body {
+  font-family:'Comic Sans MS', cursive;
+  background: linear-gradient(135deg, #F9E492 0%, #A7D129 100%);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
+}
+
+.box {
+  background:white;
+  padding:40px;
+  border-radius:20px;
+  width:300px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.2);
+  text-align:center;
+  border: 3px solid #A7D129;
+}
+
+input {
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+  border-radius:10px;
+  border:2px solid #F9E492;
+  font-size:16px;
+}
+
+input:focus {
+  outline: none;
+  border-color: #A7D129;
+  box-shadow: 0 0 5px rgba(167, 209, 41, 0.3);
+}
+
+button {
+  background:#A7D129;
+  color:white;
+  border:none;
+  padding:12px;
+  width:100%;
+  border-radius:12px;
+  font-size:16px;
+  cursor:pointer;
+  font-weight:bold;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #8AB229;
+}
+
+a { 
+  color:#F9E492; 
+  text-decoration:none; 
+  font-weight:bold;
+}
+
+h2 {
+  color: #A7D129;
+  margin-bottom: 20px;
+}
 </style>
 </head>
 
