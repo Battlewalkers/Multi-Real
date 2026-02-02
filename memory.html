@@ -5,6 +5,160 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Multi — Memory Match</title>
   <link rel="stylesheet" href="assets/styles.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #81b29a 0%, #f4e4c1 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f4e4c1;
+      padding: 15px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .brand {
+      font-size: 24px;
+      font-weight: bold;
+      color: #81b29a;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .topbar button {
+      background: #81b29a;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+
+    .topbar button:hover {
+      background: #66a17c;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #81b29a;
+      margin-bottom: 20px;
+      font-size: 32px;
+    }
+
+    label {
+      font-size: 18px;
+      color: #3d5a6b;
+      margin-right: 15px;
+    }
+
+    select {
+      padding: 8px 12px;
+      border: 2px solid #81b29a;
+      border-radius: 5px;
+      background: white;
+      color: #3d5a6b;
+      font-size: 16px;
+    }
+
+    .primary {
+      background: #81b29a;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      transition: all 0.3s;
+      margin: 10px;
+    }
+
+    .primary:hover {
+      background: #66a17c;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(129, 178, 154, 0.4);
+    }
+
+    #gameBoard {
+      margin: 20px auto;
+      max-width: 600px;
+    }
+
+    #gameBoard button {
+      background: linear-gradient(135deg, #f4e4c1 0%, #e8d4b1 100%);
+      border: 3px solid #81b29a;
+      border-radius: 12px;
+      color: #3d5a6b;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #gameBoard button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(129, 178, 154, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    #gameBoard button:hover::before {
+      left: 100%;
+    }
+
+    #gameBoard button:hover {
+      background: linear-gradient(135deg, #e8d4b1 0%, #d9c4a1 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(129, 178, 154, 0.3);
+    }
+
+    #gameBoard button.matched {
+      background: linear-gradient(135deg, #81b29a 0%, #66a17c 100%);
+      border-color: #3d5a6b;
+      color: white;
+      cursor: default;
+    }
+
+    #gameBoard button.matched:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    #winScreen {
+      background: linear-gradient(135deg, #81b29a 0%, #66a17c 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-top: 30px;
+    }
+
+    #winScreen h2 {
+      color: white;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
 
@@ -15,9 +169,8 @@
 
 <main class="container">
 
-  <h2 style="text-align:center;">🧠 Memory Match</h2>
+  <h2>🧠 Memory Match</h2>
 
-  <!-- Controls: difficulty selector and start button -->
   <div style="text-align:center; margin-bottom:20px;">
     <label>
       Difficulty:
@@ -33,10 +186,8 @@
     <button class="primary" onclick="startGame()">Start Game</button>
   </div>
 
-  <!-- Game board -->
   <div id="gameBoard"></div>
 
-  <!-- Win screen -->
   <div id="winScreen" style="display:none; text-align:center; margin-top:30px;">
     <h2>🎉 You Win!</h2>
     <button class="primary" onclick="goBack()">Back to Games</button>
@@ -47,18 +198,15 @@
 <script src="assets/auth.js"></script>
 
 <script>
-  // Check if the user is logged in
   const session = getSession();
   if (!session) {
     window.location.href = 'index.html';
   }
 
-  // Function for the "Back" button
   function goBack() {
     window.location.href = 'games.html';
   }
 
-  // Variables for the game
   const board = document.getElementById('gameBoard');
   const winScreen = document.getElementById('winScreen');
   let firstCard = null;
@@ -66,47 +214,43 @@
   let lockBoard = false;
   let matches = 0;
 
-  // List of symbols / emojis to use in cards
   const symbols = ['🐶','🐱','🦊','🐸','🐵','🐼','🐨','🐯','🦁','🐷','🐔','🦄','🐙','🐢','🦉','🐧','🦖','🐬','🐝','🦋','🌸','🍎','🍕','⚡','⭐','🌙','🎵','🎈','🏀','🚀','🍩','🎁','💎'];
 
-  // Start the game
   function startGame() {
-    board.innerHTML = '';        // Clear previous board
-    winScreen.style.display = 'none'; // Hide win message
+    board.innerHTML = '';
+    winScreen.style.display = 'none';
     matches = 0;
 
     const size = parseInt(document.getElementById('difficulty').value);
     const totalCards = size * size;
     const pairCount = totalCards / 2;
 
-    // Pick random symbols for pairs
     let cards = [];
     const shuffledSymbols = [...symbols].sort(() => Math.random() - 0.5);
     const selectedSymbols = shuffledSymbols.slice(0, pairCount);
     selectedSymbols.forEach(sym => cards.push(sym, sym));
 
-    // Shuffle the cards
     cards.sort(() => Math.random() - 0.5);
 
-    // Set grid layout
     board.style.display = 'grid';
     board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
     board.style.gap = '8px';
 
-    // Create buttons for each card
     cards.forEach(value => {
       const card = document.createElement('button');
-      card.textContent = '?';    // Hidden value
+      card.textContent = '?';
       card.dataset.value = value;
       card.style.height = '50px';
       card.style.fontSize = '1.5rem';
+      card.style.width = '50px';
+      card.style.borderRadius = '12px';
+      card.style.transition = 'all 0.3s';
 
       card.onclick = () => flipCard(card);
       board.appendChild(card);
     });
   }
 
-  // Flip a card when clicked
   function flipCard(card) {
     if (lockBoard || card === firstCard || card.textContent !== '?') return;
 
@@ -122,6 +266,8 @@
 
     if (firstCard.dataset.value === secondCard.dataset.value) {
       matches++;
+      firstCard.classList.add('matched');
+      secondCard.classList.add('matched');
       resetTurn();
 
       if (matches === board.children.length / 2) {
@@ -136,7 +282,6 @@
     }
   }
 
-  // Reset variables for the next turn
   function resetTurn() {
     firstCard = null;
     secondCard = null;
