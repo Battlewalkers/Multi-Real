@@ -1,7 +1,11 @@
 import pygame
 import random
 import math
+import socket
+import threading
+import json
 from typing import List, Tuple, Optional
+from datetime import datetime
 
 # Initialize pygame
 pygame.init()
@@ -22,7 +26,7 @@ BOARD_WIDTH = BOARD_HEIGHT = BOARD_SIZE * SQUARE_SIZE
 WINDOW_WIDTH = BOARD_WIDTH + 300
 WINDOW_HEIGHT = BOARD_HEIGHT
 
-# Piece images
+# Piece images (using colored shapes instead of files)
 PIECE_SCALE = 50
 
 # Emoji chat
@@ -38,15 +42,21 @@ class Piece:
         self.x = x
         self.y = y
         self.has_moved = False
-        self.load_image()
-    
-    def load_image(self):
-        image_name = f"{self.color}_{self.piece_type}.png"
-        self.image = pygame.image.load(f"images/{image_name}")
-        self.image = pygame.transform.smoothscale(self.image, (PIECE_SCALE, PIECE_SCALE))
     
     def draw(self, screen):
-        screen.blit(self.image, (self.x * SQUARE_SIZE + 15, self.y * SQUARE_SIZE + 15))
+        # Draw piece as colored circle with letter
+        center_x = self.x * SQUARE_SIZE + SQUARE_SIZE // 2
+        center_y = self.y * SQUARE_SIZE + SQUARE_SIZE // 2
+        radius = PIECE_SCALE // 2
+        
+        color = (255, 255, 255) if self.color == 'white' else (0, 0, 0)
+        pygame.draw.circle(screen, color, (center_x, center_y), radius)
+        
+        letter_color = (0, 0, 0) if self.color == 'white' else (255, 255, 255)
+        letter = self.piece_type[0].upper()
+        font = pygame.font.Font(None, 30)
+        text = font.render(letter, True, letter_color)
+        screen.blit(text, (center_x - 10, center_y - 10))
     
     def get_possible_moves(self, board: List[List[Optional['Piece']]]):
         if self.piece_type == 'pawn':
@@ -156,21 +166,22 @@ class Piece:
 class ChessGame:
     def __init__(self):
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-        pygame.display.set_caption("Chess Game")
+        pygame.display.set_caption("Chess Game - Online Multiplayer")
         self.font = pygame.font.Font(None, 36)
         self.small_font = pygame.font.Font(None, 24)
         self.clock = pygame.time.Clock()
         self.board = self.create_board()
         self.selected_piece = None
         self.current_turn = 'white'
-        self.game_mode = '2player'  # '2player' or 'ai'
-        self.ai_difficulty = 'medium'  # 'easy', 'medium', 'hard'
+        self.game_mode = 'online'  # 'local', 'ai', 'online'
+        self.ai_difficulty = 'easy'
         self.game_over = False
         self.winner = None
         self.chat_history = []
-        self.player1_name = "Player 1"
-        self.player2_name = "Player 2"
-        self.emoji_mode = False
+        self.player_color = 'white'
+        self.opponent_connected = False
+        self.online_socket = None
+        self.online_thread = None
         self.setup_game()
     
     def create_board(self):
@@ -214,8 +225,7 @@ class ChessGame:
     
     def show_menu(self):
         running = True
-        selected_mode = '2player'
-        selected_difficulty = 'medium'
+        selected_mode = 'online'
         
         while running:
             self.screen.fill(GRAY)
@@ -224,37 +234,23 @@ class ChessGame:
             self.screen.blit(title, (WINDOW_WIDTH//2 - 100, 50))
             
             # Game Mode
-            pygame.draw.rect(self.screen, DARK_SQUARE if selected_mode == '2player' else LIGHT_SQUARE, 
+            pygame.draw.rect(self.screen, DARK_SQUARE if selected_mode == 'local' else LIGHT_SQUARE, 
                            (100, 150, 200, 50))
             pygame.draw.rect(self.screen, BLACK, (100, 150, 200, 50), 3)
-            mode_text = self.small_font.render("2 Player", True, WHITE)
-            self.screen.blit(mode_text, (150, 165))
+            mode_text = self.small_font.render("Local Multiplayer", True, WHITE)
+            self.screen.blit(mode_text, (110, 165))
             
             pygame.draw.rect(self.screen, DARK_SQUARE if selected_mode == 'ai' else LIGHT_SQUARE, 
                            (350, 150, 200, 50))
             pygame.draw.rect(self.screen, BLACK, (350, 150, 200, 50), 3)
-            ai_text = self.small_font.render(" vs AI", True, WHITE)
-            self.screen.blit(ai_text, (400, 165))
+            ai_text = self.small_font.render("Play vs AI", True, WHITE)
+            self.screen.blit(ai_text, (370, 165))
             
-            # Difficulty
-            if selected_mode == 'ai':
-                pygame.draw.rect(self.screen, DARK_SQUARE if selected_difficulty == 'easy' else LIGHT_SQUARE, 
-                               (100, 250, 150, 40))
-                pygame.draw.rect(self.screen, BLACK, (100, 250, 150, 40), 2)
-                easy_text = self.small_font.render("Easy", True, WHITE)
-                self.screen.blit(easy_text, (130, 260))
-                
-                pygame.draw.rect(self.screen, DARK_SQUARE if selected_difficulty == 'medium' else LIGHT_SQUARE, 
-                               (280, 250, 150, 40))
-                pygame.draw.rect(self.screen, BLACK, (280, 250, 150, 40), 2)
-                med_text = self.small_font.render("Medium", True, WHITE)
-                self.screen.blit(med_text, (300, 260))
-                
-                pygame.draw.rect(self.screen, DARK_SQUARE if selected_difficulty == 'hard' else LIGHT_SQUARE, 
-                               (460, 250, 150, 40))
-                pygame.draw.rect(self.screen, BLACK, (460, 250, 150, 40), 2)
-                hard_text = self.small_font.render("Hard", True, WHITE)
-                self.screen.blit(hard_text, (500, 260))
+            pygame.draw.rect(self.screen, DARK_SQUARE if selected_mode == 'online' else LIGHT_SQUARE, 
+                           (220, 250, 200, 50))
+            pygame.draw.rect(self.screen, BLACK, (220, 250, 200, 50), 3)
+            online_text = self.small_font.render("Online Multiplayer", True, WHITE)
+            self.screen.blit(online_text, (230, 265))
             
             # Start button
             pygame.draw.rect(self.screen, DARK_SQUARE, (200, 350, 200, 60))
@@ -271,27 +267,81 @@ class ChessGame:
                     
                     # Mode selection
                     if 100 <= x <= 300 and 150 <= y <= 200:
-                        selected_mode = '2player'
+                        selected_mode = 'local'
                     if 350 <= x <= 550 and 150 <= y <= 200:
                         selected_mode = 'ai'
-                    
-                    # Difficulty selection
-                    if selected_mode == 'ai':
-                        if 100 <= x <= 250 and 250 <= y <= 290:
-                            selected_difficulty = 'easy'
-                        if 280 <= x <= 430 and 250 <= y <= 290:
-                            selected_difficulty = 'medium'
-                        if 460 <= x <= 610 and 250 <= y <= 290:
-                            selected_difficulty = 'hard'
+                    if 220 <= x <= 420 and 250 <= y <= 300:
+                        selected_mode = 'online'
                     
                     # Start game
                     if 200 <= x <= 400 and 350 <= y <= 410:
                         self.game_mode = selected_mode
-                        self.ai_difficulty = selected_difficulty
                         running = False
+                        if selected_mode == 'online':
+                            self.connect_to_server()
+                        self.run()
             
             pygame.display.flip()
             self.clock.tick(30)
+    
+    def connect_to_server(self):
+        try:
+            self.online_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.online_socket.connect(('localhost', 5555))
+            
+            # Send connection request
+            self.online_socket.sendall(json.dumps({
+                'type': 'connect',
+                'timestamp': datetime.now().isoformat()
+            }).encode('utf-8'))
+            
+            # Receive response
+            response = self.online_socket.recv(1024).decode('utf-8')
+            data = json.loads(response)
+            
+            if data['status'] == 'connected':
+                self.player_color = data['color']
+                self.current_turn = 'white' if self.player_color == 'white' else 'black'
+                self.opponent_connected = True
+                
+                # Start listener thread
+                self.online_thread = threading.Thread(target=self.listen_for_moves)
+                self.online_thread.daemon = True
+                self.online_thread.start()
+                
+                self.chat_history.append(f"Connected! You are {self.player_color}")
+            else:
+                self.chat_history.append("No opponent found. Playing vs AI instead.")
+                self.game_mode = 'ai'
+        except Exception as e:
+            self.chat_history.append(f"Connection failed: {str(e)}. Playing vs AI.")
+            self.game_mode = 'ai'
+    
+    def listen_for_moves(self):
+        while self.online_socket and self.opponent_connected:
+            try:
+                data = self.online_socket.recv(1024).decode('utf-8')
+                if not data:
+                    break
+                
+                move_data = json.loads(data)
+                
+                if move_data['type'] == 'move':
+                    piece = self.board[move_data['from_x']][move_data['from_y']]
+                    if piece:
+                        self.make_move(piece, move_data['to_x'], move_data['to_y'])
+                        self.chat_history.append(f"Opponent moved {piece.piece_type} to ({move_data['to_x']}, {move_data['to_y']})")
+                
+                elif move_data['type'] == 'chat':
+                    self.chat_history.append(f"Opponent: {move_data['emoji']}")
+                
+                elif move_data['type'] == 'disconnect':
+                    self.chat_history.append("Opponent disconnected")
+                    self.opponent_connected = False
+                    break
+            
+            except Exception as e:
+                break
     
     def draw_board(self):
         for row in range(BOARD_SIZE):
@@ -326,16 +376,17 @@ class ChessGame:
     def draw_sidebar(self):
         # Turn indicator
         turn_color = WHITE if self.current_turn == 'white' else BLACK
-        turn_text = self.small_font.render(f"Turn: {turn_color}", True, BLACK)
+        turn_text = self.small_font.render(f"Turn: {'White' if self.current_turn == 'white' else 'Black'}", True, BLACK)
         self.screen.blit(turn_text, (BOARD_WIDTH + 20, 20))
         
         # Game mode
         mode_text = self.small_font.render(f"Mode: {self.game_mode.upper()}", True, BLACK)
         self.screen.blit(mode_text, (BOARD_WIDTH + 20, 60))
         
-        if self.game_mode == 'ai':
-            diff_text = self.small_font.render(f"AI: {self.ai_difficulty.upper()}", True, BLACK)
-            self.screen.blit(diff_text, (BOARD_WIDTH + 20, 100))
+        if self.game_mode == 'online':
+            status = "Connected" if self.opponent_connected else "Waiting for opponent"
+            status_text = self.small_font.render(f"Status: {status}", True, BLACK)
+            self.screen.blit(status_text, (BOARD_WIDTH + 20, 100))
         
         # Chat area
         pygame.draw.rect(self.screen, GRAY, (BOARD_WIDTH, 200, 280, 300))
@@ -371,9 +422,21 @@ class ChessGame:
             emoji_index = (rel_x // 30) + (rel_y // 30) * 8
             if 0 <= emoji_index < len(EMOJIS):
                 emoji = EMOJIS[emoji_index]
-                self.chat_history.append(f"{self.current_turn}: {emoji}")
+                self.chat_history.append(f"You: {emoji}")
                 if len(self.chat_history) > 10:
                     self.chat_history.pop(0)
+                
+                # Send to opponent if online
+                if self.game_mode == 'online' and self.opponent_connected:
+                    try:
+                        message = json.dumps({
+                            'type': 'chat',
+                            'emoji': emoji,
+                            'timestamp': datetime.now().isoformat()
+                        }).encode('utf-8')
+                        self.online_socket.sendall(message)
+                    except:
+                        pass
     
     def is_in_check(self, color: str):
         king_pos = None
@@ -442,7 +505,6 @@ class ChessGame:
         if piece.piece_type == 'pawn':
             if (piece.color == 'white' and new_y == 7) or (piece.color == 'black' and new_y == 0):
                 piece.piece_type = 'queen'
-                piece.load_image()
         
         # Check for check/checkmate
         opponent_color = 'black' if piece.color == 'white' else 'white'
@@ -456,6 +518,21 @@ class ChessGame:
                     self.chat_history.pop(0)
         
         self.current_turn = 'black' if self.current_turn == 'white' else 'white'
+        
+        # Send move to opponent if online
+        if self.game_mode == 'online' and self.opponent_connected:
+            try:
+                move_data = json.dumps({
+                    'type': 'move',
+                    'from_x': original_x,
+                    'from_y': original_y,
+                    'to_x': new_x,
+                    'to_y': new_y,
+                    'timestamp': datetime.now().isoformat()
+                }).encode('utf-8')
+                self.online_socket.sendall(move_data)
+            except:
+                pass
     
     def is_checkmate(self, color: str):
         for row in range(BOARD_SIZE):
@@ -472,7 +549,7 @@ class ChessGame:
         if self.game_over:
             return
         
-        # Simple AI based on difficulty
+        # Simple AI that chooses random valid move
         pieces = []
         for row in range(BOARD_SIZE):
             for col in range(BOARD_SIZE):
@@ -486,70 +563,12 @@ class ChessGame:
         if not pieces:
             return
         
-        # Choose move based on difficulty
-        if self.ai_difficulty == 'easy':
-            piece, moves = random.choice(pieces)
-            move = random.choice(moves)
-        elif self.ai_difficulty == 'medium':
-            # Prefer capturing moves
-            capture_moves = []
-            safe_moves = []
-            for piece, moves in pieces:
-                for move in moves:
-                    target = self.board[move[0]][move[1]]
-                    if target:
-                        capture_moves.append((piece, move))
-                    else:
-                        safe_moves.append((piece, move))
-            
-            if capture_moves:
-                piece, move = random.choice(capture_moves)
-            elif safe_moves:
-                piece, move = random.choice(safe_moves)
-            else:
-                piece, moves = random.choice(pieces)
-                move = random.choice(moves)
-        else:  # hard
-            best_move = None
-            best_value = -float('inf')
-            
-            for piece, moves in pieces:
-                for move in moves:
-                    value = self.evaluate_move(piece, move)
-                    if value > best_value:
-                        best_value = value
-                        best_move = (piece, move)
-            
-            if best_move:
-                piece, move = best_move
-            else:
-                piece, moves = random.choice(pieces)
-                move = random.choice(moves)
-        
+        piece, moves = random.choice(pieces)
+        move = random.choice(moves)
         self.make_move(piece, move[0], move[1])
-        self.chat_history.append(f"AI: 🤖 moved {piece.piece_type} to {move}")
+        self.chat_history.append(f"AI moved {piece.piece_type} to {move}")
         if len(self.chat_history) > 10:
             self.chat_history.pop(0)
-    
-    def evaluate_move(self, piece, move):
-        # Simple evaluation function
-        value = 0
-        target = self.board[move[0]][move[1]]
-        
-        # Piece values
-        piece_values = {'pawn': 1, 'knight': 3, 'bishop': 3, 'rook': 5, 'queen': 9, 'king': 100}
-        
-        if target:
-            value += piece_values[target.piece_type]
-        
-        # Positional advantage
-        if piece.piece_type == 'pawn':
-            if piece.color == 'white':
-                value += (move[1] - piece.y) * 0.1
-            else:
-                value += (piece.y - move[1]) * 0.1
-        
-        return value
     
     def run(self):
         running = True
@@ -562,6 +581,15 @@ class ChessGame:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                    if self.online_socket:
+                        try:
+                            self.online_socket.sendall(json.dumps({
+                                'type': 'disconnect',
+                                'timestamp': datetime.now().isoformat()
+                            }).encode('utf-8'))
+                        except:
+                            pass
+                        self.online_socket.close()
                 
                 if event.type == pygame.MOUSEBUTTONDOWN and not self.game_over:
                     x, y = event.pos
@@ -576,6 +604,7 @@ class ChessGame:
                                     self.make_move(self.selected_piece, col, row)
                                     self.selected_piece = None
                                     
+                                    # AI move if playing vs AI
                                     if self.game_mode == 'ai' and not self.game_over:
                                         pygame.time.delay(1000)
                                         self.ai_move()
@@ -599,3 +628,123 @@ class ChessGame:
 if __name__ == "__main__":
     game = ChessGame()
     game.run()
+To run this game, you'll need to start a simple server first:
+
+Copy
+# server.py
+import socket
+import threading
+import json
+from datetime import datetime
+from collections import deque
+
+# Server configuration
+HOST = 'localhost'
+PORT = 5555
+MAX_CONNECTIONS = 10
+
+# Store connected players
+waiting_players = deque()
+active_games = {}
+
+def handle_client(client_socket, address):
+    try:
+        # Wait for connection request
+        data = client_socket.recv(1024).decode('utf-8')
+        request = json.loads(data)
+        
+        if request['type'] == 'connect':
+            # Check if there's a waiting player
+            if waiting_players:
+                opponent_socket, opponent_address = waiting_players.popleft()
+                
+                # Create a new game
+                game_id = f"game_{len(active_games)+1}"
+                active_games[game_id] = {
+                    'player1': opponent_socket,
+                    'player2': client_socket,
+                    'player1_color': 'white',
+                    'player2_color': 'black',
+                    'current_turn': 'white'
+                }
+                
+                # Notify both players
+                response1 = {
+                    'status': 'connected',
+                    'color': 'white',
+                    'opponent': str(opponent_address)
+                }
+                opponent_socket.sendall(json.dumps(response1).encode('utf-8'))
+                
+                response2 = {
+                    'status': 'connected',
+                    'color': 'black',
+                    'opponent': str(address)
+                }
+                client_socket.sendall(json.dumps(response2).encode('utf-8'))
+            else:
+                # Add to waiting queue
+                waiting_players.append((client_socket, address))
+                client_socket.sendall(json.dumps({
+                    'status': 'waiting',
+                    'message': 'Waiting for opponent...'
+                }).encode('utf-8'))
+        
+        # Handle game moves
+        while True:
+            data = client_socket.recv(1024).decode('utf-8')
+            if not data:
+                break
+            
+            message = json.loads(data)
+            
+            if message['type'] == 'move':
+                # Find the game
+                for game_id, game in active_games.items():
+                    if game['player1'] == client_socket or game['player2'] == client_socket:
+                        # Forward move to opponent
+                        opponent = game['player1'] if game['player2'] == client_socket else game['player2']
+                        opponent.sendall(data)
+                        break
+            
+            elif message['type'] == 'chat':
+                # Forward chat to opponent
+                for game_id, game in active_games.items():
+                    if game['player1'] == client_socket or game['player2'] == client_socket:
+                        opponent = game['player1'] if game['player2'] == client_socket else game['player2']
+                        opponent.sendall(data)
+                        break
+            
+            elif message['type'] == 'disconnect':
+                # Remove from game
+                for game_id, game in active_games.items():
+                    if game['player1'] == client_socket or game['player2'] == client_socket:
+                        opponent = game['player1'] if game['player2'] == client_socket else game['player2']
+                        opponent.sendall(data)
+                        del active_games[game_id]
+                        break
+                break
+    
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        client_socket.close()
+
+def start_server():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((HOST, PORT))
+    server_socket.listen(MAX_CONNECTIONS)
+    print(f"Server started on {HOST}:{PORT}")
+    
+    while True:
+        client_socket, address = server_socket.accept()
+        print(f"Connection from {address}")
+        client_handler = threading.Thread(
+            target=handle_client,
+            args=(client_socket, address)
+        )
+        client_handler.daemon = True
+        client_handler.start()
+
+if __name__ == "__main__":
+    start_server()
