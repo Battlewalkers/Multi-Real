@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Speed Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #81b29a 0%, #f4e4c1 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #3d5a6b;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        .difficulty-section {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .difficulty-section label {
+            display: block;
+            color: #81b29a;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .difficulty-slider {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .difficulty-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #81b29a;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .difficulty-slider::-webkit-slider-thumb:hover {
+            background: #66a17c;
+        }
+
+        .difficulty-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #81b29a;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+            transition: background 0.3s;
+        }
+
+        .difficulty-slider::-moz-range-thumb:hover {
+            background: #66a17c;
+        }
+
+        .game-area {
+            margin: 30px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #81b29a 0%, #66a17c 100%);
+            border-radius: 10px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .game-area:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(129, 178, 154, 0.4);
+        }
+
+        .game-area.ready {
+            background: linear-gradient(135deg, #f4e4c1 0%, #e8d4b1 100%);
+            color: #3d5a6b;
+        }
+
+        .game-area.ready:hover {
+            background: linear-gradient(135deg, #e8d4b1 0%, #d9c4a1 100%);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin: 10px;
+            min-width: 120px;
+        }
+
+        .stat-label {
+            color: #81b29a;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #3d5a6b;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .start-button {
+            background: #81b29a;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .start-button:hover {
+            background: #66a17c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(129, 178, 154, 0.4);
+        }
+
+        .reset-button {
+            background: #f4e4c1;
+            color: #3d5a6b;
+            border: 2px solid #81b29a;
+            padding: 10px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .reset-button:hover {
+            background: #81b29a;
+            color: white;
+        }
+
+        .message {
+            color: #f4e4c1;
+            font-size: 18px;
+            margin-top: 10px;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reaction Speed Test</h1>
+        
+        <div class="difficulty-section">
+            <label for="difficulty">Difficulty (1-10):</label>
+            <input type="range" id="difficulty" class="difficulty-slider" min="1" max="10" value="5">
+            <div id="difficultyValue" style="color: #81b29a; font-weight: bold; margin-top: 5px;">5</div>
+        </div>
+
+        <div id="gameArea" class="game-area ready">
+            Click to Start
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">Last Reaction</div>
+                <div class="stat-value" id="lastReaction">0 ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Best Time</div>
+                <div class="stat-value" id="bestTime">0 ms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Average</div>
+                <div class="stat-value" id="averageTime">0 ms</div>
+            </div>
+        </div>
+
+        <button class="reset-button" onclick="resetGame()">Reset Stats</button>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        let isGameActive = false;
+        let reactionTimes = [];
+        let startTime = null;
+        let timeoutId = null;
+        let difficulty = 5;
+
+        const gameArea = document.getElementById('gameArea');
+        const difficultySlider = document.getElementById('difficulty');
+        const difficultyValue = document.getElementById('difficultyValue');
+        const lastReaction = document.getElementById('lastReaction');
+        const bestTime = document.getElementById('bestTime');
+        const averageTime = document.getElementById('averageTime');
+        const message = document.getElementById('message');
+
+        difficultySlider.addEventListener('input', function() {
+            difficulty = parseInt(this.value);
+            difficultyValue.textContent = difficulty;
+        });
+
+        gameArea.addEventListener('click', function() {
+            if (!isGameActive) {
+                startGame();
+            } else {
+                endGame();
+            }
+        });
+
+        function startGame() {
+            isGameActive = true;
+            gameArea.textContent = 'Get Ready...';
+            gameArea.classList.remove('ready');
+
+            const minDelay = 500 + (1000 / difficulty);
+            const maxDelay = 3000 - (100 * difficulty);
+            
+            const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+
+            timeoutId = setTimeout(() => {
+                if (isGameActive) {
+                    startTime = Date.now();
+                    gameArea.textContent = 'CLICK NOW!';
+                    gameArea.style.background = 'linear-gradient(135deg, #f4e4c1 0%, #e8d4b1 100%)';
+                    gameArea.style.color = '#3d5a6b';
+                }
+            }, delay);
+        }
+
+        function endGame() {
+            if (startTime === null) {
+                message.textContent = 'Too soon! Wait for the signal.';
+                message.style.color = '#f4e4c1';
+                return;
+            }
+
+            const reactionTime = Date.now() - startTime;
+            reactionTimes.push(reactionTime);
+
+            lastReaction.textContent = reactionTime + ' ms';
+
+            if (reactionTime < parseInt(bestTime.textContent) || bestTime.textContent === '0 ms') {
+                bestTime.textContent = reactionTime + ' ms';
+            }
+
+            const avg = Math.floor(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length);
+            averageTime.textContent = avg + ' ms';
+
+            gameArea.textContent = 'Click to Start';
+            gameArea.classList.add('ready');
+            gameArea.style.background = '';
+            gameArea.style.color = '';
+
+            message.textContent = 'Good reaction!';
+            message.style.color = '#81b29a';
+
+            resetGameState();
+        }
+
+        function resetGameState() {
+            isGameActive = false;
+            startTime = null;
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        }
+
+        function resetGame() {
+            resetGameState();
+            reactionTimes = [];
+            lastReaction.textContent = '0 ms';
+            bestTime.textContent = '0 ms';
+            averageTime.textContent = '0 ms';
+            gameArea.textContent = 'Click to Start';
+            gameArea.classList.add('ready');
+            gameArea.style.background = '';
+            gameArea.style.color = '';
+            message.textContent = '';
+        }
+    </script>
+</body>
+</html>
