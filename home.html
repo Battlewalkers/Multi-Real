@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -16,27 +16,30 @@
 <main class="container">
   <h2 id="welcome"></h2>
 
+  <!-- Games Card -->
   <section class="card" style="cursor:pointer;" id="gamesCard">
     <h3>🎮 Gaming</h3>
     <p>Play games and have fun</p>
   </section>
 
+  <!-- Learning Card -->
+  <section class="card" style="cursor:pointer;" id="learningCard">
+    <h3>📚 Learning</h3>
+    <p>Interactive lessons and tutorials</p>
+  </section>
+
+  <!-- Shopping Card -->
   <section class="card">
     <h3>🛒 Shopping</h3>
     <p>Products and store links here.</p>
-  </section>
-
-  <section class="card">
-    <h3>📚 Learning</h3>
-    <p>Tutorials and lessons here.</p>
   </section>
 </main>
 
 <script src="assets/auth.js"></script>
 
 <script>
+  // Check session
   const session = getSession();
-
   if (!session) {
     window.location.href = 'index.html';
   } else {
@@ -44,6 +47,7 @@
       'Welcome, ' + session.username;
   }
 
+  // Sign out
   document.getElementById('signOutBtn').onclick = () => {
     logout();
     window.location.href = 'index.html';
@@ -52,6 +56,11 @@
   // Go to games page
   document.getElementById('gamesCard').onclick = () => {
     window.location.href = 'games.html';
+  };
+
+  // Go to learning page
+  document.getElementById('learningCard').onclick = () => {
+    window.location.href = 'learning.html';
   };
 </script>
 
