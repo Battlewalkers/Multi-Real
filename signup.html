@@ -11,48 +11,96 @@ body {
   align-items:center;
   height:100vh;
   margin:0;
+  padding:20px;
+}
+
+.container {
+  max-width: 400px;
+  width:100%;
 }
 
 .box {
-  background:white;
-  padding:40px;
-  border-radius:20px;
-  width:300px;
-  box-shadow:0 5px 20px rgba(0,0,0,0.2);
-  text-align:center;
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  text-align: center;
   border: 3px solid #A7D129;
 }
 
-input {
-  width:100%;
-  padding:10px;
-  margin:10px 0;
-  border-radius:10px;
-  border:2px solid #F9E492;
-  font-size:16px;
+.logo {
+  font-size: 32px;
+  color: #A7D129;
+  margin-bottom: 10px;
 }
 
-input:focus {
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: bold;
+}
+
+.form-group select,
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #F9E492;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: #A7D129;
   box-shadow: 0 0 5px rgba(167, 209, 41, 0.3);
 }
 
+.form-group input[type="password"] {
+  letter-spacing: 2px;
+}
+
+.parent-email {
+  display: none;
+}
+
+.parent-email.show {
+  display: block;
+}
+
+.button-container {
+  margin-top: 25px;
+}
+
 button {
-  background:#A7D129;
-  color:white;
-  border:none;
-  padding:12px;
-  width:100%;
-  border-radius:12px;
-  font-size:16px;
-  cursor:pointer;
-  font-weight:bold;
-  transition: background 0.3s ease;
+  background: #A7D129;
+  color: white;
+  border: none;
+  padding: 14px;
+  width: 100%;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
 }
 
 button:hover {
   background: #8AB229;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(167, 209, 41, 0.4);
 }
 
 a { 
@@ -62,16 +110,8 @@ a {
 }
 
 h2 {
-  color: #A7D129;
-  margin-bottom: 20px;
-}
-
-.age-group {
-  display: none;
-}
-
-.parent-email {
-  display: none;
+  color: #A7D492;
+  margin-bottom: 5px;
 }
 
 .error {
@@ -79,45 +119,86 @@ h2 {
   font-size: 14px;
   margin-top: 10px;
   display: none;
+  text-align: left;
+}
+
+.success {
+  color: #28A745;
+  font-size: 14px;
+  margin-top: 10px;
+  display: none;
+  text-align: left;
 }
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>✏️ Sign Up</h2>
-  
-  <select id="ageGroup" class="age-group">
-    <option value="">Select your age group</option>
-    <option value="13plus">13 or older</option>
-    <option value="under13">Under 13</option>
-  </select>
-  
-  <input type="text" id="parentEmail" class="parent-email" placeholder="Parent/Guardian Email">
-  
-  <input type="text" id="fullName" placeholder="Full Name">
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
-  <input type="password" id="confirmPassword" placeholder="Confirm Password">
-  
-  <button onclick="validateForm()">Sign Up</button>
-  <p id="errorMessage" class="error"></p>
-  
-  <p>Already have an account? <a href="login.html">Login</a></p>
+<div class="container">
+  <div class="box">
+    <div class="logo">✏️</div>
+    <h2>Create Account</h2>
+    <p class="subtitle">Join Multi today</p>
+    
+    <div class="form-group">
+      <label for="ageGroup">Age Group</label>
+      <select id="ageGroup" style="padding: 12px; width: 100%; border: 2px solid #F9E492; border-radius: 10px; font-size: 16px;">
+        <option value="">Select your age group</option>
+        <option value="13plus">13 or older</option>
+        <option value="under13">Under 13</option>
+      </select>
+    </div>
+    
+    <div class="form-group parent-email" id="parentEmailGroup">
+      <label for="parentEmail">Parent/Guardian Email</label>
+      <input type="email" id="parentEmail" placeholder="Enter parent/guardian email">
+    </div>
+    
+    <div class="form-group">
+      <label for="fullName">Full Name</label>
+      <input type="text" id="fullName" placeholder="Enter your full name">
+    </div>
+    
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter your email">
+    </div>
+    
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Create a password">
+    </div>
+    
+    <div class="form-group">
+      <label for="confirmPassword">Confirm Password</label>
+      <input type="password" id="confirmPassword" placeholder="Confirm your password">
+    </div>
+    
+    <div class="button-container">
+      <button onclick="validateForm()">Create Account</button>
+    </div>
+    
+    <p id="errorMessage" class="error"></p>
+    <p id="successMessage" class="success"></p>
+    
+    <p style="margin-top: 20px;">Already have an account? <a href="login.html">Sign In</a></p>
+  </div>
 </div>
 
 <script>
 function validateForm() {
   const ageGroup = document.getElementById('ageGroup');
   const parentEmail = document.getElementById('parentEmail');
+  const parentEmailGroup = document.getElementById('parentEmailGroup');
   const fullName = document.getElementById('fullName');
   const email = document.getElementById('email');
   const password = document.getElementById('password');
   const confirmPassword = document.getElementById('confirmPassword');
   const errorMessage = document.getElementById('errorMessage');
+  const successMessage = document.getElementById('successMessage');
   
   errorMessage.style.display = 'none';
+  successMessage.style.display = 'none';
   
   if (!ageGroup.value) {
     errorMessage.textContent = 'Please select your age group';
@@ -158,8 +239,16 @@ function validateForm() {
   }
   
   // All validation passed
-  alert('Form submitted successfully!');
+  successMessage.textContent = 'Form submitted successfully!';
+  successMessage.style.display = 'block';
+  
   // Here you would typically submit the form data to your server
+  console.log('Form data:', {
+    ageGroup: ageGroup.value,
+    parentEmail: ageGroup.value === 'under13' ? parentEmail.value : null,
+    fullName: fullName.value,
+    email: email.value
+  });
 }
 
 function isValidEmail(email) {
@@ -168,14 +257,12 @@ function isValidEmail(email) {
 }
 
 document.getElementById('ageGroup').addEventListener('change', function() {
-  const parentEmailField = document.getElementById('parentEmail');
+  const parentEmailGroup = document.getElementById('parentEmailGroup');
   
   if (this.value === 'under13') {
-    parentEmailField.style.display = 'block';
-    parentEmailField.required = true;
+    parentEmailGroup.classList.add('show');
   } else {
-    parentEmailField.style.display = 'none';
-    parentEmailField.required = false;
+    parentEmailGroup.classList.remove('show');
   }
 });
 </script>
