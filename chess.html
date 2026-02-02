@@ -13,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #1a1a1a;
+            background: #2a2a2a;
             color: #d0d0d0;
             min-height: 100vh;
             display: flex;
@@ -23,7 +23,7 @@
         }
 
         .game-container {
-            background: #2b2b2b;
+            background: #3a3a3a;
             border-radius: 8px;
             padding: 0;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -34,9 +34,9 @@
         }
 
         .header {
-            background: #1a1a1a;
+            background: #2a2a2a;
             padding: 20px 30px;
-            border-bottom: 1px solid #404040;
+            border-bottom: 1px solid #555;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -49,11 +49,11 @@
         }
 
         .logo .chess {
-            color: #3f88c5;
+            color: #d4af37;
         }
 
         .logo .com {
-            color: #db6b5d;
+            color: #00ff00;
         }
 
         .mode-selector {
@@ -63,8 +63,8 @@
 
         .mode-btn {
             padding: 8px 16px;
-            background: #3a3a3a;
-            border: 1px solid #555;
+            background: #4a4a4a;
+            border: 1px solid #666;
             color: #b0b0b0;
             font-size: 0.9em;
             border-radius: 4px;
@@ -74,14 +74,14 @@
         }
 
         .mode-btn:hover {
-            background: #4a4a4a;
+            background: #5a5a5a;
             color: #d0d0d0;
         }
 
         .mode-btn.active {
-            background: #3f88c5;
-            color: #fff;
-            border-color: #3f88c5;
+            background: #d4af37;
+            color: #000;
+            border-color: #d4af37;
         }
 
         .difficulty-container {
@@ -112,21 +112,21 @@
             -webkit-appearance: none;
             width: 16px;
             height: 16px;
-            background: #3f88c5;
+            background: #d4af37;
             border-radius: 50%;
             cursor: pointer;
             transition: background 0.2s;
         }
 
         .difficulty-slider input::-webkit-slider-thumb:hover {
-            background: #3778b5;
+            background: #b8941f;
         }
 
         .chessboard-container {
             display: flex;
             justify-content: center;
             padding: 30px;
-            background: #2b2b2b;
+            background: #3a3a3a;
         }
 
         .chessboard {
@@ -134,7 +134,7 @@
             grid-template-columns: repeat(8, 65px);
             grid-template-rows: repeat(8, 65px);
             gap: 0;
-            border: 2px solid #404040;
+            border: 2px solid #555;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
@@ -151,23 +151,23 @@
         }
 
         .square.light {
-            background: #f0d8d8;
+            background: #ffffcc;
         }
 
         .square.dark {
-            background: #b58863;
+            background: #006400;
         }
 
         .square.selected {
-            background: #7fc97f !important;
-            box-shadow: inset 0 0 15px rgba(127, 201, 127, 0.5);
+            background: #ffff99 !important;
+            box-shadow: inset 0 0 15px rgba(255, 255, 153, 0.5);
         }
 
         .square.possible-move::after {
             content: '';
             width: 20px;
             height: 20px;
-            background: #5cb85c;
+            background: #00ff00;
             border-radius: 50%;
             position: absolute;
             opacity: 0.6;
@@ -177,14 +177,14 @@
             content: '';
             width: 20px;
             height: 20px;
-            background: #d9534f;
+            background: #ffff00;
             border-radius: 50%;
             position: absolute;
             opacity: 0.6;
         }
 
         .square.attacking {
-            background: #d9534f !important;
+            background: #ff0000 !important;
             opacity: 0.5;
         }
 
@@ -193,8 +193,8 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px 30px;
-            background: #1a1a1a;
-            border-top: 1px solid #404040;
+            background: #2a2a2a;
+            border-top: 1px solid #555;
         }
 
         .turn-indicator {
@@ -236,7 +236,7 @@
 
         .status {
             font-size: 0.9em;
-            color: #3f88c5;
+            color: #d4af37;
             font-style: italic;
         }
 
@@ -254,8 +254,8 @@
         }
 
         .modal-content {
-            background: #2b2b2b;
-            border: 1px solid #404040;
+            background: #3a3a3a;
+            border: 1px solid #555;
             padding: 30px;
             border-radius: 8px;
             text-align: center;
@@ -271,8 +271,8 @@
 
         .modal button {
             margin-top: 20px;
-            background: #3f88c5;
-            color: #fff;
+            background: #d4af37;
+            color: #000;
             border: none;
             padding: 10px 25px;
             font-size: 1em;
@@ -283,7 +283,31 @@
         }
 
         .modal button:hover {
-            background: #3778b5;
+            background: #b8941f;
+        }
+
+        .emoji-chat {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-top: 1px solid #555;
+        }
+
+        .emoji-btn {
+            padding: 8px 12px;
+            background: #4a4a4a;
+            border: 1px solid #666;
+            color: #b0b0b0;
+            font-size: 1.2em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .emoji-btn:hover {
+            background: #5a5a5a;
+            color: #d0d0d0;
         }
 
         .online-status {
@@ -291,22 +315,22 @@
             align-items: center;
             gap: 8px;
             font-size: 0.85em;
-            color: #5cb85c;
+            color: #00ff00;
         }
 
         .dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #5cb85c;
+            background: #00ff00;
         }
 
         .dot.searching {
-            background: #f0ad4e;
+            background: #ffff00;
         }
 
         .dot.offline {
-            background: #d9534f;
+            background: #ff0000;
         }
     </style>
 </head>
@@ -314,7 +338,7 @@
     <div class="game-container">
         <div class="header">
             <div class="logo">
-                <span class="chess">Chess</span><span class="com">.com</span>
+                <span class="chess">Chess</span>
             </div>
             <div class="mode-selector">
                 <button class="mode-btn active" data-mode="two-player">2 Player</button>
@@ -341,6 +365,15 @@
                 <span id="whiteCaptured"></span>
                 <span id="blackCaptured"></span>
             </div>
+        </div>
+
+        <div class="emoji-chat">
+            <button class="emoji-btn" onclick="sendEmoji('😀')">😀</button>
+            <button class="emoji-btn" onclick="sendEmoji('😲')">😲</button>
+            <button class="emoji-btn" onclick="sendEmoji('😂')">😂</button>
+            <button class="emoji-btn" onclick="sendEmoji('😡')">😡</button>
+            <button class="emoji-btn" onclick="sendEmoji('👑')">👑</button>
+            <button class="emoji-btn" onclick="sendEmoji('♟️')">♟️</button>
         </div>
 
         <div class="modal" id="resultModal">
@@ -439,7 +472,7 @@
 
         function simulateOnlineMatchmaking() {
             gameStatus.innerHTML = '<span class="online-status"><span class="dot searching"></span>Searching for opponent...</span>';
-            gameStatus.style.color = '#f0ad4e';
+            gameStatus.style.color = '#ffff00';
 
             setTimeout(() => {
                 const botNames = ['CheckMateMaster', 'QueenSlayer', 'KnightRider', 'PawnStar', 'BishopKiller'];
@@ -448,7 +481,7 @@
                     rating: 1200 + Math.floor(Math.random() * 800)
                 };
                 gameStatus.innerHTML = `<span class="online-status"><span class="dot"></span>Connected to ${onlineOpponent.name} (Rating: ${onlineOpponent.rating})</span>`;
-                gameStatus.style.color = '#5cb85c';
+                gameStatus.style.color = '#00ff00';
             }, 2000);
         }
 
@@ -466,7 +499,7 @@
                     const piece = board[row][col];
                     if (piece) {
                         square.textContent = pieces[piece];
-                        square.style.color = piece[0] === 'w' ? '#fff' : '#000';
+                        square.style.color = piece[0] === 'w' ? '#000' : '#000';
                     }
 
                     if (selectedPiece && selectedPiece.row === row && selectedPiece.col === col) {
@@ -520,7 +553,7 @@
                         isBotThinking = true;
                         gameStatus.innerHTML = '<span class="online-status"><span class="dot"></span>Opponent is thinking...</span>';
                         setTimeout(() => {
-                            makeBotMove();
+                            makeSmartBotMove();
                             isBotThinking = false;
                             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
                             updateGameInfo();
@@ -544,8 +577,6 @@
                 'Q': [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]],
                 'K': [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]
             };
-
-            const getStepMultiplier = () => color === 'w' ? 1 : -1;
 
             directions[pieceType].forEach(dir => {
                 let steps = pieceType === 'N' || pieceType === 'K' ? 1 : 8;
@@ -596,7 +627,7 @@
             }
         }
 
-        function makeBotMove() {
+        function makeSmartBotMove() {
             const allMoves = [];
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
@@ -612,7 +643,15 @@
 
             if (allMoves.length > 0) {
                 const move = allMoves[Math.floor(Math.random() * allMoves.length)];
-                makeMove(move.from.r, move.from.c, move.to.row, move.to.col, move.to.special);
+                
+                // Add some basic strategy
+                const captures = allMoves.filter(m => board[m.to.row][m.to.col]);
+                if (captures.length > 0 && Math.random() < 0.7) {
+                    const capture = captures[Math.floor(Math.random() * captures.length)];
+                    makeMove(capture.from.r, capture.from.c, capture.to.row, capture.to.col, capture.to.special);
+                } else {
+                    makeMove(move.from.r, move.from.c, move.to.row, move.to.col, move.to.special);
+                }
             }
         }
 
@@ -701,6 +740,11 @@
         function closeModal() {
             resultModal.style.display = 'none';
             startGame(gameMode);
+        }
+
+        function sendEmoji(emoji) {
+            // In a real game, this would send to opponent
+            console.log('Sent emoji:', emoji);
         }
 
         startGame('two-player');
