@@ -5,6 +5,77 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Multi — Home</title>
   <link rel="stylesheet" href="assets/styles.css">
+  <style>
+    /* Yellow, Green, and White Theme */
+    body {
+      background-color: #f9f9f9;
+      font-family: Arial, sans-serif;
+    }
+    .topbar {
+      background-color: #f4d03f; /* Yellow */
+      color: #fff;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #2ecc71; /* Green */
+    }
+    #signOutBtn {
+      background-color: #2ecc71; /* Green */
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .card {
+      background-color: #fff;
+      border: 2px solid #2ecc71; /* Green */
+      border-radius: 10px;
+      padding: 2rem;
+      text-align: center;
+      margin: 1rem;
+      flex: 1 1 250px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card h3 {
+      color: #f4d03f; /* Yellow */
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .card p {
+      color: #333;
+      font-size: 1rem;
+    }
+    #welcome {
+      text-align: center;
+      font-size: 1.5rem;
+      color: #2ecc71; /* Green */
+      margin-bottom: 2rem;
+    }
+    .hero-text {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #333;
+      margin-bottom: 2rem;
+    }
+  </style>
 </head>
 <body>
 
@@ -15,6 +86,12 @@
 
 <main class="container">
   <h2 id="welcome"></h2>
+
+  <!-- Hero Text -->
+  <div class="hero-text">
+    Multi is a safe and fun website for children to learn, play, and shop for cool things—all in one place! 
+    Now at Multi, your child can explore, grow, and have fun in a secure environment.
+  </div>
 
   <!-- Games Card -->
   <section class="card" style="cursor:pointer;" id="gamesCard">
