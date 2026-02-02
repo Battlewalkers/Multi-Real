@@ -1,591 +1,742 @@
-import pygame
-import sys
-import random
-import threading
-from enum import Enum
-import time
-from collections import deque
-from typing import List, Tuple, Optional
-
-# Initialize Pygame
-pygame.init()
-
-# Constants
-WIDTH, HEIGHT = 800, 800
-BOARD_SIZE = 8
-SQUARE_SIZE = WIDTH // BOARD_SIZE
-FPS = 60
-PIECE_SIZE = SQUARE_SIZE - 20
-
-# Colors
-YELLOW = (255, 255, 0)
-GREEN = (0, 255, 0)
-LIGHT_GREEN = (144, 238, 144)
-DARK_GREEN = (0, 100, 0)
-YELLOW_GREEN = (154, 205, 50)
-BROWN = (139, 69, 19)
-GRAY = (128, 128, 128)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
-# Piece Images
-PIECE_IMAGES = {}
-
-def load_piece_images():
-    pieces = ['white_king', 'white_queen', 'white_rook', 'white_bishop', 'white_knight', 'white_pawn',
-              'black_king', 'black_queen', 'black_rook', 'black_bishop', 'black_knight', 'black_pawn']
-    
-    for piece in pieces:
-        img = pygame.image.load(f"{piece}.png")
-        img = pygame.transform.scale(img, (PIECE_SIZE, PIECE_SIZE))
-        PIECE_IMAGES[piece] = img
-
-load_piece_images()
-
-class PieceType(Enum):
-    KING = 'king'
-    QUEEN = 'queen'
-    ROOK = 'rook'
-    BISHOP = 'bishop'
-    KNIGHT = 'knight'
-    PAWN = 'pawn'
-
-class Color(Enum):
-    WHITE = 'white'
-    BLACK = 'black'
-
-class Piece:
-    def __init__(self, piece_type: PieceType, color: Color, x: int, y: int):
-        self.piece_type = piece_type
-        self.color = color
-        self.x = x
-        self.y = y
-        self.has_moved = False
-    
-    def get_image_key(self):
-        return f"{self.color.value}_{self.piece_type.value}"
-    
-    def __repr__(self):
-        return f"{self.color.value} {self.piece_type.value} at ({self.x}, {self.y})"
-
-class ChessGame:
-    def __init__(self):
-        self.board = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-        self.current_turn = Color.WHITE
-        self.selected_piece = None
-        self.valid_moves = []
-        self.game_over = False
-        self.winner = None
-        self.setup_board()
-    
-    def setup_board(self):
-        # Pawns
-        for i in range(BOARD_SIZE):
-            self.board[1][i] = Piece(PieceType.PAWN, Color.BLACK, 1, i)
-            self.board[6][i] = Piece(PieceType.PAWN, Color.WHITE, 6, i)
-        
-        # Rooks
-        self.board[0][0] = Piece(PieceType.ROOK, Color.BLACK, 0, 0)
-        self.board[0][7] = Piece(PieceType.ROOK, Color.BLACK, 0, 7)
-        self.board[7][0] = Piece(PieceType.ROOK, Color.WHITE, 7, 0)
-        self.board[7][7] = Piece(PieceType.ROOK, Color.WHITE, 7, 7)
-        
-        # Knights
-        self.board[0][1] = Piece(PieceType.KNIGHT, Color.BLACK, 0, 1)
-        self.board[0][6] = Piece(PieceType.KNIGHT, Color.BLACK, 0, 6)
-        self.board[7][1] = Piece(PieceType.KNIGHT, Color.WHITE, 7, 1)
-        self.board[7][6] = Piece(PieceType.KNIGHT, Color.WHITE, 7, 6)
-        
-        # Bishops
-        self.board[0][2] = Piece(PieceType.BISHOP, Color.BLACK, 0, 2)
-        self.board[0][5] = Piece(PieceType.BISHOP, Color.BLACK, 0, 5)
-        self.board[7][2] = Piece(PieceType.BISHOP, Color.WHITE, 7, 2)
-        self.board[7][5] = Piece(PieceType.BISHOP, Color.WHITE, 7, 5)
-        
-        # Queens
-        self.board[0][3] = Piece(PieceType.QUEEN, Color.BLACK, 0, 3)
-        self.board[7][3] = Piece(PieceType.QUEEN, Color.WHITE, 7, 3)
-        
-        # Kings
-        self.board[0][4] = Piece(PieceType.KING, Color.BLACK, 0, 4)
-        self.board[7][4] = Piece(PieceType.KING, Color.WHITE, 7, 4)
-    
-    def get_piece_at(self, x: int, y: int) -> Optional[Piece]:
-        return self.board[x][y]
-    
-    def is_valid_move(self, piece: Piece, new_x: int, new_y: int) -> bool:
-        if not (0 <= new_x < BOARD_SIZE and 0 <= new_y < BOARD_SIZE):
-            return False
-        
-        target_piece = self.board[new_x][new_y]
-        
-        if target_piece and target_piece.color == piece.color:
-            return False
-        
-        # Pawn movement
-        if piece.piece_type == PieceType.PAWN:
-            direction = 1 if piece.color == Color.BLACK else -1
-            start_row = 1 if piece.color == Color.BLACK else 6
-            
-            # One step forward
-            if new_y == piece.y and new_x == piece.x + direction and not target_piece:
-                return True
-            
-            # Two steps forward from starting position
-            if new_y == piece.y and new_x == piece.x + 2 * direction and piece.x == start_row and not target_piece:
-                return True
-            
-            # Capture diagonally
-            if abs(new_y - piece.y) == 1 and new_x == piece.x + direction and target_piece and target_piece.color != piece.color:
-                return True
-        
-        # Rook movement (horizontal/vertical)
-        elif piece.piece_type == PieceType.ROOK:
-            if piece.x != new_x and piece.y != new_y:
-                return False
-            
-            step_x = 0 if piece.x == new_x else (1 if new_x > piece.x else -1)
-            step_y = 0 if piece.y == new_y else (1 if new_y > piece.y else -1)
-            
-            current_x, current_y = piece.x + step_x, piece.y + step_y
-            while (current_x, current_y) != (new_x, new_y):
-                if self.board[current_x][current_y] is not None:
-                    return False
-                current_x += step_x
-                current_y += step_y
-            
-            return True
-        
-        # Bishop movement (diagonal)
-        elif piece.piece_type == PieceType.BISHOP:
-            if abs(piece.x - new_x) != abs(piece.y - new_y):
-                return False
-            
-            step_x = 1 if new_x > piece.x else -1
-            step_y = 1 if new_y > piece.y else -1
-            
-            current_x, current_y = piece.x + step_x, piece.y + step_y
-            while (current_x, current_y) != (new_x, new_y):
-                if self.board[current_x][current_y] is not None:
-                    return False
-                current_x += step_x
-                current_y += step_y
-            
-            return True
-        
-        # Queen movement (any direction)
-        elif piece.piece_type == PieceType.QUEEN:
-            if piece.x != new_x and piece.y != new_y and abs(piece.x - new_x) != abs(piece.y - new_y):
-                return False
-            
-            step_x = 0 if piece.x == new_x else (1 if new_x > piece.x else -1)
-            step_y = 0 if piece.y == new_y else (1 if new_y > piece.y else -1)
-            
-            current_x, current_y = piece.x + step_x, piece.y + step_y
-            while (current_x, current_y) != (new_x, new_y):
-                if self.board[current_x][current_y] is not None:
-                    return False
-                current_x += step_x
-                current_y += step_y
-            
-            return True
-        
-        # Knight movement (L-shape)
-        elif piece.piece_type == PieceType.KNIGHT:
-            dx = abs(piece.x - new_x)
-            dy = abs(piece.y - new_y)
-            return (dx == 2 and dy == 1) or (dx == 1 and dy == 2)
-        
-        # King movement (one step any direction)
-        elif piece.piece_type == PieceType.KING:
-            dx = abs(piece.x - new_x)
-            dy = abs(piece.y - new_y)
-            return dx <= 1 and dy <= 1
-        
-        return False
-    
-    def select_piece(self, x: int, y: int):
-        piece = self.get_piece_at(x, y)
-        if piece and piece.color == self.current_turn:
-            self.selected_piece = piece
-            self.calculate_valid_moves()
-    
-    def calculate_valid_moves(self):
-        self.valid_moves = []
-        if self.selected_piece:
-            for i in range(BOARD_SIZE):
-                for j in range(BOARD_SIZE):
-                    if self.is_valid_move(self.selected_piece, i, j):
-                        self.valid_moves.append((i, j))
-    
-    def move_piece(self, new_x: int, new_y: int):
-        if self.selected_piece and (new_x, new_y) in self.valid_moves:
-            # Check for pawn promotion
-            if self.selected_piece.piece_type == PieceType.PAWN:
-                if (self.selected_piece.color == Color.WHITE and new_x == 0) or \
-                   (self.selected_piece.color == Color.BLACK and new_x == 7):
-                    self.selected_piece.piece_type = PieceType.QUEEN
-            
-            # Move the piece
-            self.board[new_x][new_y] = self.selected_piece
-            self.board[self.selected_piece.x][self.selected_piece.y] = None
-            self.selected_piece.x = new_x
-            self.selected_piece.y = new_y
-            self.selected_piece.has_moved = True
-            
-            # Check for checkmate/check
-            if self.is_checkmate():
-                self.game_over = True
-                self.winner = self.current_turn
-            
-            # Switch turn
-            self.current_turn = Color.BLACK if self.current_turn == Color.WHITE else Color.WHITE
-            self.selected_piece = None
-            self.valid_moves = []
-    
-    def is_checkmate(self) -> bool:
-        # Check if current player's king is in check
-        king = None
-        for row in self.board:
-            for piece in row:
-                if piece and piece.color == self.current_turn and piece.piece_type == PieceType.KING:
-                    king = piece
-                    break
-        
-        if not king:
-            return True
-        
-        # Check if king is in check
-        for row in self.board:
-            for piece in row:
-                if piece and piece.color != self.current_turn:
-                    if self.is_valid_move(piece, king.x, king.y):
-                        return True
-        
-        return False
-    
-    def get_all_valid_moves(self, color: Color) -> List[Tuple[int, int, int, int]]:
-        moves = []
-        for i in range(BOARD_SIZE):
-            for j in range(BOARD_SIZE):
-                piece = self.board[i][j]
-                if piece and piece.color == color:
-                    for x in range(BOARD_SIZE):
-                        for y in range(BOARD_SIZE):
-                            if self.is_valid_move(piece, x, y):
-                                moves.append((i, j, x, y))
-        return moves
-
-class ChessBot:
-    def __init__(self, difficulty: int):
-        self.difficulty = difficulty
-    
-    def get_move(self, game: ChessGame) -> Tuple[int, int, int, int]:
-        valid_moves = game.get_all_valid_moves(game.current_turn)
-        
-        if not valid_moves:
-            return None
-        
-        # Simple AI based on difficulty
-        if self.difficulty <= 3:
-            # Random moves
-            return random.choice(valid_moves)
-        elif self.difficulty <= 6:
-            # Prefer captures
-            captures = [move for move in valid_moves if game.board[move[2]][move[3]] is not None]
-            if captures:
-                return random.choice(captures)
-            return random.choice(valid_moves)
-        else:
-            # Try to make best moves
-            best_move = None
-            best_value = -float('inf')
-            
-            for move in valid_moves:
-                # Evaluate move
-                piece = game.board[move[0]][move[1]]
-                target_piece = game.board[move[2]][move[3]]
-                
-                value = 0
-                if target_piece:
-                    # Capture value
-                    value += self.get_piece_value(target_piece)
-                
-                # Positional value
-                value += self.get_positional_value(piece, move[2], move[3])
-                
-                if value > best_value:
-                    best_value = value
-                    best_move = move
-            
-            if best_move:
-                return best_move
-            return random.choice(valid_moves)
-    
-    def get_piece_value(self, piece: Piece) -> int:
-        values = {
-            PieceType.PAWN: 1,
-            PieceType.KNIGHT: 3,
-            PieceType.BISHOP: 3,
-            PieceType.ROOK: 5,
-            PieceType.QUEEN: 9,
-            PieceType.KING: 100
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Game - Yellow & Green Theme</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        return values[piece.piece_type]
-    
-    def get_positional_value(self, piece: Piece, x: int, y: int) -> int:
-        # Simple positional evaluation
-        if piece.piece_type == PieceType.PAWN:
-            return 0.1 * (3 if piece.color == Color.WHITE else -3)
-        elif piece.piece_type == PieceType.KNIGHT:
-            return 0.2 * (x + y - 4)
-        elif piece.piece_type == PieceType.BISHOP:
-            return 0.2 * (7 - abs(x - y))
-        return 0
 
-class OnlineMode:
-    def __init__(self):
-        self.waiting_players = deque()
-        self.active_games = {}
-        self.lock = threading.Lock()
-    
-    def add_player(self, player_id: str):
-        with self.lock:
-            self.waiting_players.append(player_id)
-    
-    def match_players(self) -> Optional[Tuple[str, str]]:
-        with self.lock:
-            if len(self.waiting_players) >= 2:
-                player1 = self.waiting_players.popleft()
-                player2 = self.waiting_players.popleft()
-                return (player1, player2)
-            return None
-    
-    def create_bot_match(self) -> Tuple[str, str]:
-        bot_name = f"Bot_{random.randint(1000, 9999)}"
-        return ("human", bot_name)
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #FFD700 0%, #ADFF2F 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
 
-class ChessApp:
-    def __init__(self):
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Chess Game - Yellow & Green Theme")
-        self.clock = pygame.time.Clock()
-        self.running = True
-        self.game_mode = "menu"
-        self.chess_game = ChessGame()
-        self.bot_difficulty = 5
-        self.online_mode = OnlineMode()
-        self.bot = ChessBot(self.bot_difficulty)
-        self.selected_square = None
-        self.hovered_square = None
-        
-        # Online mode state
-        self.online_player_color = None
-        self.online_opponent_move = None
-        
-        # Menu state
-        self.menu_selection = 0
-        self.menu_options = ["2 Player Mode", "Online Mode", "Bot Mode"]
-    
-    def run(self):
-        while self.running:
-            if self.game_mode == "menu":
-                self.handle_menu()
-            elif self.game_mode == "2player":
-                self.handle_2player()
-            elif self.game_mode == "online":
-                self.handle_online()
-            elif self.game_mode == "bot":
-                self.handle_bot()
-            
-            self.clock.tick(FPS)
-        
-        pygame.quit()
-        sys.exit()
-    
-    def handle_menu(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-            
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    self.menu_selection = (self.menu_selection - 1) % len(self.menu_options)
-                elif event.key == pygame.K_DOWN:
-                    self.menu_selection = (self.menu_selection + 1) % len(self.menu_options)
-                elif event.key == pygame.K_RETURN:
-                    selected = self.menu_options[self.menu_selection]
-                    if selected == "2 Player Mode":
-                        self.game_mode = "2player"
-                        self.chess_game = ChessGame()
-                    elif selected == "Online Mode":
-                        self.game_mode = "online"
-                        self.online_mode.add_player("human")
-                        self.online_player_color = Color.WHITE
-                    elif selected == "Bot Mode":
-                        self.game_mode = "bot"
-                        self.chess_game = ChessGame()
-                        self.bot = ChessBot(self.bot_difficulty)
-        
-        self.screen.fill(YELLOW)
-        
-        # Title
-        font = pygame.font.Font(None, 72)
-        title = font.render("CHESS GAME", True, GREEN)
-        title_rect = title.get_rect(center=(WIDTH // 2, 100))
-        self.screen.blit(title, title_rect)
-        
-        # Menu options
-        font = pygame.font.Font(None, 36)
-        for i, option in enumerate(self.menu_options):
-            color = GREEN if i == self.menu_selection else BLACK
-            text = font.render(option, True, color)
-            text_rect = text.get_rect(center=(WIDTH // 2, 250 + i * 60))
-            self.screen.blit(text, text_rect)
-        
-        pygame.display.flip()
-    
-    def handle_2player(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-            
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    x, y = event.pos
-                    row = y // SQUARE_SIZE
-                    col = x // SQUARE_SIZE
-                    
-                    if self.chess_game.selected_piece:
-                        self.chess_game.move_piece(row, col)
-                    else:
-                        self.chess_game.select_piece(row, col)
-            
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.game_mode = "menu"
-        
-        self.draw_board()
-        pygame.display.flip()
-    
-    def handle_online(self):
-        # Check for opponent
-        match = self.online_mode.match_players()
-        if not match:
-            # Create bot match
-            match = self.online_mode.create_bot_match()
-            self.online_player_color = Color.WHITE
-            self.bot = ChessBot(5)
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-            
-            if event.type == pygame.MOUSEBUTTONDOWN and self.online_player_color == self.chess_game.current_turn:
-                if event.button == 1:
-                    x, y = event.pos
-                    row = y // SQUARE_SIZE
-                    col = x // SQUARE_SIZE
-                    
-                    if self.chess_game.selected_piece:
-                        self.chess_game.move_piece(row, col)
-                    else:
-                        self.chess_game.select_piece(row, col)
-            
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.game_mode = "menu"
-        
-        # Bot move if it's bot's turn
-        if self.online_player_color != self.chess_game.current_turn and not self.chess_game.game_over:
-            move = self.bot.get_move(self.chess_game)
-            if move:
-                self.chess_game.selected_piece = self.chess_game.board[move[0]][move[1]]
-                self.chess_game.move_piece(move[2], move[3])
-        
-        self.draw_board()
-        pygame.display.flip()
-    
-    def handle_bot(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-            
-            if event.type == pygame.MOUSEBUTTONDOWN and self.chess_game.current_turn == Color.WHITE:
-                if event.button == 1:
-                    x, y = event.pos
-                    row = y // SQUARE_SIZE
-                    col = x // SQUARE_SIZE
-                    
-                    if self.chess_game.selected_piece:
-                        self.chess_game.move_piece(row, col)
-                    else:
-                        self.chess_game.select_piece(row, col)
-            
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.game_mode = "menu"
-        
-        # Bot move if it's bot's turn
-        if self.chess_game.current_turn == Color.BLACK and not self.chess_game.game_over:
-            move = self.bot.get_move(self.chess_game)
-            if move:
-                self.chess_game.selected_piece = self.chess_game.board[move[0]][move[1]]
-                self.chess_game.move_piece(move[2], move[3])
-        
-        self.draw_board()
-        pygame.display.flip()
-    
-    def draw_board(self):
-        self.screen.fill(YELLOW)
-        
-        # Draw chess board
-        for i in range(BOARD_SIZE):
-            for j in range(BOARD_SIZE):
-                color = LIGHT_GREEN if (i + j) % 2 == 0 else DARK_GREEN
-                pygame.draw.rect(self.screen, color, 
-                               (j * SQUARE_SIZE, i * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
-        
-        # Draw valid moves
-        if self.chess_game.selected_piece:
-            for (x, y) in self.chess_game.valid_moves:
-                pygame.draw.circle(self.screen, YELLOW_GREEN, 
-                                 (y * SQUARE_SIZE + SQUARE_SIZE // 2, x * SQUARE_SIZE + SQUARE_SIZE // 2), 15)
-        
-        # Draw pieces
-        for i in range(BOARD_SIZE):
-            for j in range(BOARD_SIZE):
-                piece = self.chess_game.board[i][j]
-                if piece:
-                    img = PIECE_IMAGES[piece.get_image_key()]
-                    self.screen.blit(img, (j * SQUARE_SIZE + 10, i * SQUARE_SIZE + 10))
-        
-        # Draw selected square
-        if self.chess_game.selected_piece:
-            pygame.draw.rect(self.screen, YELLOW, 
-                           (self.chess_game.selected_piece.y * SQUARE_SIZE, 
-                            self.chess_game.selected_piece.x * SQUARE_SIZE, 
-                            SQUARE_SIZE, SQUARE_SIZE), 3)
-        
-        # Draw game over message
-        if self.chess_game.game_over:
-            font = pygame.font.Font(None, 72)
-            winner = "WHITE" if self.chess_game.winner == Color.WHITE else "BLACK"
-            text = font.render(f"{winner} WINS!", True, GREEN)
-            text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-            self.screen.blit(text, text_rect)
-        
-        # Draw current turn
-        font = pygame.font.Font(None, 24)
-        turn_text = f"Current Turn: {'WHITE' if self.chess_game.current_turn == Color.WHITE else 'BLACK'}"
-        text = font.render(turn_text, True, BLACK)
-        self.screen.blit(text, (10, HEIGHT - 30))
-        
-        # Draw mode indicator
-        mode_text = f"Mode: {self.game_mode.upper()}"
-        text = font.render(mode_text, True, BLACK)
-        self.screen.blit(text, (WIDTH - 150, HEIGHT - 30))
+        h1 {
+            color: #006400;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
 
-if __name__ == "__main__":
-    app = ChessApp()
-    app.run()
+        .game-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .menu {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .menu button {
+            background: #006400;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .menu button:hover {
+            background: #004d00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .difficulty-selector label {
+            font-size: 18px;
+            color: #006400;
+            margin-right: 15px;
+        }
+
+        .difficulty-selector input {
+            width: 200px;
+            padding: 10px;
+            border: 2px solid #006400;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .game-info {
+            background: rgba(0, 100, 0, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .game-info p {
+            color: #006400;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .game-over {
+            background: rgba(255, 215, 0, 0.3);
+            border: 3px solid #FFD700;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .game-over h2 {
+            color: #006400;
+            margin-bottom: 10px;
+        }
+
+        .game-over button {
+            background: #006400;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .game-over button:hover {
+            background: #004d00;
+        }
+
+        canvas {
+            border: 3px solid #006400;
+            border-radius: 10px;
+            background: #ADFF2F;
+            cursor: default;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal h3 {
+            color: #006400;
+            margin-bottom: 20px;
+        }
+
+        .modal button {
+            background: #006400;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .modal button:hover {
+            background: #004d00;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chess Game - Yellow & Green Theme</h1>
+    
+    <div class="game-container">
+        <div class="menu" id="mainMenu">
+            <h2>Select Game Mode</h2>
+            <button onclick="start2PlayerMode()">2 Player Mode</button>
+            <button onclick="startOnlineMode()">Online Mode</button>
+            <button onclick="startBotMode()">Bot Mode</button>
+        </div>
+
+        <div class="difficulty-selector" id="difficultySelector" style="display: none;">
+            <label for="difficulty">Bot Difficulty (1-10): </label>
+            <input type="range" id="difficulty" min="1" max="10" value="5">
+            <span id="difficultyValue">5</span>
+            <button onclick="startBotGame()">Start Game</button>
+        </div>
+
+        <div id="gameInfo" class="game-info" style="display: none;">
+            <p id="turnInfo">Current Turn: White</p>
+        </div>
+
+        <div id="gameOver" class="game-over" style="display: none;">
+            <h2 id="winnerText"></h2>
+            <button onclick="resetGame()">Play Again</button>
+        </div>
+
+        <div id="waitingModal" class="modal">
+            <div class="modal-content">
+                <h3>Connecting to Online Opponent...</h3>
+                <p>Looking for other players...</p>
+                <button onclick="cancelOnlineSearch()">Cancel</button>
+            </div>
+        </div>
+
+        <canvas id="chessCanvas" width="800" height="800"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('chessCanvas');
+        const ctx = canvas.getContext('2d');
+        const SQUARE_SIZE = 100;
+        const BOARD_SIZE = 8;
+        const PIECE_SIZE = 80;
+
+        // Piece images
+        const pieceImages = {};
+        const pieceNames = ['white_king', 'white_queen', 'white_rook', 'white_bishop', 'white_knight', 'white_pawn',
+                           'black_king', 'black_queen', 'black_rook', 'black_bishop', 'black_knight', 'black_pawn'];
+
+        // Load piece images
+        pieceNames.forEach(name => {
+            const img = new Image();
+            img.src = name + '.png';
+            pieceImages[name] = img;
+        });
+
+        // Game state
+        const game = {
+            board: Array(8).fill().map(() => Array(8).fill(null)),
+            currentTurn: 'white',
+            selectedPiece: null,
+            validMoves: [],
+            gameMode: null,
+            botDifficulty: 5,
+            onlinePlayerColor: null,
+            gameOver: false,
+            winner: null
+        };
+
+        // Piece class
+        class Piece {
+            constructor(type, color, x, y) {
+                this.type = type;
+                this.color = color;
+                this.x = x;
+                this.y = y;
+                this.hasMoved = false;
+            }
+
+            getImageKey() {
+                return this.color + '_' + this.type;
+            }
+        }
+
+        // Initialize board
+        function setupBoard() {
+            // Clear board
+            game.board = Array(8).fill().map(() => Array(8).fill(null));
+
+            // Pawns
+            for (let i = 0; i < 8; i++) {
+                game.board[1][i] = new Piece('pawn', 'black', 1, i);
+                game.board[6][i] = new Piece('pawn', 'white', 6, i);
+            }
+
+            // Rooks
+            game.board[0][0] = new Piece('rook', 'black', 0, 0);
+            game.board[0][7] = new Piece('rook', 'black', 0, 7);
+            game.board[7][0] = new Piece('rook', 'white', 7, 0);
+            game.board[7][7] = new Piece('rook', 'white', 7, 7);
+
+            // Knights
+            game.board[0][1] = new Piece('knight', 'black', 0, 1);
+            game.board[0][6] = new Piece('knight', 'black', 0, 6);
+            game.board[7][1] = new Piece('knight', 'white', 7, 1);
+            game.board[7][6] = new Piece('knight', 'white', 7, 6);
+
+            // Bishops
+            game.board[0][2] = new Piece('bishop', 'black', 0, 2);
+            game.board[0][5] = new Piece('bishop', 'black', 0, 5);
+            game.board[7][2] = new Piece('bishop', 'white', 7, 2);
+            game.board[7][5] = new Piece('bishop', 'white', 7, 5);
+
+            // Queens
+            game.board[0][3] = new Piece('queen', 'black', 0, 3);
+            game.board[7][3] = new Piece('queen', 'white', 7, 3);
+
+            // Kings
+            game.board[0][4] = new Piece('king', 'black', 0, 4);
+            game.board[7][4] = new Piece('king', 'white', 7, 4);
+        }
+
+        // Draw board
+        function drawBoard() {
+            ctx.fillStyle = '#ADFF2F';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw squares
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const isLight = (i + j) % 2 === 0;
+                    ctx.fillStyle = isLight ? '#90EE90' : '#006400';
+                    ctx.fillRect(j * SQUARE_SIZE, i * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+                }
+            }
+
+            // Draw valid moves
+            if (game.selectedPiece) {
+                game.validMoves.forEach(move => {
+                    ctx.fillStyle = '#FFD700';
+                    ctx.globalAlpha = 0.5;
+                    ctx.beginPath();
+                    ctx.arc(move.y * SQUARE_SIZE + SQUARE_SIZE / 2, move.x * SQUARE_SIZE + SQUARE_SIZE / 2, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                });
+            }
+
+            // Draw pieces
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const piece = game.board[i][j];
+                    if (piece) {
+                        const img = pieceImages[piece.getImageKey()];
+                        if (img.complete) {
+                            ctx.drawImage(img, j * SQUARE_SIZE + (SQUARE_SIZE - PIECE_SIZE) / 2, i * SQUARE_SIZE + (SQUARE_SIZE - PIECE_SIZE) / 2, PIECE_SIZE, PIECE_SIZE);
+                        }
+                    }
+                }
+            }
+
+            // Draw selected piece border
+            if (game.selectedPiece) {
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(game.selectedPiece.y * SQUARE_SIZE, game.selectedPiece.x * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+            }
+        }
+
+        // Get piece at position
+        function getPieceAt(x, y) {
+            return game.board[x][y];
+        }
+
+        // Check if move is valid
+        function isValidMove(piece, newX, newY) {
+            if (newX < 0 || newX >= BOARD_SIZE || newY < 0 || newY >= BOARD_SIZE) {
+                return false;
+            }
+
+            const targetPiece = getPieceAt(newX, newY);
+            if (targetPiece && targetPiece.color === piece.color) {
+                return false;
+            }
+
+            // Pawn movement
+            if (piece.type === 'pawn') {
+                const direction = piece.color === 'black' ? 1 : -1;
+                const startRow = piece.color === 'black' ? 1 : 6;
+
+                // One step forward
+                if (newY === piece.y && newX === piece.x + direction && !targetPiece) {
+                    return true;
+                }
+
+                // Two steps forward from starting position
+                if (newY === piece.y && newX === piece.x + 2 * direction && piece.x === startRow && !targetPiece) {
+                    return true;
+                }
+
+                // Capture diagonally
+                if (Math.abs(newY - piece.y) === 1 && newX === piece.x + direction && targetPiece && targetPiece.color !== piece.color) {
+                    return true;
+                }
+            }
+
+            // Rook movement (horizontal/vertical)
+            else if (piece.type === 'rook') {
+                if (piece.x !== newX && piece.y !== newY) {
+                    return false;
+                }
+
+                const stepX = piece.x === newX ? 0 : (newX > piece.x ? 1 : -1);
+                const stepY = piece.y === newY ? 0 : (newY > piece.y ? 1 : -1);
+
+                let currentX = piece.x + stepX;
+                let currentY = piece.y + stepY;
+                while (currentX !== newX || currentY !== newY) {
+                    if (getPieceAt(currentX, currentY) !== null) {
+                        return false;
+                    }
+                    currentX += stepX;
+                    currentY += stepY;
+                }
+
+                return true;
+            }
+
+            // Bishop movement (diagonal)
+            else if (piece.type === 'bishop') {
+                if (Math.abs(piece.x - newX) !== Math.abs(piece.y - newY)) {
+                    return false;
+                }
+
+                const stepX = newX > piece.x ? 1 : -1;
+                const stepY = newY > piece.y ? 1 : -1;
+
+                let currentX = piece.x + stepX;
+                let currentY = piece.y + stepY;
+                while (currentX !== newX || currentY !== newY) {
+                    if (getPieceAt(currentX, currentY) !== null) {
+                        return false;
+                    }
+                    currentX += stepX;
+                    currentY += stepY;
+                }
+
+                return true;
+            }
+
+            // Queen movement (any direction)
+            else if (piece.type === 'queen') {
+                if (piece.x !== newX && piece.y !== newY && Math.abs(piece.x - newX) !== Math.abs(piece.y - newY)) {
+                    return false;
+                }
+
+                const stepX = piece.x === newX ? 0 : (newX > piece.x ? 1 : -1);
+                const stepY = piece.y === newY ? 0 : (newY > piece.y ? 1 : -1);
+
+                let currentX = piece.x + stepX;
+                let currentY = piece.y + stepY;
+                while (currentX !== newX || currentY !== newY) {
+                    if (getPieceAt(currentX, currentY) !== null) {
+                        return false;
+                    }
+                    currentX += stepX;
+                    currentY += stepY;
+                }
+
+                return true;
+            }
+
+            // Knight movement (L-shape)
+            else if (piece.type === 'knight') {
+                const dx = Math.abs(piece.x - newX);
+                const dy = Math.abs(piece.y - newY);
+                return (dx === 2 && dy === 1) || (dx === 1 && dy === 2);
+            }
+
+            // King movement (one step any direction)
+            else if (piece.type === 'king') {
+                const dx = Math.abs(piece.x - newX);
+                const dy = Math.abs(piece.y - newY);
+                return dx <= 1 && dy <= 1;
+            }
+
+            return false;
+        }
+
+        // Calculate valid moves for selected piece
+        function calculateValidMoves() {
+            game.validMoves = [];
+            if (game.selectedPiece) {
+                for (let i = 0; i < BOARD_SIZE; i++) {
+                    for (let j = 0; j < BOARD_SIZE; j++) {
+                        if (isValidMove(game.selectedPiece, i, j)) {
+                            game.validMoves.push({ x: i, y: j });
+                        }
+                    }
+                }
+            }
+        }
+
+        // Move piece
+        function movePiece(newX, newY) {
+            if (game.selectedPiece && game.validMoves.some(move => move.x === newX && move.y === newY)) {
+                // Check for pawn promotion
+                if (game.selectedPiece.type === 'pawn') {
+                    if ((game.selectedPiece.color === 'white' && newX === 0) || 
+                        (game.selectedPiece.color === 'black' && newX === 7)) {
+                        game.selectedPiece.type = 'queen';
+                    }
+                }
+
+                // Move the piece
+                game.board[newX][newY] = game.selectedPiece;
+                game.board[game.selectedPiece.x][game.selectedPiece.y] = null;
+                game.selectedPiece.x = newX;
+                game.selectedPiece.y = newY;
+                game.selectedPiece.hasMoved = true;
+
+                // Check for checkmate
+                if (isCheckmate()) {
+                    game.gameOver = true;
+                    game.winner = game.currentTurn;
+                    showGameOver();
+                }
+
+                // Switch turn
+                game.currentTurn = game.currentTurn === 'white' ? 'black' : 'white';
+                updateTurnInfo();
+
+                // Clear selection
+                game.selectedPiece = null;
+                game.validMoves = [];
+
+                // Bot move if in bot mode
+                if (game.gameMode === 'bot' && game.currentTurn === 'black') {
+                    setTimeout(() => botMove(), 500);
+                }
+            }
+        }
+
+        // Check for checkmate
+        function isCheckmate() {
+            // Check if current player's king is in check
+            let king = null;
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const piece = game.board[i][j];
+                    if (piece && piece.color === game.currentTurn && piece.type === 'king') {
+                        king = piece;
+                        break;
+                    }
+                }
+                if (king) break;
+            }
+
+            if (!king) return true;
+
+            // Check if king is in check
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const piece = game.board[i][j];
+                    if (piece && piece.color !== game.currentTurn) {
+                        if (isValidMove(piece, king.x, king.y)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Bot move logic
+        function botMove() {
+            const validMoves = getAllValidMoves(game.currentTurn);
+            if (validMoves.length === 0) return;
+
+            let bestMove = null;
+            let bestValue = -Infinity;
+
+            validMoves.forEach(move => {
+                const piece = game.board[move.fromX][move.fromY];
+                const targetPiece = game.board[move.toX][move.toY];
+
+                let value = 0;
+                if (targetPiece) {
+                    value += getPieceValue(targetPiece);
+                }
+
+                value += getPositionalValue(piece, move.toX, move.toY);
+
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestMove = move;
+                }
+            });
+
+            if (bestMove) {
+                game.selectedPiece = game.board[bestMove.fromX][bestMove.fromY];
+                movePiece(bestMove.toX, bestMove.toY);
+            }
+        }
+
+        // Get all valid moves for a color
+        function getAllValidMoves(color) {
+            const moves = [];
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const piece = game.board[i][j];
+                    if (piece && piece.color === color) {
+                        for (let x = 0; x < BOARD_SIZE; x++) {
+                            for (let y = 0; y < BOARD_SIZE; y++) {
+                                if (isValidMove(piece, x, y)) {
+                                    moves.push({ fromX: i, fromY: j, toX: x, toY: y });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return moves;
+        }
+
+        // Get piece value
+        function getPieceValue(piece) {
+            const values = {
+                pawn: 1,
+                knight: 3,
+                bishop: 3,
+                rook: 5,
+                queen: 9,
+                king: 100
+            };
+            return values[piece.type];
+        }
+
+        // Get positional value
+        function getPositionalValue(piece, x, y) {
+            if (piece.type === 'pawn') {
+                return 0.1 * (piece.color === 'white' ? 3 : -3);
+            } else if (piece.type === 'knight') {
+                return 0.2 * (x + y - 4);
+            } else if (piece.type === 'bishop') {
+                return 0.2 * (7 - Math.abs(x - y));
+            }
+            return 0;
+        }
+
+        // Handle mouse click
+        canvas.addEventListener('click', (e) => {
+            if (game.gameOver) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientY - rect.top;
+            const y = e.clientX - rect.left;
+
+            const row = Math.floor(x / SQUARE_SIZE);
+            const col = Math.floor(y / SQUARE_SIZE);
+
+            if (game.selectedPiece) {
+                movePiece(row, col);
+            } else {
+                const piece = getPieceAt(row, col);
+                if (piece && piece.color === game.currentTurn) {
+                    game.selectedPiece = piece;
+                    calculateValidMoves();
+                }
+            }
+
+            drawBoard();
+        });
+
+        // Update turn info
+        function updateTurnInfo() {
+            const turnInfo = document.getElementById('turnInfo');
+            if (turnInfo) {
+                turnInfo.textContent = `Current Turn: ${game.currentTurn === 'white' ? 'White' : 'Black'}`;
+            }
+        }
+
+        // Show game over
+        function showGameOver() {
+            const gameOverDiv = document.getElementById('gameOver');
+            const winnerText = document.getElementById('winnerText');
+            if (gameOverDiv && winnerText) {
+                gameOverDiv.style.display = 'block';
+                winnerText.textContent = `${game.winner === 'white' ? 'White' : 'Black'} Wins!`;
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            setupBoard();
+            game.currentTurn = 'white';
+            game.selectedPiece = null;
+            game.validMoves = [];
+            game.gameOver = false;
+            game.winner = null;
+
+            document.getElementById('gameOver').style.display = 'none';
+            updateTurnInfo();
+            drawBoard();
+        }
+
+        // Start 2 player mode
+        function start2PlayerMode() {
+            game.gameMode = '2player';
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameInfo').style.display = 'block';
+            setupBoard();
+            drawBoard();
+            updateTurnInfo();
+        }
+
+        // Start online mode
+        function startOnlineMode() {
+            game.gameMode = 'online';
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameInfo').style.display = 'block';
+            setupBoard();
+            drawBoard();
+            updateTurnInfo();
+            document.getElementById('waitingModal').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('waitingModal').style.display = 'none';
+                game.onlinePlayerColor = 'white';
+            }, 2000);
+        }
+
+        // Start bot mode
+        function startBotMode() {
+            document.getElementById('difficultySelector').style.display = 'block';
+            document.getElementById('mainMenu').style.display = 'none';
+        }
+
+        // Start bot game
+        function startBotGame() {
+            game.gameMode = 'bot';
+            game.botDifficulty = parseInt(document.getElementById('difficulty').value);
+            document.getElementById('difficultySelector').style.display = 'none';
+            document.getElementById('gameInfo').style.display = 'block';
+            setupBoard();
+            drawBoard();
+            updateTurnInfo();
+        }
+
+        // Cancel online search
+        function cancelOnlineSearch() {
+            document.getElementById('waitingModal').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+            game.gameMode = null;
+        }
+
+        // Update difficulty value display
+        document.getElementById('difficulty').addEventListener('input', (e) => {
+            document.getElementById('difficultyValue').textContent = e.target.value;
+        });
+
+        // Initial setup
+        setupBoard();
+        drawBoard();
+    </script>
+</body>
+</html>
