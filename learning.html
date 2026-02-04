@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Multi — Grade 1 Math</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multi — Grade 1 Math Learning</title>
 <style>
   /* Reset and base */
   * {
@@ -11,214 +11,130 @@
   }
   body, html {
     margin: 0; padding: 0;
-    font-family: 'Comic Sans MS', cursive;
-    background: #f2f2f2;
-    height: 100%;
-    overflow: hidden;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    background: #f9f9f9;
+    color: #222;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
-
   header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 70px;
     background: #4CAF50;
     color: white;
-    font-size: 20px;
+    padding: 18px 40px;
+    font-weight: bold;
+    font-size: 22px;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 0 40px;
-    z-index: 100;
+    align-items: center;
   }
   header button {
     background: #3a8d3a;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     color: white;
     font-weight: bold;
+    font-size: 16px;
     padding: 8px 16px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background 0.3s ease;
   }
   header button:hover {
-    background: #2e6e2e;
+    background: #2d6e2d;
   }
 
-  .container {
-    max-width: 1000px;
-    margin: 80px auto 20px;
-    padding: 30px;
-  }
-
-  .card {
+  main {
+    flex: 1;
+    max-width: 900px;
+    margin: 30px auto 50px;
     background: white;
-    border-radius: 20px;
-    padding: 35px;
-    margin-bottom: 30px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-  }
-  button {
-    padding: 12px 25px;
-    border: none;
-    border-radius: 12px;
-    background: #4CAF50;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  button:hover {
-    background: #45a048;
-  }
-  .hidden {
-    display: none;
-  }
-  .question {
-    margin: 10px 0;
-  }
-  input[type=number] {
-    width: 70px;
-    font-size: 16px;
-    padding: 5px;
+    border-radius: 25px;
+    padding: 30px 40px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+    min-height: 600px;
   }
 
-  /* --------- RPG FULL SCREEN ----------- */
-  #game {
-    position: fixed;
-    top: 70px; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(to bottom right, #a2d2ff, #004e89);
-    color: white;
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    overflow-y: auto;
+  h1, h2, h3 {
+    margin-bottom: 20px;
     font-weight: bold;
   }
 
-  #game p, #game h2 {
-    margin: 8px 0;
-  }
-
-  #stats {
-    font-size: 18px;
-    margin-bottom: 20px;
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    justify-content: space-around;
-    border-bottom: 2px solid white;
-    padding-bottom: 12px;
-  }
-
-  #enemyInfo {
-    margin-bottom: 20px;
-    font-size: 20px;
-  }
-
-  #quest {
-    font-style: italic;
-    margin-bottom: 30px;
-  }
-
-  #questionSection {
-    margin-bottom: 15px;
-  }
-
-  #questionSection strong {
-    font-size: 28px;
-  }
-
-  #answer {
-    font-size: 20px;
-    padding: 8px;
-    width: 100px;
-    border-radius: 12px;
-    border: none;
-    margin-right: 15px;
-  }
-
-  #attackButtons button {
-    margin: 5px;
-    padding: 12px 30px;
-    font-size: 18px;
-    border-radius: 15px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  #attackButtons button.normal {
-    background: #2196F3;
-    color: white;
-    border: none;
-  }
-  #attackButtons button.normal:hover {
-    background: #1976d2;
-  }
-  #attackButtons button.power {
-    background: #ff5722;
-    color: white;
-    border: none;
-  }
-  #attackButtons button.power:hover {
-    background: #e64a19;
-  }
-
-  #log {
+  .nav-buttons {
     margin-top: 20px;
-    font-size: 22px;
-    min-height: 40px;
-    height: 40px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .nav-buttons button {
+    background: #4CAF50;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-weight: bold;
+    padding: 12px 26px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .nav-buttons button:hover {
+    background: #3a8d3a;
+  }
+  .nav-buttons button:disabled {
+    background: #a5d6a7;
+    cursor: default;
   }
 
-  /* ---------- POPUP CARD ---------- */
-  #popupCard {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #fff;
-    color: #333;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    width: 90vw;
-    max-width: 500px;
-    padding: 30px;
-    z-index: 200;
-    text-align: center;
-  }
-  #popupCard h3 {
-    font-size: 26px;
-    margin-bottom: 15px;
-  }
-  #popupCard p {
+  .lesson-text {
     font-size: 18px;
     margin-bottom: 25px;
-  }
-  #popupCard button {
-    margin: 0 15px;
-    font-size: 18px;
-    padding: 12px 25px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-  }
-  #popupCard button.accept {
-    background-color: #4CAF50;
-    color: white;
-  }
-  #popupCard button.decline {
-    background-color: #f44336;
-    color: white;
+    line-height: 1.4;
   }
 
-  /* Overlay */
-  #overlay {
-    position: fixed;
-    top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.6);
-    z-index: 150;
-    display: none;
+  .questions {
+    margin-top: 25px;
+  }
+  .question-item {
+    margin-bottom: 18px;
+    font-size: 18px;
+  }
+  .question-item label {
+    display: block;
+    margin-bottom: 6px;
+  }
+  .question-item input[type="number"] {
+    width: 100px;
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+  }
+
+  .submit-btn {
+    margin-top: 30px;
+    background: #2196F3;
+  }
+  .submit-btn:hover {
+    background: #1976d2;
+  }
+
+  .message {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 20px;
+  }
+
+  /* Progress Bar */
+  #progress {
+    background: #ddd;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 18px;
+    margin-top: 20px;
+  }
+  #progressBar {
+    height: 18px;
+    background: #4CAF50;
+    width: 0%;
+    transition: width 0.3s ease;
   }
 
 </style>
@@ -226,344 +142,546 @@
 <body>
 
 <header>
-  <div><strong>Multi</strong> — Grade 1 Math</div>
-  <button onclick="location.href='index.html'">← Home</button>
+  <div>Multi — Grade 1 Math Learning</div>
+  <button id="homeBtn">← Home</button>
 </header>
 
-<div class="container">
+<main id="mainContent">
 
-  <!-- UNIT -->
-  <div class="card" id="unit">
-    <h2>📘 Unit 1: Adding Numbers (1–10)</h2>
-    <p>Complete all 5 lessons to unlock Math Quest.</p>
-    <button onclick="startLesson()">Start Lesson 1</button>
-  </div>
+  <!-- Content gets rendered here dynamically -->
 
-  <!-- LESSON CARD -->
-  <div class="card hidden" id="lessonCard">
-    <h2 id="lessonTitle"></h2>
-    <p id="lessonText"></p>
-
-    <div id="questions"></div>
-
-    <button onclick="submitLesson()">Submit Lesson</button>
-    <p id="lessonMsg" style="font-weight:bold;"></p>
-  </div>
-
-  <!-- UNLOCK RPG -->
-  <div class="card hidden" id="unlock">
-    <h2>🎉 Unit Complete!</h2>
-    <p>You unlocked <strong>Math Quest RPG</strong>.</p>
-    <button onclick="startGame()">Enter Math Quest</button>
-  </div>
-
-</div>
-
-<!-- RPG GAME FULL SCREEN -->
-<div id="game" class="hidden" aria-live="polite" aria-label="Math Quest Game">
-
-  <div id="stats">
-    <div>Level: <span id="level">1</span></div>
-    <div>HP: <span id="hp">10</span></div>
-    <div>Coins: <span id="coins">0</span></div>
-    <div>Strength: <span id="strength">1</span></div>
-  </div>
-
-  <div id="enemyInfo">
-    Enemy: <strong><span id="enemyName"></span></strong> (HP: <span id="enemyHp"></span>)
-  </div>
-
-  <div id="quest">Quest: <span id="questText"></span></div>
-
-  <div id="questionSection">
-    Solve: <strong><span id="question"></span></strong>
-  </div>
-
-  <input type="number" id="answer" aria-label="Answer input" autocomplete="off" />
-  <div id="attackButtons">
-    <button class="normal" onclick="attack('normal')" aria-label="Use Quick Strike">⚔️ Quick Strike</button>
-    <button class="power" onclick="attack('power')" aria-label="Use Power Blast">🔥 Power Blast</button>
-  </div>
-
-  <div id="log" role="status" aria-live="polite"></div>
-</div>
-
-<!-- POPUP CARD & OVERLAY -->
-<div id="overlay"></div>
-<div id="popupCard" class="hidden" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
-  <h3 id="popupTitle"></h3>
-  <p id="popupText"></p>
-  <button class="accept" id="acceptBtn">Accept</button>
-  <button class="decline" id="declineBtn">Decline</button>
-</div>
+</main>
 
 <script>
-/* ---------- LESSON DATA ---------- */
-const lessons = [
-  {
-    title:"Lesson 1: What is Adding?",
-    text:"Adding means putting numbers together.",
-    answers:[2,3,4,5,6]
-  },
-  {
-    title:"Lesson 2: Small Numbers",
-    text:"We add numbers to find totals.",
-    answers:[3,4,5,6,7]
-  },
-  {
-    title:"Lesson 3: Practice",
-    text:"Practice makes you better at math.",
-    answers:[4,5,6,7,8]
-  },
-  {
-    title:"Lesson 4: Counting On",
-    text:"Counting on helps you add faster.",
-    answers:[5,6,7,8,9]
-  },
-  {
-    title:"Lesson 5: Review",
-    text:"You are ready for Math Quest!",
-    answers:[6,7,8,9,10]
+  // Data structure for units, lessons, questions
+
+  const units = [
+    {
+      unitName: "Unit 1: Adding Numbers (1–10)",
+      lessons: [
+        {
+          title: "Lesson 1: What is Adding?",
+          text: "Adding means putting numbers together. For example, 2 + 3 means putting 2 and 3 together to make 5.",
+          questions: [
+            { q:"1) What is 1 + 2?", a:3 },
+            { q:"2) What is 4 + 3?", a:7 },
+            { q:"3) What is 2 + 5?", a:7 },
+            { q:"4) What is 6 + 1?", a:7 },
+            { q:"5) What is 3 + 3?", a:6 }
+          ]
+        },
+        {
+          title: "Lesson 2: Adding Small Numbers",
+          text: "When adding small numbers, count on your fingers or visualize the numbers together.",
+          questions: [
+            { q:"1) What is 2 + 2?", a:4 },
+            { q:"2) What is 5 + 1?", a:6 },
+            { q:"3) What is 3 + 4?", a:7 },
+            { q:"4) What is 1 + 7?", a:8 },
+            { q:"5) What is 4 + 5?", a:9 }
+          ]
+        },
+        {
+          title: "Lesson 3: Adding Using Number Line",
+          text: "Use a number line to add numbers by moving forward the number of steps equal to the second number.",
+          questions: [
+            { q:"1) Starting at 1, move 4 steps forward. Where do you land?", a:5 },
+            { q:"2) Starting at 3, move 5 steps forward. Where do you land?", a:8 },
+            { q:"3) Starting at 0, move 7 steps forward. Where do you land?", a:7 },
+            { q:"4) Starting at 2, move 3 steps forward. Where do you land?", a:5 },
+            { q:"5) Starting at 4, move 6 steps forward. Where do you land?", a:10 }
+          ]
+        },
+        {
+          title: "Lesson 4: Counting On",
+          text: "Counting on helps you add faster by starting from the bigger number and counting up.",
+          questions: [
+            { q:"1) What is 7 + 2?", a:9 },
+            { q:"2) What is 6 + 3?", a:9 },
+            { q:"3) What is 8 + 1?", a:9 },
+            { q:"4) What is 5 + 4?", a:9 },
+            { q:"5) What is 9 + 0?", a:9 }
+          ]
+        },
+        {
+          title: "Lesson 5: Review Adding",
+          text: "Let's review what we learned about adding numbers.",
+          questions: [
+            { q:"1) What is 3 + 3?", a:6 },
+            { q:"2) What is 4 + 4?", a:8 },
+            { q:"3) What is 5 + 2?", a:7 },
+            { q:"4) What is 6 + 3?", a:9 },
+            { q:"5) What is 2 + 6?", a:8 }
+          ]
+        }
+      ]
+    },
+    {
+      unitName: "Unit 2: Subtracting Numbers (1–10)",
+      lessons: [
+        {
+          title: "Lesson 1: What is Subtracting?",
+          text: "Subtracting means taking one number away from another.",
+          questions: [
+            { q:"1) What is 5 - 2?", a:3 },
+            { q:"2) What is 7 - 3?", a:4 },
+            { q:"3) What is 6 - 1?", a:5 },
+            { q:"4) What is 4 - 4?", a:0 },
+            { q:"5) What is 8 - 5?", a:3 }
+          ]
+        },
+        {
+          title: "Lesson 2: Small Numbers Subtraction",
+          text: "When subtracting small numbers, count backward or use objects to help.",
+          questions: [
+            { q:"1) What is 3 - 1?", a:2 },
+            { q:"2) What is 6 - 4?", a:2 },
+            { q:"3) What is 5 - 3?", a:2 },
+            { q:"4) What is 7 - 2?", a:5 },
+            { q:"5) What is 9 - 5?", a:4 }
+          ]
+        },
+        {
+          title: "Lesson 3: Using Number Line for Subtraction",
+          text: "Use a number line to subtract by moving backwards the number of steps equal to the second number.",
+          questions: [
+            { q:"1) Starting at 5, move 3 steps backward. Where do you land?", a:2 },
+            { q:"2) Starting at 7, move 4 steps backward. Where do you land?", a:3 },
+            { q:"3) Starting at 9, move 5 steps backward. Where do you land?", a:4 },
+            { q:"4) Starting at 6, move 1 step backward. Where do you land?", a:5 },
+            { q:"5) Starting at 8, move 2 steps backward. Where do you land?", a:6 }
+          ]
+        },
+        {
+          title: "Lesson 4: Counting Back",
+          text: "Counting back helps you subtract quickly by counting backwards from the first number.",
+          questions: [
+            { q:"1) What is 9 - 1?", a:8 },
+            { q:"2) What is 8 - 3?", a:5 },
+            { q:"3) What is 7 - 2?", a:5 },
+            { q:"4) What is 6 - 5?", a:1 },
+            { q:"5) What is 5 - 0?", a:5 }
+          ]
+        },
+        {
+          title: "Lesson 5: Review Subtracting",
+          text: "Let's review what we learned about subtracting numbers.",
+          questions: [
+            { q:"1) What is 7 - 4?", a:3 },
+            { q:"2) What is 5 - 2?", a:3 },
+            { q:"3) What is 9 - 6?", a:3 },
+            { q:"4) What is 8 - 3?", a:5 },
+            { q:"5) What is 6 - 1?", a:5 }
+          ]
+        }
+      ]
+    },
+    {
+      unitName: "Unit 3: Simple Multiplication",
+      lessons: [
+        {
+          title: "Lesson 1: What is Multiplication?",
+          text: "Multiplication means adding a number many times. For example, 3 × 2 means adding 3 two times: 3 + 3 = 6.",
+          questions: [
+            { q:"1) What is 2 × 2?", a:4 },
+            { q:"2) What is 3 × 1?", a:3 },
+            { q:"3) What is 1 × 5?", a:5 },
+            { q:"4) What is 4 × 2?", a:8 },
+            { q:"5) What is 5 × 0?", a:0 }
+          ]
+        },
+        {
+          title: "Lesson 2: Multiplying by 1",
+          text: "Any number multiplied by 1 is the number itself.",
+          questions: [
+            { q:"1) What is 1 × 7?", a:7 },
+            { q:"2) What is 1 × 9?", a:9 },
+            { q:"3) What is 1 × 4?", a:4 },
+            { q:"4) What is 1 × 6?", a:6 },
+            { q:"5) What is 1 × 3?", a:3 }
+          ]
+        },
+        {
+          title: "Lesson 3: Multiplying by 0",
+          text: "Any number multiplied by 0 is always 0.",
+          questions: [
+            { q:"1) What is 0 × 5?", a:0 },
+            { q:"2) What is 0 × 8?", a:0 },
+            { q:"3) What is 0 × 10?", a:0 },
+            { q:"4) What is 0 × 4?", a:0 },
+            { q:"5) What is 0 × 6?", a:0 }
+          ]
+        },
+        {
+          title: "Lesson 4: Multiplying Small Numbers",
+          text: "Multiply small numbers by counting groups.",
+          questions: [
+            { q:"1) What is 2 × 3?", a:6 },
+            { q:"2) What is 3 × 3?", a:9 },
+            { q:"3) What is 4 × 2?", a:8 },
+            { q:"4) What is 5 × 2?", a:10 },
+            { q:"5) What is 3 × 4?", a:12 }
+          ]
+        },
+        {
+          title: "Lesson 5: Review Multiplication",
+          text: "Let's review what we learned about multiplication.",
+          questions: [
+            { q:"1) What is 2 × 5?", a:10 },
+            { q:"2) What is 4 × 4?", a:16 },
+            { q:"3) What is 3 × 6?", a:18 },
+            { q:"4) What is 5 × 3?", a:15 },
+            { q:"5) What is 1 × 8?", a:8 }
+          ]
+        }
+      ]
+    },
+    {
+      unitName: "Unit 4: Simple Division",
+      lessons: [
+        {
+          title: "Lesson 1: What is Division?",
+          text: "Division means sharing a number into equal parts. For example, 6 ÷ 2 means sharing 6 into 2 equal groups, each having 3.",
+          questions: [
+            { q:"1) What is 6 ÷ 2?", a:3 },
+            { q:"2) What is 8 ÷ 4?", a:2 },
+            { q:"3) What is 10 ÷ 5?", a:2 },
+            { q:"4) What is 9 ÷ 3?", a:3 },
+            { q:"5) What is 4 ÷ 2?", a:2 }
+          ]
+        },
+        {
+          title: "Lesson 2: Dividing by 1",
+          text: "Any number divided by 1 is the number itself.",
+          questions: [
+            { q:"1) What is 7 ÷ 1?", a:7 },
+            { q:"2) What is 9 ÷ 1?", a:9 },
+            { q:"3) What is 4 ÷ 1?", a:4 },
+            { q:"4) What is 6 ÷ 1?", a:6 },
+            { q:"5) What is 3 ÷ 1?", a:3 }
+          ]
+        },
+        {
+          title: "Lesson 3: Dividing Equal Groups",
+          text: "Divide numbers by sharing them equally.",
+          questions: [
+            { q:"1) If you share 8 candies into 4 groups, how many in each?", a:2 },
+            { q:"2) If you share 12 apples into 3 groups, how many in each?", a:4 },
+            { q:"3) If you share 15 balls into 5 groups, how many in each?", a:3 },
+            { q:"4) If you share 10 cookies into 2 groups, how many in each?", a:5 },
+            { q:"5) If you share 20 pencils into 4 groups, how many in each?", a:5 }
+          ]
+        },
+        {
+          title: "Lesson 4: Division with Remainders",
+          text: "Sometimes, division leaves a remainder when numbers don't split equally.",
+          questions: [
+            { q:"1) What is 7 ÷ 2? (Ignore remainder)", a:3 },
+            { q:"2) What is 9 ÷ 4? (Ignore remainder)", a:2 },
+            { q:"3) What is 10 ÷ 3? (Ignore remainder)", a:3 },
+            { q:"4) What is 5 ÷ 2? (Ignore remainder)", a:2 },
+            { q:"5) What is 11 ÷ 5? (Ignore remainder)", a:2 }
+          ]
+        },
+        {
+          title: "Lesson 5: Review Division",
+          text: "Let's review what we learned about division.",
+          questions: [
+            { q:"1) What is 6 ÷ 3?", a:2 },
+            { q:"2) What is 8 ÷ 2?", a:4 },
+            { q:"3) What is 12 ÷ 4?", a:3 },
+            { q:"4) What is 15 ÷ 5?", a:3 },
+            { q:"5) What is 9 ÷ 3?", a:3 }
+          ]
+        }
+      ]
+    },
+    {
+      unitName: "Unit 5: Mixed Practice",
+      lessons: [
+        {
+          title: "Lesson 1: Mixed Practice 1",
+          text: "Let's practice adding and subtracting numbers.",
+          questions: [
+            { q:"1) What is 3 + 4?", a:7 },
+            { q:"2) What is 8 - 3?", a:5 },
+            { q:"3) What is 5 + 5?", a:10 },
+            { q:"4) What is 9 - 7?", a:2 },
+            { q:"5) What is 6 + 2?", a:8 }
+          ]
+        },
+        {
+          title: "Lesson 2: Mixed Practice 2",
+          text: "Let's practice multiplication and division.",
+          questions: [
+            { q:"1) What is 2 × 3?", a:6 },
+            { q:"2) What is 12 ÷ 4?", a:3 },
+            { q:"3) What is 5 × 2?", a:10 },
+            { q:"4) What is 9 ÷ 3?", a:3 },
+            { q:"5) What is 4 × 4?", a:16 }
+          ]
+        },
+        {
+          title: "Lesson 3: Mixed Practice 3",
+          text: "More mixed practice with all operations.",
+          questions: [
+            { q:"1) What is 7 + 2?", a:9 },
+            { q:"2) What is 10 - 6?", a:4 },
+            { q:"3) What is 3 × 3?", a:9 },
+            { q:"4) What is 8 ÷ 2?", a:4 },
+            { q:"5) What is 5 + 5?", a:10 }
+          ]
+        },
+        {
+          title: "Lesson 4: Word Problems",
+          text: "Try solving these word problems.",
+          questions: [
+            { q:"1) Sarah has 3 apples and gets 4 more. How many apples now?", a:7 },
+            { q:"2) Tom had 9 candies and ate 5. How many left?", a:4 },
+            { q:"3) There are 3 baskets with 2 oranges each. How many oranges?", a:6 },
+            { q:"4) A cake is cut into 4 pieces. If 2 are eaten, how many left?", a:2 },
+            { q:"5) John shares 10 cookies with 5 friends equally. How many each?", a:2 }
+          ]
+        },
+        {
+          title: "Lesson 5: Review Mixed",
+          text: "Review mixed operations you learned.",
+          questions: [
+            { q:"1) What is 6 + 4?", a:10 },
+            { q:"2) What is 8 - 3?", a:5 },
+            { q:"3) What is 2 × 6?", a:12 },
+            { q:"4) What is 9 ÷ 3?", a:3 },
+            { q:"5) What is 7 + 1?", a:8 }
+          ]
+        }
+      ]
+    }
+  ];
+
+  // Globals for current position
+  let currentUnit = 0;
+  let currentLesson = 0;
+  let onTest = false;
+
+  // Elements
+  const main = document.getElementById('mainContent');
+  const homeBtn = document.getElementById('homeBtn');
+
+  homeBtn.addEventListener('click', () => {
+    currentUnit = 0;
+    currentLesson = 0;
+    onTest = false;
+    renderHome();
+  });
+
+  // Render Home page - units list
+  function renderHome() {
+    let html = `<h1>Welcome to Grade 1 Math Learning!</h1>`;
+    html += `<p>Select a unit to begin learning:</p><ul>`;
+    units.forEach((unit, i) => {
+      html += `<li style="margin-bottom: 15px;">
+        <button style="font-size:18px;padding:12px 24px; border-radius:15px; cursor:pointer;"
+          onclick="startUnit(${i})">${unit.unitName}</button>
+      </li>`;
+    });
+    html += `</ul>`;
+    main.innerHTML = html;
   }
-];
 
-let lessonIndex = 0;
+  // Start a unit from first lesson
+  function startUnit(unitIndex) {
+    currentUnit = unitIndex;
+    currentLesson = 0;
+    onTest = false;
+    renderLesson();
+  }
 
-/* ---------- LESSON SYSTEM ---------- */
-function startLesson() {
-  unit.classList.add("hidden");
-  lessonCard.classList.remove("hidden");
-  loadLesson();
-}
+  // Render a lesson page
+  function renderLesson() {
+    onTest = false;
+    const unit = units[currentUnit];
+    const lesson = unit.lessons[currentLesson];
 
-function loadLesson() {
-  const lesson = lessons[lessonIndex];
-  lessonTitle.textContent = lesson.title;
-  lessonText.textContent = lesson.text;
-  questions.innerHTML = "";
+    let html = `<h2>${unit.unitName} - ${lesson.title}</h2>`;
+    html += `<div class="lesson-text">${lesson.text}</div>`;
 
-  for(let i=0; i<5; i++) {
-    questions.innerHTML += `
-      <div class="question">
-        ${i+1}) ${i+1} + ${lessonIndex+1} =
-        <input type="number" autocomplete="off">
+    // Questions form
+    html += `<form id="lessonForm" autocomplete="off">`;
+    html += `<div class="questions">`;
+
+    lesson.questions.forEach((question, idx) => {
+      html += `
+      <div class="question-item">
+        <label for="q${idx}">${question.q}</label>
+        <input type="number" id="q${idx}" name="q${idx}" required />
       </div>`;
-  }
-}
+    });
 
-function submitLesson() {
-  const inputs = document.querySelectorAll("#questions input");
-  const correct = lessons[lessonIndex].answers;
+    html += `</div>`;
+    html += `<button type="submit" class="submit-btn">Submit Answers</button>`;
+    html += `</form>`;
 
-  for(let i=0; i<5; i++) {
-    if(Number(inputs[i].value) !== correct[i]) {
-      lessonMsg.textContent = "❌ Some answers are wrong.";
-      return;
+    // Navigation buttons
+    html += `<div class="nav-buttons">`;
+    html += `<button ${currentLesson === 0 ? 'disabled' : ''} id="prevBtn">← Previous Lesson</button>`;
+    if (currentLesson === unit.lessons.length - 1) {
+      html += `<button id="toTestBtn">Go to Unit Test</button>`;
+    } else {
+      html += `<button id="nextBtn">Next Lesson →</button>`;
+    }
+    html += `</div>`;
+
+    main.innerHTML = html;
+
+    // Event listeners for form submission and navigation
+    const form = document.getElementById('lessonForm');
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      checkAnswers(lesson.questions);
+    };
+
+    if (currentLesson > 0) {
+      document.getElementById('prevBtn').onclick = () => {
+        currentLesson--;
+        renderLesson();
+      };
+    }
+
+    if (currentLesson < unit.lessons.length - 1) {
+      document.getElementById('nextBtn').onclick = () => {
+        currentLesson++;
+        renderLesson();
+      };
+    }
+
+    if (currentLesson === unit.lessons.length - 1) {
+      document.getElementById('toTestBtn').onclick = () => {
+        currentLesson = 0; // reset lesson index for next unit later
+        onTest = true;
+        renderUnitTest();
+      };
     }
   }
 
-  lessonIndex++;
-  lessonMsg.textContent = "✅ Lesson complete!";
+  // Render unit test
+  function renderUnitTest() {
+    onTest = true;
+    const unit = units[currentUnit];
+    let html = `<h2>${unit.unitName} - Unit Test</h2>`;
+    html += `<p>Answer these questions to test your knowledge.</p>`;
 
-  if(lessonIndex >= lessons.length) {
-    lessonCard.classList.add("hidden");
-    unlock.classList.remove("hidden");
-  } else {
-    loadLesson();
+    html += `<form id="testForm" autocomplete="off"><div class="questions">`;
+
+    // Combine all questions from all lessons in this unit (25 questions total)
+    let testQuestions = [];
+    unit.lessons.forEach(lesson => {
+      testQuestions = testQuestions.concat(lesson.questions);
+    });
+
+    testQuestions.forEach((question, idx) => {
+      html += `
+      <div class="question-item">
+        <label for="tq${idx}">${question.q}</label>
+        <input type="number" id="tq${idx}" name="tq${idx}" required />
+      </div>`;
+    });
+
+    html += `</div>`;
+    html += `<button type="submit" class="submit-btn">Submit Unit Test</button>`;
+    html += `</form>`;
+
+    // Navigation back to home or next unit
+    html += `<div class="nav-buttons">`;
+    html += `<button id="backToUnitBtn">Back to Unit Lessons</button>`;
+    if (currentUnit < units.length - 1) {
+      html += `<button id="nextUnitBtn">Next Unit →</button>`;
+    } else {
+      html += `<button disabled>Last Unit Completed</button>`;
+    }
+    html += `</div>`;
+
+    main.innerHTML = html;
+
+    const form = document.getElementById('testForm');
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      checkAnswers(testQuestions, true);
+    };
+
+    document.getElementById('backToUnitBtn').onclick = () => {
+      onTest = false;
+      renderLesson();
+    };
+
+    if (currentUnit < units.length - 1) {
+      document.getElementById('nextUnitBtn').onclick = () => {
+        currentUnit++;
+        currentLesson = 0;
+        onTest = false;
+        renderLesson();
+      };
+    }
   }
-}
 
-/* ---------- RPG SYSTEM ---------- */
+  // Check answers for lesson or test
+  function checkAnswers(questions, isTest = false) {
+    const form = isTest ? document.getElementById('testForm') : document.getElementById('lessonForm');
+    let correctCount = 0;
 
-let player = { level:1, hp:10, coins:0, strength: 1 };
-let enemy = {};
-let correctAnswer = 0;
+    for (let i = 0; i < questions.length; i++) {
+      const input = form.elements[isTest ? `tq${i}` : `q${i}`];
+      if (!input) continue;
 
-const enemies = [
-  { name:"Slime", hp:8 },
-  { name:"Goblin", hp:12 },
-  { name:"Orc Warrior", hp:15 },
-  { name:"Dark Mage", hp:18 },
-  { name:"Dragon", hp:25 }
-];
-
-const quests = [
-  "Save the village!",
-  "Defeat the forest monster!",
-  "Protect the castle!",
-  "Escort the merchant!",
-  "Find the lost relic!"
-];
-
-const popupEvents = [
-  {
-    title: "+1 Strength for 30 Coins",
-    text: "Buy +1 Strength to increase your attack damage. Cost: 30 coins.",
-    type: "buyStrength",
-    cost: 30
-  },
-  {
-    title: "You run into a powerful warrior!",
-    text: "He challenges you to a duel. If you win, you gain 10 coins.",
-    type: "warriorChallenge"
-  },
-  {
-    title: "Mysterious Potion",
-    text: "Drink it to restore 5 HP for free.",
-    type: "heal"
-  },
-  {
-    title: "Find a treasure chest",
-    text: "Open it to get 20 coins.",
-    type: "coins"
-  }
-];
-
-// Popup DOM elements
-const popupCard = document.getElementById('popupCard');
-const overlay = document.getElementById('overlay');
-const popupTitle = document.getElementById('popupTitle');
-const popupText = document.getElementById('popupText');
-const acceptBtn = document.getElementById('acceptBtn');
-const declineBtn = document.getElementById('declineBtn');
-
-function showPopup(eventObj) {
-  popupTitle.textContent = eventObj.title;
-  popupText.textContent = eventObj.text;
-  popupCard.classList.remove('hidden');
-  overlay.style.display = 'block';
-
-  acceptBtn.style.display = "inline-block";
-  declineBtn.style.display = "inline-block";
-
-  acceptBtn.onclick = () => {
-    handlePopupAccept(eventObj);
-    hidePopup();
-  };
-  declineBtn.onclick = () => {
-    hidePopup();
-  };
-}
-
-function hidePopup() {
-  popupCard.classList.add('hidden');
-  overlay.style.display = 'none';
-  log.textContent = "";
-  newQuestion(currentAttackType);
-}
-
-function handlePopupAccept(eventObj) {
-  switch(eventObj.type) {
-    case "buyStrength":
-      if(player.coins >= eventObj.cost) {
-        player.coins -= eventObj.cost;
-        player.strength++;
-        log.textContent = "💪 Strength increased!";
-      } else {
-        log.textContent = "❌ Not enough coins!";
+      let userAns = input.value.trim();
+      if (userAns === '') {
+        alert("Please answer all questions.");
+        return;
       }
-      break;
-    case "warriorChallenge":
-      // Simple battle: player always wins here, gain coins
-      player.coins += 10;
-      log.textContent = "🏆 You won the duel! +10 coins!";
-      break;
-    case "heal":
-      player.hp += 5;
-      if(player.hp > 10 + (player.level - 1)*5) player.hp = 10 + (player.level -1)*5;
-      log.textContent = "✨ You healed 5 HP!";
-      break;
-    case "coins":
-      player.coins += 20;
-      log.textContent = "💰 You got 20 coins!";
-      break;
+
+      // Convert to number
+      let numAns = Number(userAns);
+
+      if (Number.isNaN(numAns)) {
+        alert("Please enter valid numbers only.");
+        return;
+      }
+
+      // Check exact match for now (simple)
+      if (numAns === questions[i].a) {
+        correctCount++;
+        input.style.borderColor = "#4CAF50";
+      } else {
+        input.style.borderColor = "#e53935";
+      }
+    }
+
+    const percent = Math.round((correctCount / questions.length) * 100);
+
+    // Show result message
+    let msg = `You got ${correctCount} out of ${questions.length} correct (${percent}%).`;
+    if (percent === 100) {
+      msg += " 🎉 Perfect score! Well done!";
+    } else if (percent >= 80) {
+      msg += " Great job! Keep it up!";
+    } else if (percent >= 50) {
+      msg += " Not bad! Keep practicing.";
+    } else {
+      msg += " Let's try again and keep learning!";
+    }
+
+    // Append or update message div
+    let msgDiv = document.querySelector('.message');
+    if (!msgDiv) {
+      msgDiv = document.createElement('div');
+      msgDiv.className = 'message';
+      form.parentNode.appendChild(msgDiv);
+    }
+    msgDiv.textContent = msg;
   }
-  updateUI();
-  // After popup, resume game normally
-}
 
-function randomPopup() {
-  // 25% chance for popup on each enemy defeat
-  if(Math.random() < 0.25) {
-    let eventObj = popupEvents[Math.floor(Math.random()*popupEvents.length)];
-    showPopup(eventObj);
-  }
-}
+  // Start on home page
+  renderHome();
 
-function getMaxHp(level) {
-  return 10 + (level - 1) * 5;
-}
-
-function startGame() {
-  unlock.classList.add("hidden");
-  document.querySelector(".container").style.display = "none";
-  game.classList.remove("hidden");
-  player.hp = getMaxHp(player.level);
-  player.coins = 0;
-  player.strength = 1;
-  player.level = 1;
-  newEnemy();
-  currentAttackType = "normal";
-  newQuestion(currentAttackType);
-  updateUI();
-  log.textContent = "Welcome to Math Quest!";
-}
-
-function newEnemy() {
-  enemy = {...enemies[Math.floor(Math.random()*enemies.length)]};
-  enemyName.textContent = enemy.name;
-  enemyHp.textContent = enemy.hp;
-  questText.textContent = quests[Math.floor(Math.random()*quests.length)];
-}
-
-let currentAttackType = "normal";
-
-function newQuestion(type) {
-  currentAttackType = type;
-  let a = Math.floor(Math.random() * 5) + 1;
-  let b = Math.floor(Math.random() * 5) + 1;
-  if(type === "power") b += 5;
-  correctAnswer = a + b;
-  question.textContent = `${a} + ${b}`;
-}
-
-function updateUI() {
-  level.textContent = player.level;
-  hp.textContent = player.hp;
-  coins.textContent = player.coins;
-  strength.textContent = player.strength;
-  enemyHp.textContent = enemy.hp;
-}
-
-function attack(type) {
-  const val = Number(answer.value);
-  answer.value = "";
-  if(val === correctAnswer) {
-    let dmg = (type === "power" ? 4 : 2) + player.strength;
-    enemy.hp -= dmg;
-    log.textContent = (type === "power" ? "🔥 Power Blast" : "⚔️ Quick Strike") + " hit for " + dmg + " damage!";
-  } else {
-    player.hp--;
-    log.textContent = "❌ Missed! You lost 1 HP.";
-  }
-  if(enemy.hp <= 0) {
-    player.level++;
-    player.coins += 10;
-    log.textContent = "🎉 Enemy defeated! +10 coins!";
-
-    randomPopup();
-
-    enemy.hp = 0;
-    updateUI();
-    newEnemy();
-  }
-  if(player.hp <= 0) {
-    alert("Game Over! Reload to try again.");
-    location.reload();
-  }
-  newQuestion(type);
-  updateUI();
-}
 </script>
 
 </body>
