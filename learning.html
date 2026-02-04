@@ -1,69 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Multi — Grade 1 Math</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-body {
-  font-family: 'Comic Sans MS', cursive;
-  background: #f2f2f2;
-  margin: 0;
-  padding-top: 80px;
-}
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0;
+    font-family: 'Comic Sans MS', cursive;
+    background: #f2f2f2;
+    height: 100%;
+    overflow: hidden;
+  }
 
-header {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  background: #4CAF50;
-  color: white;
-  padding: 20px 40px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 20px;
-}
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 70px;
+    background: #4CAF50;
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    z-index: 100;
+  }
+  header button {
+    background: #3a8d3a;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  header button:hover {
+    background: #2e6e2e;
+  }
 
-.container {
-  max-width: 1000px;
-  margin: auto;
-  padding: 30px;
-}
+  .container {
+    max-width: 1000px;
+    margin: 80px auto 20px;
+    padding: 30px;
+  }
 
-.card {
-  background: white;
-  border-radius: 20px;
-  padding: 35px;
-  margin-bottom: 30px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-}
+  .card {
+    background: white;
+    border-radius: 20px;
+    padding: 35px;
+    margin-bottom: 30px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  }
+  button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 12px;
+    background: #4CAF50;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  button:hover {
+    background: #45a048;
+  }
+  .hidden {
+    display: none;
+  }
+  .question {
+    margin: 10px 0;
+  }
+  input[type=number] {
+    width: 70px;
+    font-size: 16px;
+    padding: 5px;
+  }
 
-.hidden { display: none; }
+  /* --------- RPG FULL SCREEN ----------- */
+  #game {
+    position: fixed;
+    top: 70px; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to bottom right, #a2d2ff, #004e89);
+    color: white;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-y: auto;
+    font-weight: bold;
+  }
 
-button {
-  padding: 12px 25px;
-  border: none;
-  border-radius: 12px;
-  background: #4CAF50;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 10px;
-}
+  #game p, #game h2 {
+    margin: 8px 0;
+  }
 
-.question {
-  margin: 10px 0;
-}
+  #stats {
+    font-size: 18px;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 2px solid white;
+    padding-bottom: 12px;
+  }
 
-input {
-  width: 70px;
-  font-size: 16px;
-  padding: 5px;
-}
+  #enemyInfo {
+    margin-bottom: 20px;
+    font-size: 20px;
+  }
+
+  #quest {
+    font-style: italic;
+    margin-bottom: 30px;
+  }
+
+  #questionSection {
+    margin-bottom: 15px;
+  }
+
+  #questionSection strong {
+    font-size: 28px;
+  }
+
+  #answer {
+    font-size: 20px;
+    padding: 8px;
+    width: 100px;
+    border-radius: 12px;
+    border: none;
+    margin-right: 15px;
+  }
+
+  #attackButtons button {
+    margin: 5px;
+    padding: 12px 30px;
+    font-size: 18px;
+    border-radius: 15px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #attackButtons button.normal {
+    background: #2196F3;
+    color: white;
+    border: none;
+  }
+  #attackButtons button.normal:hover {
+    background: #1976d2;
+  }
+  #attackButtons button.power {
+    background: #ff5722;
+    color: white;
+    border: none;
+  }
+  #attackButtons button.power:hover {
+    background: #e64a19;
+  }
+
+  #log {
+    margin-top: 20px;
+    font-size: 22px;
+    min-height: 40px;
+    height: 40px;
+  }
+
+  /* ---------- POPUP CARD ---------- */
+  #popupCard {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    color: #333;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    width: 90vw;
+    max-width: 500px;
+    padding: 30px;
+    z-index: 200;
+    text-align: center;
+  }
+  #popupCard h3 {
+    font-size: 26px;
+    margin-bottom: 15px;
+  }
+  #popupCard p {
+    font-size: 18px;
+    margin-bottom: 25px;
+  }
+  #popupCard button {
+    margin: 0 15px;
+    font-size: 18px;
+    padding: 12px 25px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+  }
+  #popupCard button.accept {
+    background-color: #4CAF50;
+    color: white;
+  }
+  #popupCard button.decline {
+    background-color: #f44336;
+    color: white;
+  }
+
+  /* Overlay */
+  #overlay {
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.6);
+    z-index: 150;
+    display: none;
+  }
+
 </style>
 </head>
-
 <body>
 
 <header>
@@ -73,82 +232,96 @@ input {
 
 <div class="container">
 
-<!-- UNIT -->
-<div class="card" id="unit">
-  <h2>📘 Unit 1: Adding Numbers (1–10)</h2>
-  <p>Complete all 5 lessons to unlock Math Quest.</p>
-  <button onclick="startLesson()">Start Lesson 1</button>
-</div>
-
-<!-- LESSON CARD -->
-<div class="card hidden" id="lessonCard">
-  <h2 id="lessonTitle"></h2>
-  <p id="lessonText"></p>
-
-  <div id="questions"></div>
-
-  <button onclick="submitLesson()">Submit Lesson</button>
-  <p id="lessonMsg" style="font-weight:bold;"></p>
-</div>
-
-<!-- UNLOCK RPG -->
-<div class="card hidden" id="unlock">
-  <h2>🎉 Unit Complete!</h2>
-  <p>You unlocked <strong>Math Quest RPG</strong>.</p>
-  <button onclick="startGame()">Enter Math Quest</button>
-</div>
-
-<!-- RPG -->
-<div class="card hidden" id="game">
-  <h2>🐉 Math Quest RPG</h2>
-
-  <p>
-    Level: <span id="level">1</span> |
-    HP: <span id="hp">10</span> |
-    Coins: <span id="coins">0</span>
-  </p>
-
-  <p>
-    Enemy: <strong><span id="enemyName"></span></strong>
-    (HP: <span id="enemyHp"></span>)
-  </p>
-
-  <p><strong>Quest:</strong> <span id="quest"></span></p>
-
-  <p>Solve: <strong><span id="question"></span></strong></p>
-
-  <input type="number" id="answer">
-
-  <div>
-    <button onclick="attack('normal')">⚔️ Quick Strike</button>
-    <button onclick="attack('power')">🔥 Power Blast</button>
+  <!-- UNIT -->
+  <div class="card" id="unit">
+    <h2>📘 Unit 1: Adding Numbers (1–10)</h2>
+    <p>Complete all 5 lessons to unlock Math Quest.</p>
+    <button onclick="startLesson()">Start Lesson 1</button>
   </div>
 
-  <p id="log" style="font-weight:bold;"></p>
+  <!-- LESSON CARD -->
+  <div class="card hidden" id="lessonCard">
+    <h2 id="lessonTitle"></h2>
+    <p id="lessonText"></p>
+
+    <div id="questions"></div>
+
+    <button onclick="submitLesson()">Submit Lesson</button>
+    <p id="lessonMsg" style="font-weight:bold;"></p>
+  </div>
+
+  <!-- UNLOCK RPG -->
+  <div class="card hidden" id="unlock">
+    <h2>🎉 Unit Complete!</h2>
+    <p>You unlocked <strong>Math Quest RPG</strong>.</p>
+    <button onclick="startGame()">Enter Math Quest</button>
+  </div>
+
 </div>
 
+<!-- RPG GAME FULL SCREEN -->
+<div id="game" class="hidden" aria-live="polite" aria-label="Math Quest Game">
+
+  <div id="stats">
+    <div>Level: <span id="level">1</span></div>
+    <div>HP: <span id="hp">10</span></div>
+    <div>Coins: <span id="coins">0</span></div>
+    <div>Strength: <span id="strength">1</span></div>
+  </div>
+
+  <div id="enemyInfo">
+    Enemy: <strong><span id="enemyName"></span></strong> (HP: <span id="enemyHp"></span>)
+  </div>
+
+  <div id="quest">Quest: <span id="questText"></span></div>
+
+  <div id="questionSection">
+    Solve: <strong><span id="question"></span></strong>
+  </div>
+
+  <input type="number" id="answer" aria-label="Answer input" autocomplete="off" />
+  <div id="attackButtons">
+    <button class="normal" onclick="attack('normal')" aria-label="Use Quick Strike">⚔️ Quick Strike</button>
+    <button class="power" onclick="attack('power')" aria-label="Use Power Blast">🔥 Power Blast</button>
+  </div>
+
+  <div id="log" role="status" aria-live="polite"></div>
+</div>
+
+<!-- POPUP CARD & OVERLAY -->
+<div id="overlay"></div>
+<div id="popupCard" class="hidden" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+  <h3 id="popupTitle"></h3>
+  <p id="popupText"></p>
+  <button class="accept" id="acceptBtn">Accept</button>
+  <button class="decline" id="declineBtn">Decline</button>
 </div>
 
 <script>
 /* ---------- LESSON DATA ---------- */
 const lessons = [
-  { title:"Lesson 1: What is Adding?",
+  {
+    title:"Lesson 1: What is Adding?",
     text:"Adding means putting numbers together.",
     answers:[2,3,4,5,6]
   },
-  { title:"Lesson 2: Small Numbers",
+  {
+    title:"Lesson 2: Small Numbers",
     text:"We add numbers to find totals.",
     answers:[3,4,5,6,7]
   },
-  { title:"Lesson 3: Practice",
+  {
+    title:"Lesson 3: Practice",
     text:"Practice makes you better at math.",
     answers:[4,5,6,7,8]
   },
-  { title:"Lesson 4: Counting On",
+  {
+    title:"Lesson 4: Counting On",
     text:"Counting on helps you add faster.",
     answers:[5,6,7,8,9]
   },
-  { title:"Lesson 5: Review",
+  {
+    title:"Lesson 5: Review",
     text:"You are ready for Math Quest!",
     answers:[6,7,8,9,10]
   }
@@ -169,11 +342,11 @@ function loadLesson() {
   lessonText.textContent = lesson.text;
   questions.innerHTML = "";
 
-  for (let i = 0; i < 5; i++) {
+  for(let i=0; i<5; i++) {
     questions.innerHTML += `
       <div class="question">
         ${i+1}) ${i+1} + ${lessonIndex+1} =
-        <input type="number">
+        <input type="number" autocomplete="off">
       </div>`;
   }
 }
@@ -182,8 +355,8 @@ function submitLesson() {
   const inputs = document.querySelectorAll("#questions input");
   const correct = lessons[lessonIndex].answers;
 
-  for (let i = 0; i < 5; i++) {
-    if (Number(inputs[i].value) !== correct[i]) {
+  for(let i=0; i<5; i++) {
+    if(Number(inputs[i].value) !== correct[i]) {
       lessonMsg.textContent = "❌ Some answers are wrong.";
       return;
     }
@@ -192,7 +365,7 @@ function submitLesson() {
   lessonIndex++;
   lessonMsg.textContent = "✅ Lesson complete!";
 
-  if (lessonIndex >= lessons.length) {
+  if(lessonIndex >= lessons.length) {
     lessonCard.classList.add("hidden");
     unlock.classList.remove("hidden");
   } else {
@@ -201,41 +374,155 @@ function submitLesson() {
 }
 
 /* ---------- RPG SYSTEM ---------- */
-let player = { level:1, hp:10, coins:0 };
+
+let player = { level:1, hp:10, coins:0, strength: 1 };
 let enemy = {};
 let correctAnswer = 0;
 
 const enemies = [
   { name:"Slime", hp:8 },
   { name:"Goblin", hp:12 },
-  { name:"Dragon", hp:18 }
+  { name:"Orc Warrior", hp:15 },
+  { name:"Dark Mage", hp:18 },
+  { name:"Dragon", hp:25 }
 ];
 
 const quests = [
   "Save the village!",
   "Defeat the forest monster!",
-  "Protect the castle!"
+  "Protect the castle!",
+  "Escort the merchant!",
+  "Find the lost relic!"
 ];
+
+const popupEvents = [
+  {
+    title: "+1 Strength for 30 Coins",
+    text: "Buy +1 Strength to increase your attack damage. Cost: 30 coins.",
+    type: "buyStrength",
+    cost: 30
+  },
+  {
+    title: "You run into a powerful warrior!",
+    text: "He challenges you to a duel. If you win, you gain 10 coins.",
+    type: "warriorChallenge"
+  },
+  {
+    title: "Mysterious Potion",
+    text: "Drink it to restore 5 HP for free.",
+    type: "heal"
+  },
+  {
+    title: "Find a treasure chest",
+    text: "Open it to get 20 coins.",
+    type: "coins"
+  }
+];
+
+// Popup DOM elements
+const popupCard = document.getElementById('popupCard');
+const overlay = document.getElementById('overlay');
+const popupTitle = document.getElementById('popupTitle');
+const popupText = document.getElementById('popupText');
+const acceptBtn = document.getElementById('acceptBtn');
+const declineBtn = document.getElementById('declineBtn');
+
+function showPopup(eventObj) {
+  popupTitle.textContent = eventObj.title;
+  popupText.textContent = eventObj.text;
+  popupCard.classList.remove('hidden');
+  overlay.style.display = 'block';
+
+  acceptBtn.style.display = "inline-block";
+  declineBtn.style.display = "inline-block";
+
+  acceptBtn.onclick = () => {
+    handlePopupAccept(eventObj);
+    hidePopup();
+  };
+  declineBtn.onclick = () => {
+    hidePopup();
+  };
+}
+
+function hidePopup() {
+  popupCard.classList.add('hidden');
+  overlay.style.display = 'none';
+  log.textContent = "";
+  newQuestion(currentAttackType);
+}
+
+function handlePopupAccept(eventObj) {
+  switch(eventObj.type) {
+    case "buyStrength":
+      if(player.coins >= eventObj.cost) {
+        player.coins -= eventObj.cost;
+        player.strength++;
+        log.textContent = "💪 Strength increased!";
+      } else {
+        log.textContent = "❌ Not enough coins!";
+      }
+      break;
+    case "warriorChallenge":
+      // Simple battle: player always wins here, gain coins
+      player.coins += 10;
+      log.textContent = "🏆 You won the duel! +10 coins!";
+      break;
+    case "heal":
+      player.hp += 5;
+      if(player.hp > 10 + (player.level - 1)*5) player.hp = 10 + (player.level -1)*5;
+      log.textContent = "✨ You healed 5 HP!";
+      break;
+    case "coins":
+      player.coins += 20;
+      log.textContent = "💰 You got 20 coins!";
+      break;
+  }
+  updateUI();
+  // After popup, resume game normally
+}
+
+function randomPopup() {
+  // 25% chance for popup on each enemy defeat
+  if(Math.random() < 0.25) {
+    let eventObj = popupEvents[Math.floor(Math.random()*popupEvents.length)];
+    showPopup(eventObj);
+  }
+}
+
+function getMaxHp(level) {
+  return 10 + (level - 1) * 5;
+}
 
 function startGame() {
   unlock.classList.add("hidden");
+  document.querySelector(".container").style.display = "none";
   game.classList.remove("hidden");
+  player.hp = getMaxHp(player.level);
+  player.coins = 0;
+  player.strength = 1;
+  player.level = 1;
   newEnemy();
-  newQuestion("normal");
+  currentAttackType = "normal";
+  newQuestion(currentAttackType);
   updateUI();
+  log.textContent = "Welcome to Math Quest!";
 }
 
 function newEnemy() {
   enemy = {...enemies[Math.floor(Math.random()*enemies.length)]};
   enemyName.textContent = enemy.name;
   enemyHp.textContent = enemy.hp;
-  quest.textContent = quests[Math.floor(Math.random()*quests.length)];
+  questText.textContent = quests[Math.floor(Math.random()*quests.length)];
 }
 
+let currentAttackType = "normal";
+
 function newQuestion(type) {
-  let a = Math.floor(Math.random()*5)+1;
-  let b = Math.floor(Math.random()*5)+1;
-  if (type === "power") b += 5;
+  currentAttackType = type;
+  let a = Math.floor(Math.random() * 5) + 1;
+  let b = Math.floor(Math.random() * 5) + 1;
+  if(type === "power") b += 5;
   correctAnswer = a + b;
   question.textContent = `${a} + ${b}`;
 }
@@ -244,36 +531,36 @@ function updateUI() {
   level.textContent = player.level;
   hp.textContent = player.hp;
   coins.textContent = player.coins;
+  strength.textContent = player.strength;
   enemyHp.textContent = enemy.hp;
 }
 
 function attack(type) {
   const val = Number(answer.value);
   answer.value = "";
-
-  if (val === correctAnswer) {
-    let dmg = type === "power" ? 4 : 2;
+  if(val === correctAnswer) {
+    let dmg = (type === "power" ? 4 : 2) + player.strength;
     enemy.hp -= dmg;
-    log.textContent = type === "power"
-      ? "🔥 Power Blast hit!"
-      : "⚔️ Quick Strike hit!";
+    log.textContent = (type === "power" ? "🔥 Power Blast" : "⚔️ Quick Strike") + " hit for " + dmg + " damage!";
   } else {
     player.hp--;
-    log.textContent = "❌ Miss!";
+    log.textContent = "❌ Missed! You lost 1 HP.";
   }
-
-  if (enemy.hp <= 0) {
+  if(enemy.hp <= 0) {
     player.level++;
-    player.coins += 5;
-    log.textContent = "🎉 Enemy defeated! Quest complete!";
+    player.coins += 10;
+    log.textContent = "🎉 Enemy defeated! +10 coins!";
+
+    randomPopup();
+
+    enemy.hp = 0;
+    updateUI();
     newEnemy();
   }
-
-  if (player.hp <= 0) {
-    alert("Game Over! Try again.");
+  if(player.hp <= 0) {
+    alert("Game Over! Reload to try again.");
     location.reload();
   }
-
   newQuestion(type);
   updateUI();
 }
