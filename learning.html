@@ -50,10 +50,14 @@ button {
   cursor: pointer;
 }
 
-.stats {
-  display: flex;
-  justify-content: space-around;
-  font-weight: bold;
+.question {
+  margin-bottom: 10px;
+}
+
+input {
+  width: 60px;
+  font-size: 16px;
+  padding: 5px;
 }
 </style>
 </head>
@@ -69,111 +73,115 @@ button {
 
 <!-- UNIT -->
 <div class="card" id="unit">
-  <h2>📘 Unit 1: Numbers 1–10</h2>
-  <p>Learn to count and add small numbers.</p>
-  <button onclick="startLesson()">Start Lessons</button>
+  <h2>📘 Unit 1: Numbers & Adding</h2>
+  <p>Read the lesson and answer all questions to continue.</p>
+  <button onclick="startLesson()">Start Lesson</button>
 </div>
 
 <!-- LESSON -->
 <div class="card hidden" id="lesson">
-  <h2 id="lessonTitle"></h2>
-  <p id="lessonText"></p>
-  <button onclick="nextLesson()">Next</button>
+  <h2>Lesson: Adding Numbers</h2>
+
+  <p>
+    Adding means putting numbers together.  
+    If you have 2 apples and get 3 more apples, you now have 5 apples.  
+    We use the plus sign (+) to add.
+  </p>
+
+  <hr>
+
+  <div id="questions">
+    <div class="question">1) 1 + 1 = <input type="number"></div>
+    <div class="question">2) 2 + 1 = <input type="number"></div>
+    <div class="question">3) 2 + 2 = <input type="number"></div>
+    <div class="question">4) 3 + 1 = <input type="number"></div>
+    <div class="question">5) 4 + 1 = <input type="number"></div>
+  </div>
+
+  <button onclick="checkLesson()">Submit Answers</button>
+  <p id="lessonMsg" style="font-weight:bold;"></p>
 </div>
 
-<!-- RPG UNLOCK -->
+<!-- UNLOCK -->
 <div class="card hidden" id="unlock">
   <h2>🎉 Unit Complete!</h2>
-  <p>You unlocked <strong>Math Quest</strong>.</p>
+  <p>You finished the lesson and unlocked <strong>Math Quest</strong>!</p>
   <button onclick="startGame()">Play Math Quest</button>
 </div>
 
-<!-- RPG GAME -->
+<!-- RPG -->
 <div class="card hidden" id="game">
   <h2>🐉 Math Quest RPG</h2>
 
-  <div class="stats">
-    <div>Level: <span id="level">1</span></div>
-    <div>HP: <span id="hp">10</span></div>
-    <div>Enemy HP: <span id="enemyHp">10</span></div>
-  </div>
-
-  <p style="text-align:center">
-    Solve: <strong><span id="question"></span></strong>
+  <p>
+    Level: <span id="level">1</span> |
+    HP: <span id="hp">10</span> |
+    Enemy HP: <span id="enemyHp">10</span>
   </p>
 
-  <div style="text-align:center">
-    <input type="number" id="answer">
-    <button onclick="attack()">Attack</button>
-  </div>
+  <p>Solve: <strong><span id="question"></span></strong></p>
 
-  <p id="log" style="text-align:center;font-weight:bold;"></p>
+  <input type="number" id="answer">
+  <button onclick="attack()">Attack</button>
+
+  <p id="log" style="font-weight:bold;"></p>
 </div>
 
 </div>
 
 <script>
-/* ---------- LESSON SYSTEM ---------- */
-const lessons = [
-  { title: "Lesson 1: Counting", text: "Count numbers from 1 to 10." },
-  { title: "Lesson 2: Adding", text: "Adding means putting numbers together." },
-  { title: "Lesson 3: Practice", text: "2 + 3 = 5. Great job!" }
-];
-
-let lessonIndex = 0;
-
+/* ---------- LESSON CHECK ---------- */
 function startLesson() {
   unit.classList.add("hidden");
   lesson.classList.remove("hidden");
-  loadLesson();
 }
 
-function loadLesson() {
-  lessonTitle.textContent = lessons[lessonIndex].title;
-  lessonText.textContent = lessons[lessonIndex].text;
-}
+function checkLesson() {
+  const answers = [2, 3, 4, 4, 5];
+  const inputs = document.querySelectorAll("#questions input");
 
-function nextLesson() {
-  lessonIndex++;
-  if (lessonIndex >= lessons.length) {
-    lesson.classList.add("hidden");
-    unlock.classList.remove("hidden");
-  } else {
-    loadLesson();
+  for (let i = 0; i < answers.length; i++) {
+    if (Number(inputs[i].value) !== answers[i]) {
+      lessonMsg.textContent = "❌ Some answers are wrong. Try again.";
+      return;
+    }
   }
+
+  lessonMsg.textContent = "✅ All answers correct!";
+  lesson.classList.add("hidden");
+  unlock.classList.remove("hidden");
 }
 
-/* ---------- RPG SYSTEM ---------- */
+/* ---------- RPG GAME ---------- */
 let player = { level: 1, hp: 10 };
 let enemyHp = 10;
-let correctAnswer = 0;
+let correct = 0;
 
 function startGame() {
   unlock.classList.add("hidden");
   game.classList.remove("hidden");
   newQuestion();
-  updateUI();
+  update();
 }
 
 function newQuestion() {
   let a = Math.floor(Math.random() * 5) + 1;
   let b = Math.floor(Math.random() * 5) + 1;
-  correctAnswer = a + b;
+  correct = a + b;
   question.textContent = `${a} + ${b}`;
 }
 
-function updateUI() {
+function update() {
   level.textContent = player.level;
   hp.textContent = player.hp;
-  enemyHpSpan = document.getElementById("enemyHp");
-  enemyHpSpan.textContent = enemyHp;
+  enemyHp.textContent = enemyHp;
 }
 
 function attack() {
   const val = Number(answer.value);
   answer.value = "";
 
-  if (val === correctAnswer) {
+  if (val === correct) {
     enemyHp -= 2;
     log.textContent = "Hit! ⚔️";
   } else {
@@ -188,12 +196,12 @@ function attack() {
   }
 
   if (player.hp <= 0) {
-    alert("You lost! Try again.");
+    alert("Game Over! Try again.");
     location.reload();
   }
 
   newQuestion();
-  updateUI();
+  update();
 }
 </script>
 
