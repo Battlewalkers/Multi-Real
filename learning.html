@@ -2,126 +2,199 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>Multi — Grade 1 Math</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multi — Learning</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
-body { font-family:'Comic Sans MS',cursive; background:#f5f5f5; margin:0; padding-top:80px }
-header { position:fixed; top:0; width:100%; background:#4CAF50; color:white; padding:15px 30px; display:flex; justify-content:space-between }
-.container { max-width:900px; margin:auto; padding:20px }
-.card { background:white; border-radius:15px; padding:25px; margin-bottom:30px; box-shadow:0 5px 15px rgba(0,0,0,0.2) }
-.stats { display:flex; justify-content:space-around; font-weight:bold }
-button { padding:10px 20px; border:none; border-radius:10px; background:#4CAF50; color:white; cursor:pointer }
-input { padding:10px; font-size:18px; width:100px; text-align:center }
+body {
+  font-family: 'Comic Sans MS', cursive;
+  background: #f2f2f2;
+  margin: 0;
+  padding-top: 70px;
+}
+
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: #4CAF50;
+  color: white;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.hidden { display: none; }
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #4CAF50;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  font-weight: bold;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  <div><strong>Multi</strong> — Learning</div>
+  <div><strong>Multi</strong> — Grade 1 Math</div>
   <button onclick="location.href='index.html'">← Home</button>
 </header>
 
 <div class="container">
-  <div class="card">
-    <h2 style="text-align:center">🐉 Math Quest</h2>
 
-    <div class="stats">
-      <div>Level: <span id="level">1</span></div>
-      <div>XP: <span id="xp">0</span></div>
-      <div>HP: <span id="hp">10</span></div>
-    </div>
+<!-- UNIT -->
+<div class="card" id="unit">
+  <h2>📘 Unit 1: Numbers 1–10</h2>
+  <p>Learn to count and add small numbers.</p>
+  <button onclick="startLesson()">Start Lessons</button>
+</div>
 
-    <p style="text-align:center">
-      Enemy: <span id="enemy"></span> (HP: <span id="enemyHp"></span>)
-    </p>
+<!-- LESSON -->
+<div class="card hidden" id="lesson">
+  <h2 id="lessonTitle"></h2>
+  <p id="lessonText"></p>
+  <button onclick="nextLesson()">Next</button>
+</div>
 
-    <p style="text-align:center">
-      Solve: <strong><span id="question"></span></strong>
-    </p>
+<!-- RPG UNLOCK -->
+<div class="card hidden" id="unlock">
+  <h2>🎉 Unit Complete!</h2>
+  <p>You unlocked <strong>Math Quest</strong>.</p>
+  <button onclick="startGame()">Play Math Quest</button>
+</div>
 
-    <div style="text-align:center">
-      <input type="number" id="answer">
-      <button onclick="attack()">Attack</button>
-    </div>
+<!-- RPG GAME -->
+<div class="card hidden" id="game">
+  <h2>🐉 Math Quest RPG</h2>
+
+  <div class="stats">
+    <div>Level: <span id="level">1</span></div>
+    <div>HP: <span id="hp">10</span></div>
+    <div>Enemy HP: <span id="enemyHp">10</span></div>
   </div>
+
+  <p style="text-align:center">
+    Solve: <strong><span id="question"></span></strong>
+  </p>
+
+  <div style="text-align:center">
+    <input type="number" id="answer">
+    <button onclick="attack()">Attack</button>
+  </div>
+
+  <p id="log" style="text-align:center;font-weight:bold;"></p>
+</div>
+
 </div>
 
 <script>
-const supabaseUrl = "https://ytgwxpxjivruoewxbuyr.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Z3d4cHhqaXZydW9ld3hidXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODMxODcsImV4cCI6MjA4MDA1OTE4N30.YMWdo_dRFKt5uufujOZ9BKe-Ygdc0fau1qVnltfmP6o";
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+/* ---------- LESSON SYSTEM ---------- */
+const lessons = [
+  { title: "Lesson 1: Counting", text: "Count numbers from 1 to 10." },
+  { title: "Lesson 2: Adding", text: "Adding means putting numbers together." },
+  { title: "Lesson 3: Practice", text: "2 + 3 = 5. Great job!" }
+];
 
-let userId;
-let player = { level:1, xp:0, hp:10 };
-let enemy = {};
-let correct = 0;
+let lessonIndex = 0;
 
-async function loadUser(){
-  const { data:{user} } = await supabase.auth.getUser();
-  if(!user){ location.href="index.html"; return; }
-  userId = user.id;
-  const { data } = await supabase.from("profiles").select("*").eq("id",userId).single();
-  if(data) player=data;
-  else await save();
-  start();
+function startLesson() {
+  unit.classList.add("hidden");
+  lesson.classList.remove("hidden");
+  loadLesson();
 }
 
-async function save(){
-  await supabase.from("profiles").upsert({ id:userId, level:player.level, xp:player.xp, hp:player.hp });
+function loadLesson() {
+  lessonTitle.textContent = lessons[lessonIndex].title;
+  lessonText.textContent = lessons[lessonIndex].text;
 }
 
-function newEnemy(){
-  const list=[{n:"Slime",h:5},{n:"Goblin",h:8},{n:"Dragon",h:12}];
-  enemy=list[Math.floor(Math.random()*list.length)];
-  enemy.hp=enemy.h;
-  enemy.name=enemy.n;
-  document.getElementById("enemy").textContent=enemy.name;
-}
-
-function newQuestion(){
-  const a=Math.floor(Math.random()*10)+1;
-  const b=Math.floor(Math.random()*10)+1;
-  correct=a+b;
-  document.getElementById("question").textContent=`${a} + ${b}`;
-}
-
-function update(){
-  level.textContent=player.level;
-  xp.textContent=player.xp;
-  hp.textContent=player.hp;
-  enemyHp.textContent=enemy.hp;
-}
-
-async function attack(){
-  const val=Number(answer.value);
-  answer.value="";
-  if(val===correct){
-    enemy.hp-=2;
-    if(enemy.hp<=0){
-      player.xp+=5;
-      if(player.xp>=player.level*10){ player.level++; player.hp=10+player.level; }
-      newEnemy();
-    }
+function nextLesson() {
+  lessonIndex++;
+  if (lessonIndex >= lessons.length) {
+    lesson.classList.add("hidden");
+    unlock.classList.remove("hidden");
   } else {
-    player.hp--;
-    if(player.hp<=0){ alert("Game Over"); player.hp=10; }
+    loadLesson();
   }
-  await save();
-  newQuestion();
-  update();
 }
 
-function start(){
-  newEnemy();
+/* ---------- RPG SYSTEM ---------- */
+let player = { level: 1, hp: 10 };
+let enemyHp = 10;
+let correctAnswer = 0;
+
+function startGame() {
+  unlock.classList.add("hidden");
+  game.classList.remove("hidden");
   newQuestion();
-  update();
+  updateUI();
 }
 
-loadUser();
+function newQuestion() {
+  let a = Math.floor(Math.random() * 5) + 1;
+  let b = Math.floor(Math.random() * 5) + 1;
+  correctAnswer = a + b;
+  question.textContent = `${a} + ${b}`;
+}
+
+function updateUI() {
+  level.textContent = player.level;
+  hp.textContent = player.hp;
+  enemyHpSpan = document.getElementById("enemyHp");
+  enemyHpSpan.textContent = enemyHp;
+}
+
+function attack() {
+  const val = Number(answer.value);
+  answer.value = "";
+
+  if (val === correctAnswer) {
+    enemyHp -= 2;
+    log.textContent = "Hit! ⚔️";
+  } else {
+    player.hp -= 1;
+    log.textContent = "Miss! 💥";
+  }
+
+  if (enemyHp <= 0) {
+    player.level++;
+    enemyHp = 10 + player.level * 2;
+    log.textContent = "Enemy defeated! LEVEL UP!";
+  }
+
+  if (player.hp <= 0) {
+    alert("You lost! Try again.");
+    location.reload();
+  }
+
+  newQuestion();
+  updateUI();
+}
 </script>
 
 </body>
