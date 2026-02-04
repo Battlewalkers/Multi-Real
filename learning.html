@@ -10,7 +10,7 @@ body {
   font-family: 'Comic Sans MS', cursive;
   background: #f2f2f2;
   margin: 0;
-  padding-top: 70px;
+  padding-top: 80px;
 }
 
 header {
@@ -19,43 +19,45 @@ header {
   width: 100%;
   background: #4CAF50;
   color: white;
-  padding: 15px 30px;
+  padding: 20px 40px;
   display: flex;
   justify-content: space-between;
+  font-size: 20px;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: auto;
-  padding: 20px;
+  padding: 30px;
 }
 
 .card {
   background: white;
-  border-radius: 15px;
-  padding: 25px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border-radius: 20px;
+  padding: 35px;
+  margin-bottom: 30px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
 }
 
 .hidden { display: none; }
 
 button {
-  padding: 10px 20px;
+  padding: 12px 25px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #4CAF50;
   color: white;
   font-size: 16px;
   cursor: pointer;
+  margin-top: 10px;
 }
 
 .question {
-  margin-bottom: 10px;
+  margin: 10px 0;
 }
 
 input {
-  width: 60px;
+  width: 70px;
   font-size: 16px;
   padding: 5px;
 }
@@ -73,40 +75,27 @@ input {
 
 <!-- UNIT -->
 <div class="card" id="unit">
-  <h2>📘 Unit 1: Numbers & Adding</h2>
-  <p>Read the lesson and answer all questions to continue.</p>
-  <button onclick="startLesson()">Start Lesson</button>
+  <h2>📘 Unit 1: Adding Numbers (1–10)</h2>
+  <p>Complete all 5 lessons to unlock Math Quest.</p>
+  <button onclick="startLesson()">Start Lesson 1</button>
 </div>
 
-<!-- LESSON -->
-<div class="card hidden" id="lesson">
-  <h2>Lesson: Adding Numbers</h2>
+<!-- LESSON CARD -->
+<div class="card hidden" id="lessonCard">
+  <h2 id="lessonTitle"></h2>
+  <p id="lessonText"></p>
 
-  <p>
-    Adding means putting numbers together.  
-    If you have 2 apples and get 3 more apples, you now have 5 apples.  
-    We use the plus sign (+) to add.
-  </p>
+  <div id="questions"></div>
 
-  <hr>
-
-  <div id="questions">
-    <div class="question">1) 1 + 1 = <input type="number"></div>
-    <div class="question">2) 2 + 1 = <input type="number"></div>
-    <div class="question">3) 2 + 2 = <input type="number"></div>
-    <div class="question">4) 3 + 1 = <input type="number"></div>
-    <div class="question">5) 4 + 1 = <input type="number"></div>
-  </div>
-
-  <button onclick="checkLesson()">Submit Answers</button>
+  <button onclick="submitLesson()">Submit Lesson</button>
   <p id="lessonMsg" style="font-weight:bold;"></p>
 </div>
 
-<!-- UNLOCK -->
+<!-- UNLOCK RPG -->
 <div class="card hidden" id="unlock">
   <h2>🎉 Unit Complete!</h2>
-  <p>You finished the lesson and unlocked <strong>Math Quest</strong>!</p>
-  <button onclick="startGame()">Play Math Quest</button>
+  <p>You unlocked <strong>Math Quest RPG</strong>.</p>
+  <button onclick="startGame()">Enter Math Quest</button>
 </div>
 
 <!-- RPG -->
@@ -116,13 +105,24 @@ input {
   <p>
     Level: <span id="level">1</span> |
     HP: <span id="hp">10</span> |
-    Enemy HP: <span id="enemyHp">10</span>
+    Coins: <span id="coins">0</span>
   </p>
+
+  <p>
+    Enemy: <strong><span id="enemyName"></span></strong>
+    (HP: <span id="enemyHp"></span>)
+  </p>
+
+  <p><strong>Quest:</strong> <span id="quest"></span></p>
 
   <p>Solve: <strong><span id="question"></span></strong></p>
 
   <input type="number" id="answer">
-  <button onclick="attack()">Attack</button>
+
+  <div>
+    <button onclick="attack('normal')">⚔️ Quick Strike</button>
+    <button onclick="attack('power')">🔥 Power Blast</button>
+  </div>
 
   <p id="log" style="font-weight:bold;"></p>
 </div>
@@ -130,69 +130,143 @@ input {
 </div>
 
 <script>
-/* ---------- LESSON CHECK ---------- */
+/* ---------- LESSON DATA ---------- */
+const lessons = [
+  { title:"Lesson 1: What is Adding?",
+    text:"Adding means putting numbers together.",
+    answers:[2,3,4,5,6]
+  },
+  { title:"Lesson 2: Small Numbers",
+    text:"We add numbers to find totals.",
+    answers:[3,4,5,6,7]
+  },
+  { title:"Lesson 3: Practice",
+    text:"Practice makes you better at math.",
+    answers:[4,5,6,7,8]
+  },
+  { title:"Lesson 4: Counting On",
+    text:"Counting on helps you add faster.",
+    answers:[5,6,7,8,9]
+  },
+  { title:"Lesson 5: Review",
+    text:"You are ready for Math Quest!",
+    answers:[6,7,8,9,10]
+  }
+];
+
+let lessonIndex = 0;
+
+/* ---------- LESSON SYSTEM ---------- */
 function startLesson() {
   unit.classList.add("hidden");
-  lesson.classList.remove("hidden");
+  lessonCard.classList.remove("hidden");
+  loadLesson();
 }
 
-function checkLesson() {
-  const answers = [2, 3, 4, 4, 5];
-  const inputs = document.querySelectorAll("#questions input");
+function loadLesson() {
+  const lesson = lessons[lessonIndex];
+  lessonTitle.textContent = lesson.title;
+  lessonText.textContent = lesson.text;
+  questions.innerHTML = "";
 
-  for (let i = 0; i < answers.length; i++) {
-    if (Number(inputs[i].value) !== answers[i]) {
-      lessonMsg.textContent = "❌ Some answers are wrong. Try again.";
+  for (let i = 0; i < 5; i++) {
+    questions.innerHTML += `
+      <div class="question">
+        ${i+1}) ${i+1} + ${lessonIndex+1} =
+        <input type="number">
+      </div>`;
+  }
+}
+
+function submitLesson() {
+  const inputs = document.querySelectorAll("#questions input");
+  const correct = lessons[lessonIndex].answers;
+
+  for (let i = 0; i < 5; i++) {
+    if (Number(inputs[i].value) !== correct[i]) {
+      lessonMsg.textContent = "❌ Some answers are wrong.";
       return;
     }
   }
 
-  lessonMsg.textContent = "✅ All answers correct!";
-  lesson.classList.add("hidden");
-  unlock.classList.remove("hidden");
+  lessonIndex++;
+  lessonMsg.textContent = "✅ Lesson complete!";
+
+  if (lessonIndex >= lessons.length) {
+    lessonCard.classList.add("hidden");
+    unlock.classList.remove("hidden");
+  } else {
+    loadLesson();
+  }
 }
 
-/* ---------- RPG GAME ---------- */
-let player = { level: 1, hp: 10 };
-let enemyHp = 10;
-let correct = 0;
+/* ---------- RPG SYSTEM ---------- */
+let player = { level:1, hp:10, coins:0 };
+let enemy = {};
+let correctAnswer = 0;
+
+const enemies = [
+  { name:"Slime", hp:8 },
+  { name:"Goblin", hp:12 },
+  { name:"Dragon", hp:18 }
+];
+
+const quests = [
+  "Save the village!",
+  "Defeat the forest monster!",
+  "Protect the castle!"
+];
 
 function startGame() {
   unlock.classList.add("hidden");
   game.classList.remove("hidden");
-  newQuestion();
-  update();
+  newEnemy();
+  newQuestion("normal");
+  updateUI();
 }
 
-function newQuestion() {
-  let a = Math.floor(Math.random() * 5) + 1;
-  let b = Math.floor(Math.random() * 5) + 1;
-  correct = a + b;
+function newEnemy() {
+  enemy = {...enemies[Math.floor(Math.random()*enemies.length)]};
+  enemyName.textContent = enemy.name;
+  enemyHp.textContent = enemy.hp;
+  quest.textContent = quests[Math.floor(Math.random()*quests.length)];
+}
+
+function newQuestion(type) {
+  let a = Math.floor(Math.random()*5)+1;
+  let b = Math.floor(Math.random()*5)+1;
+  if (type === "power") b += 5;
+  correctAnswer = a + b;
   question.textContent = `${a} + ${b}`;
 }
 
-function update() {
+function updateUI() {
   level.textContent = player.level;
   hp.textContent = player.hp;
-  enemyHp.textContent = enemyHp;
+  coins.textContent = player.coins;
+  enemyHp.textContent = enemy.hp;
 }
 
-function attack() {
+function attack(type) {
   const val = Number(answer.value);
   answer.value = "";
 
-  if (val === correct) {
-    enemyHp -= 2;
-    log.textContent = "Hit! ⚔️";
+  if (val === correctAnswer) {
+    let dmg = type === "power" ? 4 : 2;
+    enemy.hp -= dmg;
+    log.textContent = type === "power"
+      ? "🔥 Power Blast hit!"
+      : "⚔️ Quick Strike hit!";
   } else {
-    player.hp -= 1;
-    log.textContent = "Miss! 💥";
+    player.hp--;
+    log.textContent = "❌ Miss!";
   }
 
-  if (enemyHp <= 0) {
+  if (enemy.hp <= 0) {
     player.level++;
-    enemyHp = 10 + player.level * 2;
-    log.textContent = "Enemy defeated! LEVEL UP!";
+    player.coins += 5;
+    log.textContent = "🎉 Enemy defeated! Quest complete!";
+    newEnemy();
   }
 
   if (player.hp <= 0) {
@@ -200,8 +274,8 @@ function attack() {
     location.reload();
   }
 
-  newQuestion();
-  update();
+  newQuestion(type);
+  updateUI();
 }
 </script>
 
