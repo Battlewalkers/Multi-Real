@@ -1,34 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multi — Learning</title>
-  <link rel="stylesheet" href="assets/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi — Learning</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+body { font-family:'Comic Sans MS',cursive; background:#f5f5f5; margin:0; padding-top:80px }
+header { position:fixed; top:0; width:100%; background:#4CAF50; color:white; padding:15px 30px; display:flex; justify-content:space-between }
+.container { max-width:900px; margin:auto; padding:20px }
+.card { background:white; border-radius:15px; padding:25px; margin-bottom:30px; box-shadow:0 5px 15px rgba(0,0,0,0.2) }
+.stats { display:flex; justify-content:space-around; font-weight:bold }
+button { padding:10px 20px; border:none; border-radius:10px; background:#4CAF50; color:white; cursor:pointer }
+input { padding:10px; font-size:18px; width:100px; text-align:center }
+</style>
 </head>
+
 <body>
 
-<header class="topbar">
-  <div class="brand">Multi</div>
-  <button onclick="goBack()">← Home</button>
+<header>
+  <div><strong>Multi</strong> — Learning</div>
+  <button onclick="location.href='index.html'">← Home</button>
 </header>
 
-<main class="container">
-  <h2 style="text-align:center;">📚 Learning Page</h2>
-  <p style="text-align:center;">This is where your lessons will appear.</p>
-</main>
+<div class="container">
+  <div class="card">
+    <h2 style="text-align:center">🐉 Math Quest</h2>
 
-<script src="assets/auth.js"></script>
+    <div class="stats">
+      <div>Level: <span id="level">1</span></div>
+      <div>XP: <span id="xp">0</span></div>
+      <div>HP: <span id="hp">10</span></div>
+    </div>
+
+    <p style="text-align:center">
+      Enemy: <span id="enemy"></span> (HP: <span id="enemyHp"></span>)
+    </p>
+
+    <p style="text-align:center">
+      Solve: <strong><span id="question"></span></strong>
+    </p>
+
+    <div style="text-align:center">
+      <input type="number" id="answer">
+      <button onclick="attack()">Attack</button>
+    </div>
+  </div>
+</div>
 
 <script>
-  const session = getSession();
-  if (!session) {
-    window.location.href = 'index.html';
-  }
+const supabaseUrl = "https://ytgwxpxjivruoewxbuyr.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Z3d4cHhqaXZydW9ld3hidXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0ODMxODcsImV4cCI6MjA4MDA1OTE4N30.YMWdo_dRFKt5uufujOZ9BKe-Ygdc0fau1qVnltfmP6o";
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  function goBack() {
-    window.location.href = 'home.html';
+let userId;
+let player = { level:1, xp:0, hp:10 };
+let enemy = {};
+let correct = 0;
+
+async function loadUser(){
+  const { data:{user} } = await supabase.auth.getUser();
+  if(!user){ location.href="index.html"; return; }
+  userId = user.id;
+  const { data } = await supabase.from("profiles").select("*").eq("id",userId).single();
+  if(data) player=data;
+  else await save();
+  start();
+}
+
+async function save(){
+  await supabase.from("profiles").upsert({ id:userId, level:player.level, xp:player.xp, hp:player.hp });
+}
+
+function newEnemy(){
+  const list=[{n:"Slime",h:5},{n:"Goblin",h:8},{n:"Dragon",h:12}];
+  enemy=list[Math.floor(Math.random()*list.length)];
+  enemy.hp=enemy.h;
+  enemy.name=enemy.n;
+  document.getElementById("enemy").textContent=enemy.name;
+}
+
+function newQuestion(){
+  const a=Math.floor(Math.random()*10)+1;
+  const b=Math.floor(Math.random()*10)+1;
+  correct=a+b;
+  document.getElementById("question").textContent=`${a} + ${b}`;
+}
+
+function update(){
+  level.textContent=player.level;
+  xp.textContent=player.xp;
+  hp.textContent=player.hp;
+  enemyHp.textContent=enemy.hp;
+}
+
+async function attack(){
+  const val=Number(answer.value);
+  answer.value="";
+  if(val===correct){
+    enemy.hp-=2;
+    if(enemy.hp<=0){
+      player.xp+=5;
+      if(player.xp>=player.level*10){ player.level++; player.hp=10+player.level; }
+      newEnemy();
+    }
+  } else {
+    player.hp--;
+    if(player.hp<=0){ alert("Game Over"); player.hp=10; }
   }
+  await save();
+  newQuestion();
+  update();
+}
+
+function start(){
+  newEnemy();
+  newQuestion();
+  update();
+}
+
+loadUser();
 </script>
 
 </body>
