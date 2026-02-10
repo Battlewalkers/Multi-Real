@@ -70,7 +70,6 @@ h1 {
   border-radius:15px;
   box-shadow:0 5px 10px rgba(0,0,0,0.15);
   cursor:pointer;
-  transition:0.2s;
 }
 
 .card:hover {
@@ -91,9 +90,7 @@ h1 {
   font-size:14px;
 }
 
-.hidden {
-  display:none;
-}
+.hidden { display:none; }
 </style>
 </head>
 
@@ -106,25 +103,20 @@ h1 {
 
 <main>
 
-  <h1>📚 Learning on Multi</h1>
+<h1>📚 Learning on Multi</h1>
 
-  <!-- Grades -->
-  <div class="section-title">Choose a Grade</div>
-  <div class="grid" id="gradeGrid"></div>
+<div class="section-title">Choose a Grade</div>
+<div class="grid" id="gradeGrid"></div>
 
-  <!-- Subjects -->
-  <div class="section-title hidden" id="subjectTitle">Choose a Subject</div>
-  <div class="grid hidden" id="subjectGrid"></div>
+<div class="section-title hidden" id="subjectTitle">Choose a Subject</div>
+<div class="grid hidden" id="subjectGrid"></div>
 
-  <!-- Units -->
-  <div class="section-title hidden" id="unitTitle">Units & Lessons</div>
-  <div class="grid hidden" id="unitGrid"></div>
+<div class="section-title hidden" id="unitTitle">Units</div>
+<div class="grid hidden" id="unitGrid"></div>
 
 </main>
 
 <script>
-/* ===== SIMPLE DATA (easy to expand) ===== */
-
 const grades = [
   "Kindergarten","1st Grade","2nd Grade","3rd Grade","4th Grade","5th Grade",
   "6th Grade","7th Grade","8th Grade","9th Grade","10th Grade","11th Grade","12th Grade"
@@ -133,81 +125,73 @@ const grades = [
 const subjects = ["Math","Language Arts","Science"];
 
 const units = {
-  Math: ["Numbers", "Addition & Subtraction", "Multiplication", "Fractions", "Algebra"],
-  "Language Arts": ["Reading", "Grammar", "Writing", "Vocabulary"],
-  Science: ["Life Science", "Earth Science", "Physics", "Chemistry"]
+  Math:["Numbers","Addition","Subtraction","Multiplication"],
+  "Language Arts":["Reading","Grammar","Writing"],
+  Science:["Life Science","Earth Science","Physics"]
 };
 
-/* ===== STATE (what the student picked) ===== */
+let selectedGrade=null;
 
-let selectedGrade = null;
-let selectedSubject = null;
+const gradeGrid=document.getElementById("gradeGrid");
+const subjectGrid=document.getElementById("subjectGrid");
+const unitGrid=document.getElementById("unitGrid");
 
-/* ===== ELEMENTS ===== */
+const subjectTitle=document.getElementById("subjectTitle");
+const unitTitle=document.getElementById("unitTitle");
 
-const gradeGrid = document.getElementById("gradeGrid");
-const subjectGrid = document.getElementById("subjectGrid");
-const unitGrid = document.getElementById("unitGrid");
-
-const subjectTitle = document.getElementById("subjectTitle");
-const unitTitle = document.getElementById("unitTitle");
-
-/* ===== LOAD GRADES ===== */
-
-grades.forEach(grade => {
-  const card = document.createElement("div");
-  card.className = "card";
-  card.innerHTML = `<h3>${grade}</h3><span class="badge">Select</span>`;
-  card.onclick = () => selectGrade(grade);
+grades.forEach(grade=>{
+  const card=document.createElement("div");
+  card.className="card";
+  card.innerHTML=`<h3>${grade}</h3><span class="badge">Select</span>`;
+  card.onclick=()=>selectGrade(grade);
   gradeGrid.appendChild(card);
 });
 
-/* ===== FUNCTIONS ===== */
-
-function selectGrade(grade) {
-  selectedGrade = grade;
-  subjectGrid.innerHTML = "";
+function selectGrade(grade){
+  selectedGrade=grade;
+  subjectGrid.innerHTML="";
   subjectTitle.classList.remove("hidden");
   subjectGrid.classList.remove("hidden");
   unitGrid.classList.add("hidden");
   unitTitle.classList.add("hidden");
 
-  subjects.forEach(subject => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `<h3>${subject}</h3><p>${grade}</p>`;
-    card.onclick = () => selectSubject(subject);
+  subjects.forEach(subject=>{
+    const card=document.createElement("div");
+    card.className="card";
+    card.innerHTML=`<h3>${subject}</h3><p>${grade}</p>`;
+    card.onclick=()=>selectSubject(subject);
     subjectGrid.appendChild(card);
   });
 }
 
-function selectSubject(subject) {
-  selectedSubject = subject;
-  unitGrid.innerHTML = "";
+function selectSubject(subject){
+  unitGrid.innerHTML="";
   unitTitle.classList.remove("hidden");
   unitGrid.classList.remove("hidden");
 
-  units[subject].forEach(unit => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <h3>${unit}</h3>
-      <p>${selectedGrade} ${selectedSubject}</p>
-      <span class="badge">Start</span>
-    `;
-    card.onclick = () => {
-      alert(
-        selectedGrade + " → " +
-        selectedSubject + " → " +
-        unit + "\n\nLesson system opens here."
-      );
-    };
+  units[subject].forEach(unit=>{
+    const card=document.createElement("div");
+    card.className="card";
+    card.innerHTML=`<h3>${unit}</h3><span class="badge">Finish Unit</span>`;
+    card.onclick=()=>miniGame(unit);
     unitGrid.appendChild(card);
   });
 }
 
-function goHome() {
-  window.location.href = "index.html";
+function miniGame(unit){
+  const answer=prompt(
+    "🎮 Mini-Game!\n\nQuick question:\nWhat is 4 + 4?"
+  );
+
+  if(answer==="8"){
+    alert("🎉 Correct! You finished "+unit);
+  } else {
+    alert("Good try! Try again next time.");
+  }
+}
+
+function goHome(){
+  window.location.href="index.html";
 }
 </script>
 
