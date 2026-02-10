@@ -1,345 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multi — Learning System</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multi — Learn</title>
+
 <style>
+* { box-sizing: border-box; margin:0; padding:0; }
+
 body {
   font-family: 'Comic Sans MS', cursive, sans-serif;
   background:#f5f5f5;
-  margin:0;
-  padding:0;
+  color:#333;
 }
+
 header {
+  position: fixed;
+  top:0;
+  width:100%;
   background:#4CAF50;
   color:white;
-  padding:15px 20px;
+  padding:15px 30px;
   display:flex;
   justify-content: space-between;
-  align-items: center;
-  position: fixed;
-  width:100%;
-  top:0;
+  align-items:center;
   z-index:1000;
 }
+
+header .logo {
+  font-size:24px;
+  font-weight:bold;
+}
+
 header button {
   background:white;
   color:#4CAF50;
   border:none;
   padding:8px 15px;
   border-radius:10px;
-  cursor:pointer;
   font-weight:bold;
+  cursor:pointer;
 }
+
 main {
-  padding:100px 20px 40px 20px;
-  max-width: 900px;
+  padding:120px 20px 40px;
+  max-width:1200px;
   margin:auto;
 }
-button {
-  cursor:pointer;
+
+h1 {
+  text-align:center;
+  margin-bottom:25px;
 }
-.lesson-text {
-  background:#fff8c6;
+
+.section-title {
+  font-size:22px;
+  margin:30px 0 15px;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:20px;
+}
+
+.card {
+  background:white;
   padding:20px;
   border-radius:15px;
-  margin-bottom:20px;
-  box-shadow:0 5px 10px rgba(0,0,0,0.2);
+  box-shadow:0 5px 10px rgba(0,0,0,0.15);
+  cursor:pointer;
+  transition:0.2s;
 }
-.questions {
-  display:flex;
-  flex-direction:column;
+
+.card:hover {
+  transform: translateY(-5px);
 }
-.question-item {
-  background:#ffffff;
-  margin-bottom:15px;
-  padding:15px;
-  border-radius:12px;
-  box-shadow:0 4px 6px rgba(0,0,0,0.15);
+
+.card h3 {
+  margin-bottom:10px;
+  color:#2196F3;
 }
-.submit-btn {
-  padding:12px 25px;
-  border:none;
-  border-radius:12px;
-  background:#2196F3;
-  color:white;
-  font-weight:bold;
-  margin-top:15px;
-}
-.nav-buttons {
-  margin-top:20px;
-}
-.nav-buttons button {
-  padding:10px 20px;
-  margin-right:10px;
-  border-radius:10px;
-  border:none;
-  font-weight:bold;
-}
-.message {
-  margin-top:20px;
-  font-size:18px;
-  font-weight:bold;
-}
-ul li {
-  list-style:none;
-}
-ul li button {
-  padding:12px 25px;
-  font-size:18px;
-  margin-bottom:15px;
-  border-radius:15px;
-  border:none;
+
+.badge {
+  display:inline-block;
   background:#FFD700;
+  padding:5px 10px;
+  border-radius:10px;
   font-weight:bold;
-  width:100%;
+  font-size:14px;
 }
-ul li button:hover {
-  background:#FFC107;
+
+.hidden {
+  display:none;
 }
 </style>
 </head>
+
 <body>
 
 <header>
-  <div class="brand">Multi Learning</div>
-  <button id="homeBtn">Home</button>
+  <div class="logo">Multi Learn</div>
+  <button onclick="goHome()">Home</button>
 </header>
 
-<main id="mainContent">
-  <!-- Dynamic content will appear here -->
+<main>
+
+  <h1>📚 Learning on Multi</h1>
+
+  <!-- Grades -->
+  <div class="section-title">Choose a Grade</div>
+  <div class="grid" id="gradeGrid"></div>
+
+  <!-- Subjects -->
+  <div class="section-title hidden" id="subjectTitle">Choose a Subject</div>
+  <div class="grid hidden" id="subjectGrid"></div>
+
+  <!-- Units -->
+  <div class="section-title hidden" id="unitTitle">Units & Lessons</div>
+  <div class="grid hidden" id="unitGrid"></div>
+
 </main>
 
 <script>
-// --- Data Structure ---
+/* ===== SIMPLE DATA (easy to expand) ===== */
 
 const grades = [
-  {
-    gradeName: "Grade 1",
-    subjects: [
-      {
-        name: "Math",
-        units: [
-          {
-            unitName:"Numbers & Operations",
-            lessons:[
-              {title:"Lesson 1: Counting",
-               text:"Learn to count from 1 to 20.",
-               questions:[
-                 {q:"1) What number comes after 3?", a:4},
-                 {q:"2) How many fingers do you have on one hand?", a:5},
-                 {q:"3) Count the dots: ••••", a:4},
-                 {q:"4) What is 2 + 1?", a:3},
-                 {q:"5) What is 5 - 3?", a:2}
-               ]},
-              {title:"Lesson 2: Addition",
-               text:"Practice simple addition.",
-               questions:[
-                 {q:"1) 2 + 3 = ?", a:5},
-                 {q:"2) 1 + 4 = ?", a:5},
-                 {q:"3) 3 + 5 = ?", a:8},
-                 {q:"4) 0 + 6 = ?", a:6},
-                 {q:"5) 2 + 2 = ?", a:4}
-               ]},
-              {title:"Lesson 3: Subtraction",
-               text:"Practice simple subtraction.",
-               questions:[
-                 {q:"1) 5 - 2 = ?", a:3},
-                 {q:"2) 4 - 1 = ?", a:3},
-                 {q:"3) 3 - 3 = ?", a:0},
-                 {q:"4) 6 - 2 = ?", a:4},
-                 {q:"5) 2 - 1 = ?", a:1}
-               ]},
-              {title:"Lesson 4: Word Problems",
-               text:"Solve these simple word problems.",
-               questions:[
-                 {q:"1) Sarah has 3 apples and gets 2 more. How many now?", a:5},
-                 {q:"2) Tom has 5 candies and eats 2. How many left?", a:3},
-                 {q:"3) 1 bird + 2 birds = ?", a:3},
-                 {q:"4) You have 2 pencils and buy 3 more. How many?", a:5},
-                 {q:"5) 4 - 1 = ?", a:3}
-               ]},
-              {title:"Lesson 5: Review",
-               text:"Review all previous lessons.",
-               questions:[
-                 {q:"1) 1 + 1 = ?", a:2},
-                 {q:"2) 3 + 2 = ?", a:5},
-                 {q:"3) 5 - 2 = ?", a:3},
-                 {q:"4) 4 + 1 = ?", a:5},
-                 {q:"5) 2 + 3 = ?", a:5}
-               ]}
-            ]
-          },
-          // Add more units here for Grade 1 Math
-        ]
-      },
-      {
-        name:"Science",
-        units:[
-          {
-            unitName:"My Body",
-            lessons:[
-              {title:"Lesson 1: Senses",
-               text:"Learn about your five senses: sight, smell, hearing, touch, taste.",
-               questions:[
-                 {q:"1) How many senses do humans have?", a:5},
-                 {q:"2) Which sense helps you see?", a:"sight"},
-                 {q:"3) Which sense helps you taste?", a:"taste"},
-                 {q:"4) Which sense helps you hear?", a:"hearing"},
-                 {q:"5) Which sense helps you touch?", a:"touch"}
-               ]}
-            ]
-          }
-        ]
-      },
-      {
-        name:"English/Grammar",
-        units:[
-          {
-            unitName:"Letters & Words",
-            lessons:[
-              {title:"Lesson 1: Alphabet",
-               text:"Learn the English alphabet from A to Z.",
-               questions:[
-                 {q:"1) What is the first letter of the alphabet?", a:"A"},
-                 {q:"2) What is the last letter?", a:"Z"},
-                 {q:"3) Which letter comes after C?", a:"D"},
-                 {q:"4) Which letter comes before F?", a:"E"},
-                 {q:"5) Which letter comes after M?", a:"N"}
-               ]}
-            ]
-          }
-        ]
-      }
-    ]
-  },
-
-  // Grades 2–5 placeholders
-  {gradeName:"Grade 2", subjects:[]},
-  {gradeName:"Grade 3", subjects:[]},
-  {gradeName:"Grade 4", subjects:[]},
-  {gradeName:"Grade 5", subjects:[]}
+  "Kindergarten","1st Grade","2nd Grade","3rd Grade","4th Grade","5th Grade",
+  "6th Grade","7th Grade","8th Grade","9th Grade","10th Grade","11th Grade","12th Grade"
 ];
 
-// --- Globals ---
-let currentGrade=0;
-let currentSubject=0;
-let currentUnit=0;
-let currentLesson=0;
-let onTest=false;
+const subjects = ["Math","Language Arts","Science"];
 
-// --- Elements ---
-const main = document.getElementById('mainContent');
-const homeBtn = document.getElementById('homeBtn');
+const units = {
+  Math: ["Numbers", "Addition & Subtraction", "Multiplication", "Fractions", "Algebra"],
+  "Language Arts": ["Reading", "Grammar", "Writing", "Vocabulary"],
+  Science: ["Life Science", "Earth Science", "Physics", "Chemistry"]
+};
 
-homeBtn.addEventListener('click',()=>{currentGrade=0;currentSubject=0;currentUnit=0;currentLesson=0;onTest=false;renderHome();});
+/* ===== STATE (what the student picked) ===== */
 
-// --- Render Functions ---
-function renderHome(){
-  let html="<h1>Select Grade</h1><ul>";
-  grades.forEach((g,i)=>{html+=`<li><button onclick="startGrade(${i})">${g.gradeName}</button></li>`});
-  html+="</ul>";
-  main.innerHTML=html;
-}
+let selectedGrade = null;
+let selectedSubject = null;
 
-function startGrade(gradeIndex){
-  currentGrade=gradeIndex;
-  renderSubjects();
-}
+/* ===== ELEMENTS ===== */
 
-function renderSubjects(){
-  const grade=grades[currentGrade];
-  let html=`<h1>${grade.gradeName} - Select Subject</h1><ul>`;
-  grade.subjects.forEach((s,i)=>{html+=`<li><button onclick="startSubject(${i})">${s.name}</button></li>`});
-  html+="</ul>";
-  main.innerHTML=html;
-}
+const gradeGrid = document.getElementById("gradeGrid");
+const subjectGrid = document.getElementById("subjectGrid");
+const unitGrid = document.getElementById("unitGrid");
 
-function startSubject(subjectIndex){
-  currentSubject=subjectIndex;
-  renderUnits();
-}
+const subjectTitle = document.getElementById("subjectTitle");
+const unitTitle = document.getElementById("unitTitle");
 
-function renderUnits(){
-  const subject=grades[currentGrade].subjects[currentSubject];
-  let html=`<h1>${grades[currentGrade].gradeName} - ${subject.name} - Select Unit</h1><ul>`;
-  subject.units.forEach((u,i)=>{html+=`<li><button onclick="startUnit(${i})">${u.unitName}</button></li>`});
-  html+="</ul>";
-  main.innerHTML=html;
-}
+/* ===== LOAD GRADES ===== */
 
-function startUnit(unitIndex){
-  currentUnit=unitIndex;
-  currentLesson=0;
-  onTest=false;
-  renderLesson();
-}
+grades.forEach(grade => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h3>${grade}</h3><span class="badge">Select</span>`;
+  card.onclick = () => selectGrade(grade);
+  gradeGrid.appendChild(card);
+});
 
-function renderLesson(){
-  onTest=false;
-  const lesson=grades[currentGrade].subjects[currentSubject].units[currentUnit].lessons[currentLesson];
-  let html=`<h2>${lesson.title}</h2>`;
-  html+=`<div class="lesson-text">${lesson.text}</div>`;
-  html+=`<form id="lessonForm" autocomplete="off"><div class="questions">`;
-  lesson.questions.forEach((q,i)=>{html+=`<div class="question-item"><label>${q.q}</label><input type="text" id="q${i}" required></div>`});
-  html+=`</div><button type="submit" class="submit-btn">Submit Answers</button></form>`;
-  html+=`<div class="nav-buttons">`;
-  if(currentLesson>0) html+=`<button id="prevBtn">← Previous Lesson</button>`;
-  if(currentLesson<grades[currentGrade].subjects[currentSubject].units[currentUnit].lessons.length-1){
-    html+=`<button id="nextBtn">Next Lesson →</button>`;
-  } else {
-    html+=`<button id="toTestBtn">Go to Unit Test</button>`;
-  }
-  html+=`</div>`;
-  main.innerHTML=html;
+/* ===== FUNCTIONS ===== */
 
-  document.getElementById('lessonForm').onsubmit=(e)=>{e.preventDefault();checkAnswers(lesson.questions);}
-  if(currentLesson>0) document.getElementById('prevBtn').onclick=()=>{currentLesson--;renderLesson();}
-  if(currentLesson<grades[currentGrade].subjects[currentSubject].units[currentUnit].lessons.length-1) document.getElementById('nextBtn').onclick=()=>{currentLesson++;renderLesson();}
-  if(currentLesson===grades[currentGrade].subjects[currentSubject].units[currentUnit].lessons.length-1) document.getElementById('toTestBtn').onclick=()=>{onTest=true;renderUnitTest();}
-}
+function selectGrade(grade) {
+  selectedGrade = grade;
+  subjectGrid.innerHTML = "";
+  subjectTitle.classList.remove("hidden");
+  subjectGrid.classList.remove("hidden");
+  unitGrid.classList.add("hidden");
+  unitTitle.classList.add("hidden");
 
-function renderUnitTest(){
-  onTest=true;
-  const unit=grades[currentGrade].subjects[currentSubject].units[currentUnit];
-  let questions=[];
-  unit.lessons.forEach(l=>{questions=questions.concat(l.questions)});
-  let html=`<h2>${unit.unitName} - Unit Test</h2><form id="testForm" autocomplete="off"><div class="questions">`;
-  questions.forEach((q,i)=>{html+=`<div class="question-item"><label>${q.q}</label><input type="text" id="tq${i}" required></div>`});
-  html+=`</div><button type="submit" class="submit-btn">Submit Unit Test</button></form>`;
-  html+=`<div class="nav-buttons"><button id="backBtn">Back to Lessons</button>`;
-  if(currentUnit<grades[currentGrade].subjects[currentSubject].units.length-1) html+=`<button id="nextUnitBtn">Next Unit →</button>`;
-  html+=`</div>`;
-  main.innerHTML=html;
-
-  document.getElementById('testForm').onsubmit=(e)=>{e.preventDefault();checkAnswers(questions,true);}
-  document.getElementById('backBtn').onclick=()=>{onTest=false;currentLesson=0;renderLesson();}
-  if(currentUnit<grades[currentGrade].subjects[currentSubject].units.length-1) document.getElementById('nextUnitBtn').onclick=()=>{currentUnit++;currentLesson=0;onTest=false;renderLesson();}
-}
-
-function checkAnswers(questions,isTest=false){
-  const form=isTest?document.getElementById('testForm'):document.getElementById('lessonForm');
-  let correctCount=0;
-  questions.forEach((q,i)=>{
-    const input=form.querySelector(isTest?`#tq${i}`:`#q${i}`);
-    let ans=input.value.trim().toLowerCase();
-    if(ans==q.a.toString().toLowerCase()){correctCount++;input.style.borderColor="#4CAF50";}
-    else{input.style.borderColor="#e53935";}
+  subjects.forEach(subject => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<h3>${subject}</h3><p>${grade}</p>`;
+    card.onclick = () => selectSubject(subject);
+    subjectGrid.appendChild(card);
   });
-  const percent=Math.round((correctCount/questions.length)*100);
-  let msg=`You got ${correctCount}/${questions.length} correct (${percent}%).`;
-  if(percent==100) msg+=" 🎉 Perfect!";
-  else if(percent>=80) msg+=" Great job!";
-  else if(percent>=50) msg+=" Keep practicing!";
-  else msg+=" Let's try again!";
-  let msgDiv=document.querySelector('.message');
-  if(!msgDiv){msgDiv=document.createElement('div');msgDiv.className='message';form.parentNode.appendChild(msgDiv);}
-  msgDiv.textContent=msg;
 }
 
-// --- Start App ---
-renderHome();
+function selectSubject(subject) {
+  selectedSubject = subject;
+  unitGrid.innerHTML = "";
+  unitTitle.classList.remove("hidden");
+  unitGrid.classList.remove("hidden");
+
+  units[subject].forEach(unit => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h3>${unit}</h3>
+      <p>${selectedGrade} ${selectedSubject}</p>
+      <span class="badge">Start</span>
+    `;
+    card.onclick = () => {
+      alert(
+        selectedGrade + " → " +
+        selectedSubject + " → " +
+        unit + "\n\nLesson system opens here."
+      );
+    };
+    unitGrid.appendChild(card);
+  });
+}
+
+function goHome() {
+  window.location.href = "index.html";
+}
 </script>
 
 </body>
