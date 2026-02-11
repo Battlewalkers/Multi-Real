@@ -28,30 +28,11 @@ footer {
   margin-top: 40px;
 }
 
-/* TOP GAMES */
 .games {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 25px;
   padding: 40px;
-  max-width: 1200px;
-  margin: auto;
-}
-
-.game {
-  background: #FFEB3B;
-  padding: 25px;
-  border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  text-align: center;
-}
-
-/* ALL GAMES */
-.multi-game-grid {
-  padding: 40px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 25px;
   max-width: 1200px;
   margin: auto;
 }
@@ -64,20 +45,18 @@ footer {
   text-align: center;
 }
 
-button, a {
-  display: inline-block;
+button {
   margin-top: 10px;
   padding: 10px 20px;
   background: #4CAF50;
   color: white;
-  text-decoration: none;
-  border-radius: 12px;
   border: none;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 16px;
 }
 
-button:hover, a:hover {
+button:hover {
   background: #43a047;
 }
 </style>
@@ -90,122 +69,112 @@ button:hover, a:hover {
 
 <div class="games">
 
-  <div class="game">
+  <div class="game-card">
     <h3>🖱️ Clicker Game</h3>
     <p>Click and beat your high score!</p>
     <button onclick="location.href='clicker.html'">Play</button>
   </div>
 
-  <div class="game">
+  <div class="game-card">
     <h3>🧠 Memory Game</h3>
     <p>Match the cards and train your brain.</p>
     <button onclick="location.href='memory.html'">Play</button>
   </div>
 
-  <div class="game">
+  <div class="game-card">
     <h3>♟️ Chess</h3>
     <p>Classic strategy game.</p>
     <button onclick="location.href='chess.html'">Play</button>
   </div>
 
-  <div class="game">
+  <div class="game-card">
     <h3>⚡ Reaction Game</h3>
     <p>Test your speed!</p>
     <button onclick="location.href='reaction.html'">Play</button>
   </div>
 
-</div>
-
-<div class="multi-game-grid">
-
   <div class="game-card">
     <h3>♟️ Tic Tac Toe</h3>
     <p>Classic 2-player game.</p>
-    <a href="games/tictactoe.html">Play</a>
+    <button onclick="location.href='tictactoe.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>🐍 Snake</h3>
     <p>Eat food and grow!</p>
-    <a href="games/snake.html">Play</a>
+    <button onclick="location.href='snake.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>✊ Rock Paper Scissors</h3>
     <p>Beat the computer.</p>
-    <a href="games/rps.html">Play</a>
-  </div>
-
-  <div class="game-card">
-    <h3>🧠 Memory Match</h3>
-    <p>Train your brain.</p>
-    <a href="games/memory.html">Play</a>
+    <button onclick="location.href='rps.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>🏓 Pong</h3>
     <p>Retro arcade fun.</p>
-    <a href="games/pong.html">Play</a>
+    <button onclick="location.href='pong.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>🌀 Maze</h3>
     <p>Find your way out.</p>
-    <a href="games/maze.html">Play</a>
+    <button onclick="location.href='maze.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>❓ Trivia Quiz</h3>
     <p>Test your knowledge.</p>
-    <a href="games/quiz.html">Play</a>
+    <button onclick="location.href='quiz.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>🎈 Balloon Pop</h3>
     <p>Pop them fast!</p>
-    <a href="games/balloon.html">Play</a>
+    <button onclick="location.href='balloon.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>🔢 Number Guess</h3>
     <p>Guess the number.</p>
-    <a href="games/numberguess.html">Play</a>
+    <button onclick="location.href='numberguess.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>🐹 Whack-A-Mole</h3>
     <p>Fast reactions!</p>
-    <a href="games/whack.html">Play</a>
+    <button onclick="location.href='whack.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>🎵 Simon Says</h3>
     <p>Repeat the pattern.</p>
-    <a href="games/simon.html">Play</a>
+    <button onclick="location.href='simon.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>➕ Math Challenge</h3>
     <p>Solve quickly.</p>
-    <a href="games/math.html">Play</a>
+    <button onclick="location.href='math.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>🔤 Word Scramble</h3>
     <p>Unscramble words.</p>
-    <a href="games/wordscramble.html">Play</a>
+    <button onclick="location.href='wordscramble.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>⚡ Reaction Timer</h3>
     <p>Test your speed.</p>
-    <a href="games/reaction.html">Play</a>
+    <button onclick="location.href='reaction.html'">Play</button>
   </div>
 
   <div class="game-card">
     <h3>🧱 Breakout</h3>
     <p>Break all bricks.</p>
-    <a href="games/breakout.html">Play</a>
+    <button onclick="location.href='breakout.html'">Play</button>
   </div>
 
 </div>
