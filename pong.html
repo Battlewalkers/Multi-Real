@@ -1,273 +1,268 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Soccer Battle</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soccer Pong 2P</title>
 <style>
 body {
   margin: 0;
-  background: #f5f5f5;
+  background: #4CAF50;
   font-family: 'Comic Sans MS', cursive, sans-serif;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-header {
-  background: #4CAF50;
-  color: white;
-  padding: 20px;
-  font-size: 28px;
-}
-
-footer {
-  background: #4CAF50;
-  color: white;
-  padding: 15px;
-  margin-top: 40px;
-}
-
-.game-container {
-  background: #FFEB3B;
-  margin: 40px auto;
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  max-width: 900px;
+#game-container {
+  position: relative;
 }
 
 canvas {
-  background: #2E7D32;
-  border-radius: 12px;
+  background: #3e8e41;
+  border: 4px solid #fff;
+  border-radius: 10px;
   display: block;
-  margin: 20px auto;
 }
 
-.score {
-  font-size: 22px;
-  font-weight: bold;
+.ui-overlay {
+  position: absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  display:flex;
+  flex-direction: column;
+  justify-content:center;
+  align-items:center;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 24px;
+  z-index: 10;
+}
+
+.hidden { display: none; }
+
+button {
+  padding: 10px 20px;
+  margin-top: 15px;
+  font-size: 18px;
+  cursor: pointer;
 }
 </style>
 </head>
-
 <body>
 
-<header>⚽ Soccer Battle</header>
+<div id="game-container">
+  <canvas id="gameCanvas" width="800" height="500"></canvas>
 
-<div class="game-container">
+  <div id="start-screen" class="ui-overlay">
+    <h1>Soccer Pong 2P</h1>
+    <button onclick="startGame()">Start Tournament</button>
+    <p>P1: WASD + F Shoot + G Dash</p>
+    <p>P2: Arrows + / Shoot + Shift Dash</p>
+  </div>
 
-<div class="score">
-Player 1: <span id="p1">0</span> |
-Player 2: <span id="p2">0</span>
+  <div id="win-screen" class="ui-overlay hidden">
+    <h1 id="winner-text"></h1>
+    <p id="tournament-text"></p>
+    <button onclick="nextRound()">Next Round</button>
+  </div>
 </div>
-
-<canvas id="game" width="800" height="450"></canvas>
-
-<p>
-P1: WASD | Hold F = Power Shot | G = Dash <br>
-P2: Arrows | Hold / = Power Shot | . = Dash
-</p>
-
-<button onclick="startGame()">Start Game</button>
-
-</div>
-
-<footer>© 2026 Multi</footer>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+// Canvas
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
+// Game settings
+const PLAYER_RADIUS = 20;
+const BALL_RADIUS = 12;
+const DASH_SPEED = 12;
+const MOVE_SPEED = 5;
+const FRICTION = 0.9;
+const GOAL_WIDTH = 100;
+const WIN_SCORE = 3; // tournament best of 3
+
+// Players
+let players = [
+  {x: 100, y: canvas.height/2, color:'blue', up:'w', down:'s', left:'a', right:'d', shoot:'f', dash:'g', dx:0, dy:0, ball:null, score:0},
+  {x: canvas.width-100, y: canvas.height/2, color:'red', up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight', shoot:'/', dash:'Shift', dx:0, dy:0, ball:null, score:0}
+];
+
+// Ball
+let ball = {x: canvas.width/2, y: canvas.height/2, vx:0, vy:0, heldBy:null, charge:0};
+
+// Game state
 let keys = {};
-let goalTimer = 0;
+let round = 1;
+let maxRounds = 3;
+let gameRunning = false;
 
-let p1 = {x:200,y:225,r:20,speed:4,hasBall:false,dash:0,cool:0,charge:0};
-let p2 = {x:600,y:225,r:20,speed:4,hasBall:false,dash:0,cool:0,charge:0};
+// Sound effects
+function playSound(type){
+  const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  if(type==='shoot'){ osc.type='square'; osc.frequency.setValueAtTime(800,audioCtx.currentTime); }
+  else if(type==='goal'){ osc.type='triangle'; osc.frequency.setValueAtTime(200,audioCtx.currentTime); }
+  else if(type==='dash'){ osc.type='sawtooth'; osc.frequency.setValueAtTime(500,audioCtx.currentTime);}
+  osc.start(); osc.stop(audioCtx.currentTime+0.1);
+}
 
-let ball = {x:400,y:225,r:10,vx:0,vy:0,free:true};
+// Input
+window.addEventListener('keydown', e=>{ keys[e.key]=true; });
+window.addEventListener('keyup', e=>{ keys[e.key]=false; if(e.key==='f' || e.key==='/') ball.charge=0; });
 
-let score1=0, score2=0;
-let gameInterval;
-
+// Start game
 function startGame(){
- score1=0; score2=0;
- document.getElementById("p1").innerText=0;
- document.getElementById("p2").innerText=0;
- reset();
- clearInterval(gameInterval);
- gameInterval=setInterval(loop,1000/60);
+  document.getElementById('start-screen').classList.add('hidden');
+  resetRound();
+  gameRunning=true;
+  requestAnimationFrame(gameLoop);
 }
 
-function reset(){
- p1.x=200;p1.y=225;p1.hasBall=false;
- p2.x=600;p2.y=225;p2.hasBall=false;
- ball.x=400;ball.y=225;ball.vx=0;ball.vy=0;ball.free=true;
+// Reset round
+function resetRound(){
+  ball.x = canvas.width/2; ball.y = canvas.height/2; ball.vx=0; ball.vy=0; ball.heldBy=null; ball.charge=0;
+  players[0].x=100; players[0].y=canvas.height/2; players[0].dx=0; players[0].dy=0; players[0].ball=null;
+  players[1].x=canvas.width-100; players[1].y=canvas.height/2; players[1].dx=0; players[1].dy=0; players[1].ball=null;
 }
 
-function loop(){
- update();
- draw();
+// Game loop
+function gameLoop(){
+  if(!gameRunning) return;
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
 }
 
+// Update
 function update(){
+  // Player movement
+  players.forEach(p=>{
+    p.dx=0; p.dy=0;
+    if(keys[p.left]) p.dx=-MOVE_SPEED;
+    if(keys[p.right]) p.dx=MOVE_SPEED;
+    if(keys[p.up]) p.dy=-MOVE_SPEED;
+    if(keys[p.down]) p.dy=MOVE_SPEED;
 
- if(goalTimer>0){ goalTimer--; return; }
+    // Dash
+    if(keys[p.dash]){
+      p.dx*=DASH_SPEED/MOVE_SPEED; p.dy*=DASH_SPEED/MOVE_SPEED;
+      // Steal ball if colliding opponent
+      let other = players.find(op=>op!==p);
+      let dist = Math.hypot(p.x-other.x,p.y-other.y);
+      if(dist<PLAYER_RADIUS*2 && other.ball){ 
+        other.ball.heldBy=null; 
+        p.ball=ball; 
+        ball.heldBy=p;
+        playSound('dash');
+      }
+    }
 
- move(p1,"w","s","a","d");
- move(p2,"ArrowUp","ArrowDown","ArrowLeft","ArrowRight");
+    p.x+=p.dx; p.y+=p.dy;
+    p.x=Math.max(PLAYER_RADIUS,Math.min(canvas.width-PLAYER_RADIUS,p.x));
+    p.y=Math.max(PLAYER_RADIUS,Math.min(canvas.height-PLAYER_RADIUS,p.y));
+  });
 
- checkSteal();
+  // Shooting
+  players.forEach(p=>{
+    if(keys[p.shoot] && p.ball && p.ball.heldBy===p){
+      // Charge shot
+      ball.charge+=0.5;
+      if(ball.charge>10) ball.charge=10;
 
- if(ball.free){
-  ball.x+=ball.vx;
-  ball.y+=ball.vy;
-  ball.vx*=0.99;
-  ball.vy*=0.99;
- }
+      if(keys['ArrowUp'] || keys['w']) ball.vy=-10*ball.charge/5;
+      else if(keys['ArrowDown'] || keys['s']) ball.vy=10*ball.charge/5;
+      else ball.vy=0;
 
- // Pickup
- pickup(p1);
- pickup(p2);
+      if(keys['ArrowLeft'] || keys['a']) ball.vx=-10*ball.charge/5;
+      else if(keys['ArrowRight'] || keys['d']) ball.vx=10*ball.charge/5;
+      else if(ball.vx===0) ball.vx=(p===players[0]?5:-5);
 
- // Goals
- if(ball.x<0){ score2++; goal("PLAYER 2 SCORES!"); }
- if(ball.x>canvas.width){ score1++; goal("PLAYER 1 SCORES!"); }
-}
+      ball.heldBy=null;
+      playSound('shoot');
+    }
+  });
 
-function move(p,u,d,l,r){
+  // Ball follow player
+  if(ball.heldBy){
+    ball.x=ball.heldBy.x + ball.heldBy.dx;
+    ball.y=ball.heldBy.y + ball.heldBy.dy;
+  }else{
+    ball.x+=ball.vx; ball.y+=ball.vy;
+    ball.vx*=FRICTION; ball.vy*=FRICTION;
 
- let speed=p.speed;
-
- if(p.dash>0){ speed=9; p.dash--; }
- if(p.cool>0) p.cool--;
-
- if(keys[u]) p.y-=speed;
- if(keys[d]) p.y+=speed;
- if(keys[l]) p.x-=speed;
- if(keys[r]) p.x+=speed;
-
- p.x=Math.max(p.r,Math.min(canvas.width-p.r,p.x));
- p.y=Math.max(p.r,Math.min(canvas.height-p.r,p.y));
-
- if(p.hasBall){
-  ball.x=p.x;
-  ball.y=p.y;
- }
-}
-
-function pickup(p){
- if(!ball.free) return;
-
- let dx=ball.x-p.x;
- let dy=ball.y-p.y;
- let dist=Math.sqrt(dx*dx+dy*dy);
-
- if(dist<p.r+ball.r){
-  p.hasBall=true;
-  ball.free=false;
-  if(p===p1) p2.hasBall=false;
-  else p1.hasBall=false;
- }
-}
-
-function shoot(p,dir){
- if(!p.hasBall) return;
-
- let power = Math.min(15,5+p.charge/5);
-
- p.hasBall=false;
- ball.free=true;
- ball.vx=dir*power;
- ball.vy=0;
-
- p.charge=0;
-}
-
-function checkSteal(){
- let dx=p1.x-p2.x;
- let dy=p1.y-p2.y;
- let dist=Math.sqrt(dx*dx+dy*dy);
-
- if(dist<p1.r+p2.r){
-  if(p1.dash>0 && p2.hasBall){
-   p2.hasBall=false;
-   p1.hasBall=true;
+    // Collision with players
+    players.forEach(p=>{
+      let dist=Math.hypot(ball.x-p.x,ball.y-p.y);
+      if(dist<PLAYER_RADIUS+BALL_RADIUS){
+        ball.heldBy=p;
+        ball.vx=0; ball.vy=0;
+      }
+    });
   }
-  if(p2.dash>0 && p1.hasBall){
-   p1.hasBall=false;
-   p2.hasBall=true;
+
+  // Check goals
+  if(ball.x<0+BALL_RADIUS && Math.abs(ball.y-canvas.height/2)<GOAL_WIDTH/2){
+    players[1].score++; playSound('goal'); showWinScreen(players[1]); return;
   }
- }
+  if(ball.x>canvas.width-BALL_RADIUS && Math.abs(ball.y-canvas.height/2)<GOAL_WIDTH/2){
+    players[0].score++; playSound('goal'); showWinScreen(players[0]); return;
+  }
 }
 
-function goal(text){
- document.getElementById("p1").innerText=score1;
- document.getElementById("p2").innerText=score2;
- goalTimer=120;
- reset();
-}
-
-window.addEventListener("keydown",e=>{
- keys[e.key]=true;
-
- if(e.key==="g" && p1.cool===0){ p1.dash=15;p1.cool=60; }
- if(e.key==="." && p2.cool===0){ p2.dash=15;p2.cool=60; }
-});
-
-window.addEventListener("keyup",e=>{
- keys[e.key]=false;
-
- if(e.key==="f") shoot(p1,1);
- if(e.key==="/") shoot(p2,-1);
-});
-
+// Draw
 function draw(){
+  // Pitch
+  ctx.fillStyle='#3e8e41'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='#fff'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(canvas.width/2,0); ctx.lineTo(canvas.width/2,canvas.height); ctx.stroke();
+  // Goals
+  ctx.fillStyle='yellow'; ctx.fillRect(0,canvas.height/2-GOAL_WIDTH/2,10,GOAL_WIDTH);
+  ctx.fillRect(canvas.width-10,canvas.height/2-GOAL_WIDTH/2,10,GOAL_WIDTH);
 
- ctx.clearRect(0,0,canvas.width,canvas.height);
+  // Players
+  players.forEach(p=>{
+    ctx.fillStyle=p.color;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,PLAYER_RADIUS,0,Math.PI*2);
+    ctx.fill();
+  });
 
- ctx.strokeStyle="white";
- ctx.lineWidth=4;
-
- ctx.beginPath();
- ctx.moveTo(canvas.width/2,0);
- ctx.lineTo(canvas.width/2,canvas.height);
- ctx.stroke();
-
- ctx.beginPath();
- ctx.arc(canvas.width/2,canvas.height/2,70,0,Math.PI*2);
- ctx.stroke();
-
- ctx.strokeRect(0,canvas.height/2-60,10,120);
- ctx.strokeRect(canvas.width-10,canvas.height/2-60,10,120);
-
- ctx.fillStyle="blue";
- ctx.beginPath();
- ctx.arc(p1.x,p1.y,p1.r,0,Math.PI*2);
- ctx.fill();
-
- ctx.fillStyle="red";
- ctx.beginPath();
- ctx.arc(p2.x,p2.y,p2.r,0,Math.PI*2);
- ctx.fill();
-
- ctx.fillStyle="white";
- ctx.beginPath();
- ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
- ctx.fill();
-
- // Goal animation text
- if(goalTimer>0){
-  ctx.fillStyle="white";
-  ctx.font="40px Comic Sans MS";
-  ctx.fillText("GOAL!!!",canvas.width/2-100,100);
- }
+  // Ball
+  ctx.fillStyle='white';
+  ctx.beginPath();
+  ctx.arc(ball.x,ball.y,BALL_RADIUS,0,Math.PI*2);
+  ctx.fill();
 }
 
-// Power charge system
-setInterval(()=>{
- if(keys["f"] && p1.hasBall) p1.charge++;
- if(keys["/"] && p2.hasBall) p2.charge++;
-},16);
+// Win screen
+function showWinScreen(winner){
+  gameRunning=false;
+  document.getElementById('win-screen').classList.remove('hidden');
+  document.getElementById('winner-text').innerText=winner.color.toUpperCase()+' WINS!';
+  document.getElementById('tournament-text').innerText=`Score: P1 ${players[0].score} - P2 ${players[1].score}`;
+}
 
+// Next round
+function nextRound(){
+  document.getElementById('win-screen').classList.add('hidden');
+  round++;
+  if(round>maxRounds){
+    // Tournament over
+    let winner=players[0].score>players[1].score?'Blue':'Red';
+    alert(`Tournament over! ${winner} wins!`);
+    round=1;
+    players[0].score=0; players[1].score=0;
+  }
+  resetRound();
+  gameRunning=true;
+  requestAnimationFrame(gameLoop);
+}
 </script>
 
 </body>
