@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pong</title>
+
+<style>
+body {
+  margin: 0;
+  background: #f5f5f5;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  text-align: center;
+}
+
+header {
+  background: #4CAF50;
+  color: white;
+  padding: 20px;
+  font-size: 28px;
+}
+
+footer {
+  background: #4CAF50;
+  color: white;
+  padding: 15px;
+  margin-top: 40px;
+}
+
+.game-container {
+  background: #FFEB3B;
+  margin: 40px auto;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  max-width: 700px;
+}
+
+canvas {
+  background: white;
+  border-radius: 12px;
+  display: block;
+  margin: 20px auto;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background: #43a047;
+}
+
+.score-board {
+  font-size: 20px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>🏓 Pong</header>
+
+<div class="game-container">
+
+  <div class="score-board">
+    You: <span id="playerScore">0</span> |
+    Computer: <span id="computerScore">0</span>
+  </div>
+
+  <canvas id="game" width="600" height="400"></canvas>
+
+  <button onclick="startGame()">Start Game</button>
+
+</div>
+
+<footer>© 2026 Multi</footer>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let playerY = 150;
+let computerY = 150;
+let ballX = 300;
+let ballY = 200;
+let ballSpeedX = 4;
+let ballSpeedY = 4;
+
+let playerScore = 0;
+let computerScore = 0;
+
+let gameInterval;
+
+function startGame() {
+  clearInterval(gameInterval);
+  resetBall();
+  gameInterval = setInterval(gameLoop, 1000/60);
+}
+
+function resetBall() {
+  ballX = canvas.width / 2;
+  ballY = canvas.height / 2;
+  ballSpeedX = -ballSpeedX;
+  ballSpeedY = 4 * (Math.random() > 0.5 ? 1 : -1);
+}
+
+function gameLoop() {
+  update();
+  draw();
+}
+
+function update() {
+  ballX += ballSpeedX;
+  ballY += ballSpeedY;
+
+  // Top & bottom wall
+  if (ballY <= 0 || ballY >= canvas.height) {
+    ballSpeedY = -ballSpeedY;
+  }
+
+  // Player paddle collision
+  if (
+    ballX <= 20 &&
+    ballY > playerY &&
+    ballY < playerY + 100
+  ) {
+    ballSpeedX = -ballSpeedX;
+  }
+
+  // Computer paddle collision
+  if (
+    ballX >= canvas.width - 20 &&
+    ballY > computerY &&
+    ballY < computerY + 100
+  ) {
+    ballSpeedX = -ballSpeedX;
+  }
+
+  // Score
+  if (ballX < 0) {
+    computerScore++;
+    document.getElementById("computerScore").innerText = computerScore;
+    resetBall();
+  }
+
+  if (ballX > canvas.width) {
+    playerScore++;
+    document.getElementById("playerScore").innerText = playerScore;
+    resetBall();
+  }
+
+  // Simple AI
+  computerY += (ballY - (computerY + 50)) * 0.1;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Player paddle
+  ctx.fillStyle = "#4CAF50";
+  ctx.fillRect(10, playerY, 10, 100);
+
+  // Computer paddle
+  ctx.fillStyle = "#f44336";
+  ctx.fillRect(canvas.width - 20, computerY, 10, 100);
+
+  // Ball
+  ctx.fillStyle = "#000";
+  ctx.beginPath();
+  ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Mouse control
+canvas.addEventListener("mousemove", function(e) {
+  const rect = canvas.getBoundingClientRect();
+  playerY = e.clientY - rect.top - 50;
+});
+</script>
+
+</body>
+</html>
