@@ -63,8 +63,8 @@ Player 2: <span id="p2">0</span>
 <canvas id="game" width="800" height="450"></canvas>
 
 <p>
-P1: WASD | Shoot: F | Dash: G <br>
-P2: Arrows | Shoot: / | Dash: .
+P1: WASD | Hold F = Power Shot | G = Dash <br>
+P2: Arrows | Hold / = Power Shot | . = Dash
 </p>
 
 <button onclick="startGame()">Start Game</button>
@@ -78,186 +78,196 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 let keys = {};
+let goalTimer = 0;
 
-let p1 = {x:200,y:225,r:20,speed:4,hasBall:false,dashTime:0,cooldown:0,dx:0,dy:0};
-let p2 = {x:600,y:225,r:20,speed:4,hasBall:false,dashTime:0,cooldown:0,dx:0,dy:0};
+let p1 = {x:200,y:225,r:20,speed:4,hasBall:false,dash:0,cool:0,charge:0};
+let p2 = {x:600,y:225,r:20,speed:4,hasBall:false,dash:0,cool:0,charge:0};
 
-let ball = {x:400,y:225,r:10,vx:0,vy:0};
+let ball = {x:400,y:225,r:10,vx:0,vy:0,free:true};
 
-let score1 = 0;
-let score2 = 0;
-
+let score1=0, score2=0;
 let gameInterval;
 
 function startGame(){
-  score1 = 0;
-  score2 = 0;
-  document.getElementById("p1").innerText = 0;
-  document.getElementById("p2").innerText = 0;
-  resetPositions();
-  clearInterval(gameInterval);
-  gameInterval = setInterval(gameLoop,1000/60);
+ score1=0; score2=0;
+ document.getElementById("p1").innerText=0;
+ document.getElementById("p2").innerText=0;
+ reset();
+ clearInterval(gameInterval);
+ gameInterval=setInterval(loop,1000/60);
 }
 
-function resetPositions(){
-  p1.x=200;p1.y=225;p1.hasBall=false;
-  p2.x=600;p2.y=225;p2.hasBall=false;
-  ball.x=400;ball.y=225;ball.vx=0;ball.vy=0;
+function reset(){
+ p1.x=200;p1.y=225;p1.hasBall=false;
+ p2.x=600;p2.y=225;p2.hasBall=false;
+ ball.x=400;ball.y=225;ball.vx=0;ball.vy=0;ball.free=true;
 }
 
-function gameLoop(){
-  update();
-  draw();
+function loop(){
+ update();
+ draw();
 }
 
 function update(){
 
-  movePlayer(p1,"w","s","a","d");
-  movePlayer(p2,"ArrowUp","ArrowDown","ArrowLeft","ArrowRight");
+ if(goalTimer>0){ goalTimer--; return; }
 
-  handleBallPickup(p1);
-  handleBallPickup(p2);
+ move(p1,"w","s","a","d");
+ move(p2,"ArrowUp","ArrowDown","ArrowLeft","ArrowRight");
 
-  if(!p1.hasBall && !p2.hasBall){
-    ball.x+=ball.vx;
-    ball.y+=ball.vy;
-    ball.vx*=0.98;
-    ball.vy*=0.98;
-  }
+ checkSteal();
 
-  if(ball.x<0){
-    score2++;
-    document.getElementById("p2").innerText=score2;
-    resetPositions();
-  }
+ if(ball.free){
+  ball.x+=ball.vx;
+  ball.y+=ball.vy;
+  ball.vx*=0.99;
+  ball.vy*=0.99;
+ }
 
-  if(ball.x>canvas.width){
-    score1++;
-    document.getElementById("p1").innerText=score1;
-    resetPositions();
-  }
+ // Pickup
+ pickup(p1);
+ pickup(p2);
+
+ // Goals
+ if(ball.x<0){ score2++; goal("PLAYER 2 SCORES!"); }
+ if(ball.x>canvas.width){ score1++; goal("PLAYER 1 SCORES!"); }
 }
 
-function movePlayer(player,up,down,left,right){
+function move(p,u,d,l,r){
 
-  player.dx=0;
-  player.dy=0;
+ let speed=p.speed;
 
-  let speed = player.speed;
+ if(p.dash>0){ speed=9; p.dash--; }
+ if(p.cool>0) p.cool--;
 
-  if(player.dashTime>0){
-    speed=9;
-    player.dashTime--;
-  }
+ if(keys[u]) p.y-=speed;
+ if(keys[d]) p.y+=speed;
+ if(keys[l]) p.x-=speed;
+ if(keys[r]) p.x+=speed;
 
-  if(player.cooldown>0) player.cooldown--;
+ p.x=Math.max(p.r,Math.min(canvas.width-p.r,p.x));
+ p.y=Math.max(p.r,Math.min(canvas.height-p.r,p.y));
 
-  if(keys[up]){player.y-=speed;player.dy=-1;}
-  if(keys[down]){player.y+=speed;player.dy=1;}
-  if(keys[left]){player.x-=speed;player.dx=-1;}
-  if(keys[right]){player.x+=speed;player.dx=1;}
-
-  if(player.x<player.r) player.x=player.r;
-  if(player.x>canvas.width-player.r) player.x=canvas.width-player.r;
-  if(player.y<player.r) player.y=player.r;
-  if(player.y>canvas.height-player.r) player.y=canvas.height-player.r;
-
-  if(player.hasBall){
-    ball.x=player.x;
-    ball.y=player.y;
-  }
+ if(p.hasBall){
+  ball.x=p.x;
+  ball.y=p.y;
+ }
 }
 
-function handleBallPickup(player){
-  let dx=ball.x-player.x;
-  let dy=ball.y-player.y;
-  let dist=Math.sqrt(dx*dx+dy*dy);
+function pickup(p){
+ if(!ball.free) return;
 
-  if(dist<player.r+ball.r){
-    player.hasBall=true;
-    if(player===p1) p2.hasBall=false;
-    if(player===p2) p1.hasBall=false;
-  }
+ let dx=ball.x-p.x;
+ let dy=ball.y-p.y;
+ let dist=Math.sqrt(dx*dx+dy*dy);
+
+ if(dist<p.r+ball.r){
+  p.hasBall=true;
+  ball.free=false;
+  if(p===p1) p2.hasBall=false;
+  else p1.hasBall=false;
+ }
 }
 
-function shoot(player,defaultDir){
+function shoot(p,dir){
+ if(!p.hasBall) return;
 
-  if(!player.hasBall) return;
+ let power = Math.min(15,5+p.charge/5);
 
-  player.hasBall=false;
+ p.hasBall=false;
+ ball.free=true;
+ ball.vx=dir*power;
+ ball.vy=0;
 
-  let dirX=player.dx;
-  let dirY=player.dy;
+ p.charge=0;
+}
 
-  if(dirX===0 && dirY===0){
-    dirX=defaultDir;
-    dirY=0;
+function checkSteal(){
+ let dx=p1.x-p2.x;
+ let dy=p1.y-p2.y;
+ let dist=Math.sqrt(dx*dx+dy*dy);
+
+ if(dist<p1.r+p2.r){
+  if(p1.dash>0 && p2.hasBall){
+   p2.hasBall=false;
+   p1.hasBall=true;
   }
+  if(p2.dash>0 && p1.hasBall){
+   p1.hasBall=false;
+   p2.hasBall=true;
+  }
+ }
+}
 
-  let length=Math.sqrt(dirX*dirX+dirY*dirY);
-  dirX/=length;
-  dirY/=length;
-
-  ball.vx=dirX*12;
-  ball.vy=dirY*12;
+function goal(text){
+ document.getElementById("p1").innerText=score1;
+ document.getElementById("p2").innerText=score2;
+ goalTimer=120;
+ reset();
 }
 
 window.addEventListener("keydown",e=>{
-  keys[e.key]=true;
+ keys[e.key]=true;
 
-  // Shoot
-  if(e.key==="f") shoot(p1,1);
-  if(e.key==="/") shoot(p2,-1);
-
-  // Dash
-  if(e.key==="g" && p1.cooldown===0){
-    p1.dashTime=12;
-    p1.cooldown=60;
-  }
-
-  if(e.key==="." && p2.cooldown===0){
-    p2.dashTime=12;
-    p2.cooldown=60;
-  }
+ if(e.key==="g" && p1.cool===0){ p1.dash=15;p1.cool=60; }
+ if(e.key==="." && p2.cool===0){ p2.dash=15;p2.cool=60; }
 });
 
 window.addEventListener("keyup",e=>{
-  keys[e.key]=false;
+ keys[e.key]=false;
+
+ if(e.key==="f") shoot(p1,1);
+ if(e.key==="/") shoot(p2,-1);
 });
 
 function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.strokeStyle="white";
-  ctx.lineWidth=4;
+ ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.beginPath();
-  ctx.moveTo(canvas.width/2,0);
-  ctx.lineTo(canvas.width/2,canvas.height);
-  ctx.stroke();
+ ctx.strokeStyle="white";
+ ctx.lineWidth=4;
 
-  ctx.beginPath();
-  ctx.arc(canvas.width/2,canvas.height/2,70,0,Math.PI*2);
-  ctx.stroke();
+ ctx.beginPath();
+ ctx.moveTo(canvas.width/2,0);
+ ctx.lineTo(canvas.width/2,canvas.height);
+ ctx.stroke();
 
-  ctx.strokeRect(0,canvas.height/2-60,10,120);
-  ctx.strokeRect(canvas.width-10,canvas.height/2-60,10,120);
+ ctx.beginPath();
+ ctx.arc(canvas.width/2,canvas.height/2,70,0,Math.PI*2);
+ ctx.stroke();
 
-  ctx.fillStyle="blue";
-  ctx.beginPath();
-  ctx.arc(p1.x,p1.y,p1.r,0,Math.PI*2);
-  ctx.fill();
+ ctx.strokeRect(0,canvas.height/2-60,10,120);
+ ctx.strokeRect(canvas.width-10,canvas.height/2-60,10,120);
 
-  ctx.fillStyle="red";
-  ctx.beginPath();
-  ctx.arc(p2.x,p2.y,p2.r,0,Math.PI*2);
-  ctx.fill();
+ ctx.fillStyle="blue";
+ ctx.beginPath();
+ ctx.arc(p1.x,p1.y,p1.r,0,Math.PI*2);
+ ctx.fill();
 
+ ctx.fillStyle="red";
+ ctx.beginPath();
+ ctx.arc(p2.x,p2.y,p2.r,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.fillStyle="white";
+ ctx.beginPath();
+ ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
+ ctx.fill();
+
+ // Goal animation text
+ if(goalTimer>0){
   ctx.fillStyle="white";
-  ctx.beginPath();
-  ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
-  ctx.fill();
+  ctx.font="40px Comic Sans MS";
+  ctx.fillText("GOAL!!!",canvas.width/2-100,100);
+ }
 }
+
+// Power charge system
+setInterval(()=>{
+ if(keys["f"] && p1.hasBall) p1.charge++;
+ if(keys["/"] && p2.hasBall) p2.charge++;
+},16);
+
 </script>
 
 </body>
