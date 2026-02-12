@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soccer Pong</title>
+<title>Soccer Battle</title>
 
 <style>
 body {
@@ -33,7 +32,7 @@ footer {
   padding: 30px;
   border-radius: 20px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  max-width: 750px;
+  max-width: 900px;
 }
 
 canvas {
@@ -43,44 +42,32 @@ canvas {
   margin: 20px auto;
 }
 
-.score-board {
+.score {
   font-size: 22px;
   font-weight: bold;
-}
-
-button {
-  margin-top: 15px;
-  padding: 10px 20px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-button:hover {
-  background: #43a047;
 }
 </style>
 </head>
 
 <body>
 
-<header>⚽ Soccer Pong (2 Player)</header>
+<header>⚽ Soccer Battle</header>
 
 <div class="game-container">
 
-  <div class="score-board">
-    Player 1: <span id="p1Score">0</span> |
-    Player 2: <span id="p2Score">0</span>
-  </div>
+<div class="score">
+Player 1: <span id="p1">0</span> |
+Player 2: <span id="p2">0</span>
+</div>
 
-  <canvas id="game" width="700" height="400"></canvas>
+<canvas id="game" width="800" height="450"></canvas>
 
-  <button onclick="startGame()">Start Game</button>
+<p>
+P1: WASD | Shoot: F | Dash: G <br>
+P2: Arrows | Shoot: / | Dash: .
+</p>
 
-  <p>Player 1: W / S &nbsp;&nbsp; | &nbsp;&nbsp; Player 2: ↑ / ↓</p>
+<button onclick="startGame()">Start Game</button>
 
 </div>
 
@@ -90,154 +77,174 @@ button:hover {
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let paddleHeight = 100;
-let paddleWidth = 12;
-
-let p1Y = 150;
-let p2Y = 150;
-
-let ballX = canvas.width / 2;
-let ballY = canvas.height / 2;
-let ballSpeedX = 5;
-let ballSpeedY = 4;
-
-let p1Score = 0;
-let p2Score = 0;
-
 let keys = {};
+
+let p1 = {x:200, y:225, r:20, speed:4, hasBall:false, dash:0};
+let p2 = {x:600, y:225, r:20, speed:4, hasBall:false, dash:0};
+
+let ball = {x:400, y:225, r:10, vx:0, vy:0};
+
+let score1 = 0;
+let score2 = 0;
+
 let gameInterval;
 
-function startGame() {
+function startGame(){
+  score1 = 0;
+  score2 = 0;
+  document.getElementById("p1").innerText = 0;
+  document.getElementById("p2").innerText = 0;
+  resetPositions();
   clearInterval(gameInterval);
-  p1Score = 0;
-  p2Score = 0;
-  document.getElementById("p1Score").innerText = 0;
-  document.getElementById("p2Score").innerText = 0;
-  resetBall();
   gameInterval = setInterval(gameLoop, 1000/60);
 }
 
-function resetBall() {
-  ballX = canvas.width / 2;
-  ballY = canvas.height / 2;
-  ballSpeedX = (Math.random() > 0.5 ? 5 : -5);
-  ballSpeedY = 4 * (Math.random() > 0.5 ? 1 : -1);
+function resetPositions(){
+  p1.x = 200; p1.y = 225; p1.hasBall = false;
+  p2.x = 600; p2.y = 225; p2.hasBall = false;
+  ball.x = 400; ball.y = 225;
+  ball.vx = 0; ball.vy = 0;
 }
 
-function gameLoop() {
+function gameLoop(){
   update();
   draw();
 }
 
-function update() {
+function update(){
 
-  // Player 1 (W / S)
-  if (keys["w"]) p1Y -= 6;
-  if (keys["s"]) p1Y += 6;
+  movePlayer(p1, "w","s","a","d");
+  movePlayer(p2, "ArrowUp","ArrowDown","ArrowLeft","ArrowRight");
 
-  // Player 2 (Arrow keys)
-  if (keys["ArrowUp"]) p2Y -= 6;
-  if (keys["ArrowDown"]) p2Y += 6;
+  handleBall(p1);
+  handleBall(p2);
 
-  // Keep paddles inside field
-  if (p1Y < 0) p1Y = 0;
-  if (p1Y + paddleHeight > canvas.height)
-    p1Y = canvas.height - paddleHeight;
-
-  if (p2Y < 0) p2Y = 0;
-  if (p2Y + paddleHeight > canvas.height)
-    p2Y = canvas.height - paddleHeight;
-
-  // Move ball
-  ballX += ballSpeedX;
-  ballY += ballSpeedY;
-
-  // Top & bottom wall
-  if (ballY <= 0 || ballY >= canvas.height)
-    ballSpeedY = -ballSpeedY;
-
-  // Paddle collision
-  if (
-    ballX <= 30 &&
-    ballY > p1Y &&
-    ballY < p1Y + paddleHeight
-  ) {
-    ballSpeedX = -ballSpeedX;
+  // Ball movement
+  if(!p1.hasBall && !p2.hasBall){
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+    ball.vx *= 0.98;
+    ball.vy *= 0.98;
   }
 
-  if (
-    ballX >= canvas.width - 30 &&
-    ballY > p2Y &&
-    ballY < p2Y + paddleHeight
-  ) {
-    ballSpeedX = -ballSpeedX;
+  // Goals
+  if(ball.x < 0){
+    score2++;
+    document.getElementById("p2").innerText = score2;
+    resetPositions();
   }
 
-  // Score
-  if (ballX < 0) {
-    p2Score++;
-    document.getElementById("p2Score").innerText = p2Score;
-    checkWinner();
-    resetBall();
-  }
-
-  if (ballX > canvas.width) {
-    p1Score++;
-    document.getElementById("p1Score").innerText = p1Score;
-    checkWinner();
-    resetBall();
+  if(ball.x > canvas.width){
+    score1++;
+    document.getElementById("p1").innerText = score1;
+    resetPositions();
   }
 }
 
-function checkWinner() {
-  if (p1Score === 5) {
-    alert("Player 1 Wins! ⚽");
-    startGame();
+function movePlayer(player, up, down, left, right){
+
+  let currentSpeed = player.speed;
+
+  if(player.dash > 0){
+    currentSpeed = 8;
+    player.dash--;
   }
-  if (p2Score === 5) {
-    alert("Player 2 Wins! ⚽");
-    startGame();
+
+  if(keys[up]) player.y -= currentSpeed;
+  if(keys[down]) player.y += currentSpeed;
+  if(keys[left]) player.x -= currentSpeed;
+  if(keys[right]) player.x += currentSpeed;
+
+  // Stay inside field
+  if(player.x < player.r) player.x = player.r;
+  if(player.x > canvas.width - player.r) player.x = canvas.width - player.r;
+  if(player.y < player.r) player.y = player.r;
+  if(player.y > canvas.height - player.r) player.y = canvas.height - player.r;
+
+  // If holding ball, move ball with player
+  if(player.hasBall){
+    ball.x = player.x;
+    ball.y = player.y;
   }
 }
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function handleBall(player){
+
+  let dx = ball.x - player.x;
+  let dy = ball.y - player.y;
+  let distance = Math.sqrt(dx*dx + dy*dy);
+
+  if(distance < player.r + ball.r){
+    player.hasBall = true;
+    if(player === p1) p2.hasBall = false;
+    if(player === p2) p1.hasBall = false;
+  }
+}
+
+function shoot(player, directionX, directionY){
+  if(player.hasBall){
+    player.hasBall = false;
+    ball.vx = directionX * 10;
+    ball.vy = directionY * 10;
+  }
+}
+
+window.addEventListener("keydown", e=>{
+  keys[e.key] = true;
+
+  // P1 Shoot
+  if(e.key === "f") shoot(p1, 1, 0);
+
+  // P2 Shoot
+  if(e.key === "/") shoot(p2, -1, 0);
+
+  // Dash
+  if(e.key === "g") p1.dash = 10;
+  if(e.key === ".") p2.dash = 10;
+});
+
+window.addEventListener("keyup", e=>{
+  keys[e.key] = false;
+});
+
+function draw(){
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
   // Field lines
   ctx.strokeStyle = "white";
   ctx.lineWidth = 4;
 
-  // Center line
   ctx.beginPath();
-  ctx.moveTo(canvas.width/2, 0);
-  ctx.lineTo(canvas.width/2, canvas.height);
+  ctx.moveTo(canvas.width/2,0);
+  ctx.lineTo(canvas.width/2,canvas.height);
   ctx.stroke();
 
-  // Center circle
   ctx.beginPath();
-  ctx.arc(canvas.width/2, canvas.height/2, 60, 0, Math.PI * 2);
+  ctx.arc(canvas.width/2,canvas.height/2,70,0,Math.PI*2);
   ctx.stroke();
 
   // Goals
-  ctx.strokeRect(0, canvas.height/2 - 60, 10, 120);
-  ctx.strokeRect(canvas.width - 10, canvas.height/2 - 60, 10, 120);
+  ctx.strokeRect(0,canvas.height/2-60,10,120);
+  ctx.strokeRect(canvas.width-10,canvas.height/2-60,10,120);
 
-  // Paddles
-  ctx.fillStyle = "white";
-  ctx.fillRect(20, p1Y, paddleWidth, paddleHeight);
-  ctx.fillRect(canvas.width - 32, p2Y, paddleWidth, paddleHeight);
-
-  // Ball (soccer style)
+  // Players
+  ctx.fillStyle = "blue";
   ctx.beginPath();
+  ctx.arc(p1.x,p1.y,p1.r,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc(p2.x,p2.y,p2.r,0,Math.PI*2);
+  ctx.fill();
+
+  // Ball
   ctx.fillStyle = "white";
-  ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
+  ctx.beginPath();
+  ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
   ctx.fill();
 }
-
-// Key controls
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
-
 </script>
 
 </body>
