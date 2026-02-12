@@ -3,43 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soccer Pong 2P Fixed</title>
+<title>Soccer Pong 2P / Tournament</title>
 <style>
-body { margin:0; background:#4CAF50; font-family:Comic Sans MS, cursive; display:flex; justify-content:center; align-items:center; height:100vh; }
-canvas { background:#3e8e41; border:4px solid #fff; border-radius:10px; }
+body { margin:0; font-family:Comic Sans MS,cursive,sans-serif; background:#4CAF50; display:flex; flex-direction:column; align-items:center; }
+canvas { background:#3e8e41; border:4px solid #fff; border-radius:10px; display:block; margin-top:20px; }
+#menu { text-align:center; margin-top:50px; color:white; }
+button { margin:5px; padding:10px 20px; font-size:18px; border:none; border-radius:10px; cursor:pointer; background:#FFEB3B; }
+button:hover { background:#fdd835; }
 </style>
 </head>
 <body>
 
-<canvas id="gameCanvas" width="800" height="500"></canvas>
+<div id="menu">
+  <h1>⚽ Soccer Pong</h1>
+  <button onclick="startFriendly()">Friendly Match (2P)</button><br>
+  <button onclick="showTournamentMenu()">Tournament Mode</button>
+</div>
+
+<div id="tournamentMenu" style="display:none; text-align:center; color:white;">
+  <h2>Tournament Difficulty</h2>
+  <button onclick="startTournament('easy')">Easy</button>
+  <button onclick="startTournament('medium')">Medium</button>
+  <button onclick="startTournament('hard')">Hard</button><br>
+  <button onclick="backToMenu()">Back</button>
+</div>
+
+<canvas id="gameCanvas" width="800" height="500" style="display:none;"></canvas>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-const PLAYER_RADIUS = 20;
-const BALL_RADIUS = 12;
-const MOVE_SPEED = 5;
-const DASH_SPEED = 12;
-const FRICTION = 0.9;
-const GOAL_WIDTH = 100;
-
 let keys = {};
+let gameMode = 'friendly';
+let aiDifficulty = 'easy';
+let dashCooldownTime = 60; // frames
+let dashSpeed = 8; // slower dash
+let chargeMax = 40; // max frames for full power shot
 
-let players = [
-  {x:100,y:canvas.height/2,color:'blue',up:'w',down:'s',left:'a',right:'d',shoot:'f',dash:'g',dx:0,dy:0,score:0,holding:false},
-  {x:700,y:canvas.height/2,color:'red',up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight',shoot:'/',dash:'Shift',dx:0,dy:0,score:0,holding:false}
-];
+let players, ball;
+let goalAnimation = 0;
+let tournamentStandings = [];
 
-let ball = {x:canvas.width/2,y:canvas.height/2,vx:0,vy:0,holder:null};
+window.addEventListener('keydown', e => keys[e.key] = true);
+window.addEventListener('keyup', e => keys[e.key] = false);
 
-window.addEventListener('keydown', e=>{ keys[e.key]=true; });
-window.addEventListener('keyup', e=>{ keys[e.key]=false; });
+function initPlayers(isFriendly){
+  players = [
+    {x:100,y:canvas.height/2,color:'blue',up:'w',down:'s',left:'a',right:'d',shoot:'f',dash:'g',dx:0,dy:0,score:0,holding:false,dashCD:0,charge:0},
+    {x:700,y:canvas.height/2,color:'red',up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight',shoot:'/',dash:'Shift',dx:0,dy:0,score:0,holding:false,dashCD:0,charge:0,ai:!isFriendly}
+  ];
+}
+
+function initBall(){
+  ball = {x:canvas.width/2,y:canvas.height/2,vx:0,vy:0,holder:null};
+}
 
 function resetPositions(){
-  players[0].x=100; players[0].y=canvas.height/2; players[0].holding=false;
-  players[1].x=700; players[1].y=canvas.height/2; players[1].holding=false;
+  players[0].x=100; players[0].y=canvas.height/2; players[0].holding=false; players[0].charge=0; players[0].dashCD=0;
+  players[1].x=700; players[1].y=canvas.height/2; players[1].holding=false; players[1].charge=0; players[1].dashCD=0;
   ball.x=canvas.width/2; ball.y=canvas.height/2; ball.vx=0; ball.vy=0; ball.holder=null;
+}
+
+function startFriendly(){
+  document.getElementById('menu').style.display='none';
+  canvas.style.display='block';
+  gameMode='friendly';
+  initPlayers(true);
+  initBall();
+  resetPositions();
+  gameLoop();
+}
+
+function showTournamentMenu(){
+  document.getElementById('menu').style.display='none';
+  document.getElementById('tournamentMenu').style.display='block';
+}
+
+function backToMenu(){
+  document.getElementById('tournamentMenu').style.display='none';
+  document.getElementById('menu').style.display='block';
+}
+
+function startTournament(difficulty){
+  document.getElementById('tournamentMenu').style.display='none';
+  canvas.style.display='block';
+  gameMode='tournament';
+  aiDifficulty=difficulty;
+  initPlayers(false);
+  initBall();
+  resetPositions();
+  tournamentStandings = [{name:'Player',score:0},{name:'AI',score:0}];
+  gameLoop();
 }
 
 function gameLoop(){
@@ -49,100 +104,151 @@ function gameLoop(){
 }
 
 function update(){
-  // Player movement and dash
   players.forEach((p,i)=>{
-    p.dx=0; p.dy=0;
-    if(keys[p.left]) p.dx=-MOVE_SPEED;
-    if(keys[p.right]) p.dx=MOVE_SPEED;
-    if(keys[p.up]) p.dy=-MOVE_SPEED;
-    if(keys[p.down]) p.dy=MOVE_SPEED;
+    // Dash cooldown
+    if(p.dashCD>0) p.dashCD--;
 
-    let dashing = keys[p.dash];
-    if(dashing){ p.dx*=DASH_SPEED/MOVE_SPEED; p.dy*=DASH_SPEED/MOVE_SPEED; }
+    // AI Control
+    if(p.ai && gameMode==='tournament'){
+      aiMove(p);
+    } else {
+      p.dx=0; p.dy=0;
+      if(keys[p.left]) p.dx=-5;
+      if(keys[p.right]) p.dx=5;
+      if(keys[p.up]) p.dy=-5;
+      if(keys[p.down]) p.dy=5;
+    }
+
+    // Dash
+    let isDashing = keys[p.dash] && p.dashCD===0;
+    if(isDashing){ p.dx*=dashSpeed/5; p.dy*=dashSpeed/5; p.dashCD=dashCooldownTime; }
 
     p.x+=p.dx; p.y+=p.dy;
-    p.x=Math.max(PLAYER_RADIUS,Math.min(canvas.width-PLAYER_RADIUS,p.x));
-    p.y=Math.max(PLAYER_RADIUS,Math.min(canvas.height-PLAYER_RADIUS,p.y));
+    p.x=Math.max(20, Math.min(canvas.width-20, p.x));
+    p.y=Math.max(20, Math.min(canvas.height-20, p.y));
 
-    // Dash collision steal
-    if(dashing){
-      let opponent = players[1-i];
-      let dist = Math.hypot(p.x-opponent.x, p.y-opponent.y);
-      if(dist < PLAYER_RADIUS*2){
-        if(opponent.holding){
-          opponent.holding=false;
-          ball.holder = p;
-          p.holding=true;
-        }
+    // Dash steal
+    if(isDashing){
+      let opp = players[1-i];
+      let dist = Math.hypot(p.x-opp.x,p.y-opp.y);
+      if(dist<40 && opp.holding){
+        opp.holding=false;
+        ball.holder=p;
+        p.holding=true;
       }
     }
 
-    // Shoot
+    // Charge shooting
     if(keys[p.shoot] && p.holding){
-      let dirX=0, dirY=0;
+      if(p.charge<chargeMax) p.charge++;
+    } else if(p.holding && p.charge>0){
+      // Release shot
+      let power = 4 + p.charge/5;
+      let dirX=0,dirY=0;
       if(keys[p.up]) dirY=-1;
       else if(keys[p.down]) dirY=1;
-      else dirY=0;
       if(keys[p.left]) dirX=-1;
       else if(keys[p.right]) dirX=1;
-      else dirX=(i===0)?1:-1; // default forward
-
-      ball.vx=dirX*10;
-      ball.vy=dirY*10;
+      if(dirX===0 && dirY===0) dirX=(i===0)?1:-1;
+      ball.vx=dirX*power;
+      ball.vy=dirY*power;
       ball.holder=null;
       p.holding=false;
+      p.charge=0;
     }
   });
 
-  // Ball follow
+  // Ball follow holder
   if(ball.holder){
-    ball.x=ball.holder.x;
-    ball.y=ball.holder.y;
+    ball.x=ball.holder.x; ball.y=ball.holder.y;
   } else {
-    ball.x+=ball.vx;
-    ball.y+=ball.vy;
-    ball.vx*=FRICTION;
-    ball.vy*=FRICTION;
+    ball.x+=ball.vx; ball.y+=ball.vy;
+    ball.vx*=0.9; ball.vy*=0.9;
 
-    // Pickup ball if touch
+    // Pickup
     players.forEach(p=>{
-      let dist=Math.hypot(ball.x-p.x,ball.y-p.y);
-      if(dist<PLAYER_RADIUS+BALL_RADIUS && !ball.holder){
-        ball.holder=p;
-        p.holding=true;
+      if(!ball.holder && Math.hypot(ball.x-p.x,ball.y-p.y)<32){
+        ball.holder=p; p.holding=true;
       }
     });
   }
 
-  // Goal check
-  if(ball.x<0 && Math.abs(ball.y-canvas.height/2)<GOAL_WIDTH/2){ players[1].score++; resetPositions(); }
-  if(ball.x>canvas.width && Math.abs(ball.y-canvas.height/2)<GOAL_WIDTH/2){ players[0].score++; resetPositions(); }
+  // Goals
+  if(ball.x<0 && Math.abs(ball.y-canvas.height/2)<50){
+    players[1].score++;
+    if(gameMode==='tournament') tournamentStandings[1].score++;
+    goalAnimation=30; resetPositions();
+  }
+  if(ball.x>canvas.width && Math.abs(ball.y-canvas.height/2)<50){
+    players[0].score++;
+    if(gameMode==='tournament') tournamentStandings[0].score++;
+    goalAnimation=30; resetPositions();
+  }
+}
+
+function aiMove(p){
+  let target = ball.holder ? ball.holder : ball;
+  let diffX = target.x - p.x;
+  let diffY = target.y - p.y;
+  let speed = 3;
+  if(aiDifficulty==='medium') speed=4;
+  if(aiDifficulty==='hard') speed=5;
+  p.dx=Math.sign(diffX)*speed;
+  p.dy=Math.sign(diffY)*speed;
 }
 
 function draw(){
   ctx.fillStyle='#3e8e41'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.strokeStyle='#fff'; ctx.lineWidth=3;
+
+  // Field lines
+  ctx.strokeStyle='white'; ctx.lineWidth=3;
   ctx.beginPath(); ctx.moveTo(canvas.width/2,0); ctx.lineTo(canvas.width/2,canvas.height); ctx.stroke();
-  ctx.fillStyle='yellow'; ctx.fillRect(0,canvas.height/2-GOAL_WIDTH/2,10,GOAL_WIDTH);
-  ctx.fillRect(canvas.width-10,canvas.height/2-GOAL_WIDTH/2,10,GOAL_WIDTH);
+  ctx.fillStyle='yellow'; ctx.fillRect(0,canvas.height/2-50,10,100);
+  ctx.fillRect(canvas.width-10,canvas.height/2-50,10,100);
+
+  // Goal celebration
+  if(goalAnimation>0){
+    ctx.fillStyle='rgba(255,255,0,'+goalAnimation/30+')';
+    ctx.font='40px Comic Sans MS';
+    ctx.fillText('GOAL!',canvas.width/2-60,canvas.height/2);
+    goalAnimation--;
+  }
 
   // Players
   players.forEach(p=>{
     ctx.fillStyle=p.color;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,PLAYER_RADIUS,0,Math.PI*2);
+    ctx.beginPath(); ctx.arc(p.x,p.y,20,0,Math.PI*2);
     ctx.fill();
+
+    // Charge indicator
+    if(p.holding && p.charge>0){
+      ctx.strokeStyle='white';
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,20+p.charge/2,0,Math.PI*2);
+      ctx.stroke();
+    }
   });
 
   // Ball
   ctx.fillStyle='white';
-  ctx.beginPath();
-  ctx.arc(ball.x,ball.y,BALL_RADIUS,0,Math.PI*2);
+  ctx.beginPath(); ctx.arc(ball.x,ball.y,12,0,Math.PI*2);
   ctx.fill();
+
+  // Scores
+  ctx.fillStyle='white';
+  ctx.font='20px Comic Sans MS';
+  ctx.fillText(players[0].score,50,30);
+  ctx.fillText(players[1].score,canvas.width-50,30);
+
+  // Tournament standings
+  if(gameMode==='tournament'){
+    ctx.fillText(`Tournament: Player ${tournamentStandings[0].score} - AI ${tournamentStandings[1].score}`,canvas.width/2-100,30);
+  }
 }
 
-resetPositions();
-gameLoop();
+// Start the menu visible
+document.getElementById('menu').style.display='block';
 </script>
 
 </body>
