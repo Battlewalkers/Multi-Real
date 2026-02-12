@@ -79,10 +79,10 @@ const ctx = canvas.getContext("2d");
 
 let keys = {};
 
-let p1 = {x:200, y:225, r:20, speed:4, hasBall:false, dash:0};
-let p2 = {x:600, y:225, r:20, speed:4, hasBall:false, dash:0};
+let p1 = {x:200,y:225,r:20,speed:4,hasBall:false,dashTime:0,cooldown:0,dx:0,dy:0};
+let p2 = {x:600,y:225,r:20,speed:4,hasBall:false,dashTime:0,cooldown:0,dx:0,dy:0};
 
-let ball = {x:400, y:225, r:10, vx:0, vy:0};
+let ball = {x:400,y:225,r:10,vx:0,vy:0};
 
 let score1 = 0;
 let score2 = 0;
@@ -96,14 +96,13 @@ function startGame(){
   document.getElementById("p2").innerText = 0;
   resetPositions();
   clearInterval(gameInterval);
-  gameInterval = setInterval(gameLoop, 1000/60);
+  gameInterval = setInterval(gameLoop,1000/60);
 }
 
 function resetPositions(){
-  p1.x = 200; p1.y = 225; p1.hasBall = false;
-  p2.x = 600; p2.y = 225; p2.hasBall = false;
-  ball.x = 400; ball.y = 225;
-  ball.vx = 0; ball.vy = 0;
+  p1.x=200;p1.y=225;p1.hasBall=false;
+  p2.x=600;p2.y=225;p2.hasBall=false;
+  ball.x=400;ball.y=225;ball.vx=0;ball.vy=0;
 }
 
 function gameLoop(){
@@ -113,107 +112,124 @@ function gameLoop(){
 
 function update(){
 
-  movePlayer(p1, "w","s","a","d");
-  movePlayer(p2, "ArrowUp","ArrowDown","ArrowLeft","ArrowRight");
+  movePlayer(p1,"w","s","a","d");
+  movePlayer(p2,"ArrowUp","ArrowDown","ArrowLeft","ArrowRight");
 
-  handleBall(p1);
-  handleBall(p2);
+  handleBallPickup(p1);
+  handleBallPickup(p2);
 
-  // Ball movement
   if(!p1.hasBall && !p2.hasBall){
-    ball.x += ball.vx;
-    ball.y += ball.vy;
-    ball.vx *= 0.98;
-    ball.vy *= 0.98;
+    ball.x+=ball.vx;
+    ball.y+=ball.vy;
+    ball.vx*=0.98;
+    ball.vy*=0.98;
   }
 
-  // Goals
-  if(ball.x < 0){
+  if(ball.x<0){
     score2++;
-    document.getElementById("p2").innerText = score2;
+    document.getElementById("p2").innerText=score2;
     resetPositions();
   }
 
-  if(ball.x > canvas.width){
+  if(ball.x>canvas.width){
     score1++;
-    document.getElementById("p1").innerText = score1;
+    document.getElementById("p1").innerText=score1;
     resetPositions();
   }
 }
 
-function movePlayer(player, up, down, left, right){
+function movePlayer(player,up,down,left,right){
 
-  let currentSpeed = player.speed;
+  player.dx=0;
+  player.dy=0;
 
-  if(player.dash > 0){
-    currentSpeed = 8;
-    player.dash--;
+  let speed = player.speed;
+
+  if(player.dashTime>0){
+    speed=9;
+    player.dashTime--;
   }
 
-  if(keys[up]) player.y -= currentSpeed;
-  if(keys[down]) player.y += currentSpeed;
-  if(keys[left]) player.x -= currentSpeed;
-  if(keys[right]) player.x += currentSpeed;
+  if(player.cooldown>0) player.cooldown--;
 
-  // Stay inside field
-  if(player.x < player.r) player.x = player.r;
-  if(player.x > canvas.width - player.r) player.x = canvas.width - player.r;
-  if(player.y < player.r) player.y = player.r;
-  if(player.y > canvas.height - player.r) player.y = canvas.height - player.r;
+  if(keys[up]){player.y-=speed;player.dy=-1;}
+  if(keys[down]){player.y+=speed;player.dy=1;}
+  if(keys[left]){player.x-=speed;player.dx=-1;}
+  if(keys[right]){player.x+=speed;player.dx=1;}
 
-  // If holding ball, move ball with player
+  if(player.x<player.r) player.x=player.r;
+  if(player.x>canvas.width-player.r) player.x=canvas.width-player.r;
+  if(player.y<player.r) player.y=player.r;
+  if(player.y>canvas.height-player.r) player.y=canvas.height-player.r;
+
   if(player.hasBall){
-    ball.x = player.x;
-    ball.y = player.y;
+    ball.x=player.x;
+    ball.y=player.y;
   }
 }
 
-function handleBall(player){
+function handleBallPickup(player){
+  let dx=ball.x-player.x;
+  let dy=ball.y-player.y;
+  let dist=Math.sqrt(dx*dx+dy*dy);
 
-  let dx = ball.x - player.x;
-  let dy = ball.y - player.y;
-  let distance = Math.sqrt(dx*dx + dy*dy);
-
-  if(distance < player.r + ball.r){
-    player.hasBall = true;
-    if(player === p1) p2.hasBall = false;
-    if(player === p2) p1.hasBall = false;
+  if(dist<player.r+ball.r){
+    player.hasBall=true;
+    if(player===p1) p2.hasBall=false;
+    if(player===p2) p1.hasBall=false;
   }
 }
 
-function shoot(player, directionX, directionY){
-  if(player.hasBall){
-    player.hasBall = false;
-    ball.vx = directionX * 10;
-    ball.vy = directionY * 10;
+function shoot(player,defaultDir){
+
+  if(!player.hasBall) return;
+
+  player.hasBall=false;
+
+  let dirX=player.dx;
+  let dirY=player.dy;
+
+  if(dirX===0 && dirY===0){
+    dirX=defaultDir;
+    dirY=0;
   }
+
+  let length=Math.sqrt(dirX*dirX+dirY*dirY);
+  dirX/=length;
+  dirY/=length;
+
+  ball.vx=dirX*12;
+  ball.vy=dirY*12;
 }
 
-window.addEventListener("keydown", e=>{
-  keys[e.key] = true;
+window.addEventListener("keydown",e=>{
+  keys[e.key]=true;
 
-  // P1 Shoot
-  if(e.key === "f") shoot(p1, 1, 0);
-
-  // P2 Shoot
-  if(e.key === "/") shoot(p2, -1, 0);
+  // Shoot
+  if(e.key==="f") shoot(p1,1);
+  if(e.key==="/") shoot(p2,-1);
 
   // Dash
-  if(e.key === "g") p1.dash = 10;
-  if(e.key === ".") p2.dash = 10;
+  if(e.key==="g" && p1.cooldown===0){
+    p1.dashTime=12;
+    p1.cooldown=60;
+  }
+
+  if(e.key==="." && p2.cooldown===0){
+    p2.dashTime=12;
+    p2.cooldown=60;
+  }
 });
 
-window.addEventListener("keyup", e=>{
-  keys[e.key] = false;
+window.addEventListener("keyup",e=>{
+  keys[e.key]=false;
 });
 
 function draw(){
-
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // Field lines
-  ctx.strokeStyle = "white";
-  ctx.lineWidth = 4;
+  ctx.strokeStyle="white";
+  ctx.lineWidth=4;
 
   ctx.beginPath();
   ctx.moveTo(canvas.width/2,0);
@@ -224,23 +240,20 @@ function draw(){
   ctx.arc(canvas.width/2,canvas.height/2,70,0,Math.PI*2);
   ctx.stroke();
 
-  // Goals
   ctx.strokeRect(0,canvas.height/2-60,10,120);
   ctx.strokeRect(canvas.width-10,canvas.height/2-60,10,120);
 
-  // Players
-  ctx.fillStyle = "blue";
+  ctx.fillStyle="blue";
   ctx.beginPath();
   ctx.arc(p1.x,p1.y,p1.r,0,Math.PI*2);
   ctx.fill();
 
-  ctx.fillStyle = "red";
+  ctx.fillStyle="red";
   ctx.beginPath();
   ctx.arc(p2.x,p2.y,p2.r,0,Math.PI*2);
   ctx.fill();
 
-  // Ball
-  ctx.fillStyle = "white";
+  ctx.fillStyle="white";
   ctx.beginPath();
   ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
   ctx.fill();
