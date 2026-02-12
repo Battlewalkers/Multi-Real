@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pong</title>
+<title>Soccer Pong</title>
 
 <style>
 body {
@@ -33,14 +33,19 @@ footer {
   padding: 30px;
   border-radius: 20px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  max-width: 700px;
+  max-width: 750px;
 }
 
 canvas {
-  background: white;
+  background: #2E7D32;
   border-radius: 12px;
   display: block;
   margin: 20px auto;
+}
+
+.score-board {
+  font-size: 22px;
+  font-weight: bold;
 }
 
 button {
@@ -57,28 +62,25 @@ button {
 button:hover {
   background: #43a047;
 }
-
-.score-board {
-  font-size: 20px;
-  font-weight: bold;
-}
 </style>
 </head>
 
 <body>
 
-<header>🏓 Pong</header>
+<header>⚽ Soccer Pong (2 Player)</header>
 
 <div class="game-container">
 
   <div class="score-board">
-    You: <span id="playerScore">0</span> |
-    Computer: <span id="computerScore">0</span>
+    Player 1: <span id="p1Score">0</span> |
+    Player 2: <span id="p2Score">0</span>
   </div>
 
-  <canvas id="game" width="600" height="400"></canvas>
+  <canvas id="game" width="700" height="400"></canvas>
 
   <button onclick="startGame()">Start Game</button>
+
+  <p>Player 1: W / S &nbsp;&nbsp; | &nbsp;&nbsp; Player 2: ↑ / ↓</p>
 
 </div>
 
@@ -88,20 +90,29 @@ button:hover {
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let playerY = 150;
-let computerY = 150;
-let ballX = 300;
-let ballY = 200;
-let ballSpeedX = 4;
+let paddleHeight = 100;
+let paddleWidth = 12;
+
+let p1Y = 150;
+let p2Y = 150;
+
+let ballX = canvas.width / 2;
+let ballY = canvas.height / 2;
+let ballSpeedX = 5;
 let ballSpeedY = 4;
 
-let playerScore = 0;
-let computerScore = 0;
+let p1Score = 0;
+let p2Score = 0;
 
+let keys = {};
 let gameInterval;
 
 function startGame() {
   clearInterval(gameInterval);
+  p1Score = 0;
+  p2Score = 0;
+  document.getElementById("p1Score").innerText = 0;
+  document.getElementById("p2Score").innerText = 0;
   resetBall();
   gameInterval = setInterval(gameLoop, 1000/60);
 }
@@ -109,7 +120,7 @@ function startGame() {
 function resetBall() {
   ballX = canvas.width / 2;
   ballY = canvas.height / 2;
-  ballSpeedX = -ballSpeedX;
+  ballSpeedX = (Math.random() > 0.5 ? 5 : -5);
   ballSpeedY = 4 * (Math.random() > 0.5 ? 1 : -1);
 }
 
@@ -119,72 +130,114 @@ function gameLoop() {
 }
 
 function update() {
+
+  // Player 1 (W / S)
+  if (keys["w"]) p1Y -= 6;
+  if (keys["s"]) p1Y += 6;
+
+  // Player 2 (Arrow keys)
+  if (keys["ArrowUp"]) p2Y -= 6;
+  if (keys["ArrowDown"]) p2Y += 6;
+
+  // Keep paddles inside field
+  if (p1Y < 0) p1Y = 0;
+  if (p1Y + paddleHeight > canvas.height)
+    p1Y = canvas.height - paddleHeight;
+
+  if (p2Y < 0) p2Y = 0;
+  if (p2Y + paddleHeight > canvas.height)
+    p2Y = canvas.height - paddleHeight;
+
+  // Move ball
   ballX += ballSpeedX;
   ballY += ballSpeedY;
 
   // Top & bottom wall
-  if (ballY <= 0 || ballY >= canvas.height) {
+  if (ballY <= 0 || ballY >= canvas.height)
     ballSpeedY = -ballSpeedY;
-  }
 
-  // Player paddle collision
+  // Paddle collision
   if (
-    ballX <= 20 &&
-    ballY > playerY &&
-    ballY < playerY + 100
+    ballX <= 30 &&
+    ballY > p1Y &&
+    ballY < p1Y + paddleHeight
   ) {
     ballSpeedX = -ballSpeedX;
   }
 
-  // Computer paddle collision
   if (
-    ballX >= canvas.width - 20 &&
-    ballY > computerY &&
-    ballY < computerY + 100
+    ballX >= canvas.width - 30 &&
+    ballY > p2Y &&
+    ballY < p2Y + paddleHeight
   ) {
     ballSpeedX = -ballSpeedX;
   }
 
   // Score
   if (ballX < 0) {
-    computerScore++;
-    document.getElementById("computerScore").innerText = computerScore;
+    p2Score++;
+    document.getElementById("p2Score").innerText = p2Score;
+    checkWinner();
     resetBall();
   }
 
   if (ballX > canvas.width) {
-    playerScore++;
-    document.getElementById("playerScore").innerText = playerScore;
+    p1Score++;
+    document.getElementById("p1Score").innerText = p1Score;
+    checkWinner();
     resetBall();
   }
+}
 
-  // Simple AI
-  computerY += (ballY - (computerY + 50)) * 0.1;
+function checkWinner() {
+  if (p1Score === 5) {
+    alert("Player 1 Wins! ⚽");
+    startGame();
+  }
+  if (p2Score === 5) {
+    alert("Player 2 Wins! ⚽");
+    startGame();
+  }
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Player paddle
-  ctx.fillStyle = "#4CAF50";
-  ctx.fillRect(10, playerY, 10, 100);
+  // Field lines
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 4;
 
-  // Computer paddle
-  ctx.fillStyle = "#f44336";
-  ctx.fillRect(canvas.width - 20, computerY, 10, 100);
-
-  // Ball
-  ctx.fillStyle = "#000";
+  // Center line
   ctx.beginPath();
-  ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
+  ctx.moveTo(canvas.width/2, 0);
+  ctx.lineTo(canvas.width/2, canvas.height);
+  ctx.stroke();
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(canvas.width/2, canvas.height/2, 60, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Goals
+  ctx.strokeRect(0, canvas.height/2 - 60, 10, 120);
+  ctx.strokeRect(canvas.width - 10, canvas.height/2 - 60, 10, 120);
+
+  // Paddles
+  ctx.fillStyle = "white";
+  ctx.fillRect(20, p1Y, paddleWidth, paddleHeight);
+  ctx.fillRect(canvas.width - 32, p2Y, paddleWidth, paddleHeight);
+
+  // Ball (soccer style)
+  ctx.beginPath();
+  ctx.fillStyle = "white";
+  ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
   ctx.fill();
 }
 
-// Mouse control
-canvas.addEventListener("mousemove", function(e) {
-  const rect = canvas.getBoundingClientRect();
-  playerY = e.clientY - rect.top - 50;
-});
+// Key controls
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
+
 </script>
 
 </body>
