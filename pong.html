@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Multi - Competitive Soccer</title>
+<title>Multi Competitive Soccer</title>
 <style>
 body{
   margin:0;
@@ -16,7 +16,7 @@ canvas{ display:block; }
   position:absolute;
   width:100%;
   text-align:center;
-  top:18%;
+  top:20%;
 }
 button{
   padding:12px 25px;
@@ -45,6 +45,12 @@ button:hover{ background:#fdd835; }
 <button onclick="pickTeam('orange')">Orange</button>
 </div>
 
+<div id="pauseMenu" class="menu" style="display:none;">
+<h2>Paused</h2>
+<button onclick="resumeGame()">Resume</button>
+<button onclick="backToMenu()">Back to Menu</button>
+</div>
+
 <canvas id="game"></canvas>
 
 <script>
@@ -54,15 +60,19 @@ canvas.width=window.innerWidth;
 canvas.height=window.innerHeight;
 
 let keys={};
-window.addEventListener("keydown",e=>keys[e.key]=true);
+window.addEventListener("keydown",e=>{
+keys[e.key]=true;
+if(e.key==="Escape") togglePause();
+});
 window.addEventListener("keyup",e=>keys[e.key]=false);
 
 let players=[],ball;
 let selectingPlayer=1;
-let p1Team=null;
-let p2Team=null;
-let matchTime=180; // 3 minutes
+let p1Team=null,p2Team=null;
+let matchTime=180;
+let overtime=false;
 let gameRunning=false;
+let paused=false;
 
 /* ---------------- TEAM SELECT ---------------- */
 
@@ -72,15 +82,12 @@ document.getElementById("teamMenu").style.display="block";
 }
 
 function pickTeam(team){
-
 if(selectingPlayer===1){
 p1Team=team;
 selectingPlayer=2;
 document.getElementById("teamTitle").innerText="Player 2 - Pick Team";
 return;
 }
-
-if(selectingPlayer===2){
 if(team===p1Team){
 alert("Team already chosen!");
 return;
@@ -89,13 +96,13 @@ p2Team=team;
 document.getElementById("teamMenu").style.display="none";
 startGame();
 }
-}
 
-/* ---------------- INIT ---------------- */
+/* ---------------- GAME INIT ---------------- */
 
 function startGame(){
 init();
 gameRunning=true;
+paused=false;
 loop();
 }
 
@@ -117,6 +124,7 @@ stamina:100,holding:false,charge:0,score:0,dashCD:0,shootLock:false
 
 ball={x:canvas.width/2,y:canvas.height/2,vx:0,vy:0,holder:null,noPickup:0};
 matchTime=180;
+overtime=false;
 }
 
 /* ---------------- LOOP ---------------- */
@@ -125,6 +133,12 @@ let lastTime=Date.now();
 
 function loop(){
 if(!gameRunning) return;
+
+if(paused){
+draw();
+requestAnimationFrame(loop);
+return;
+}
 
 let now=Date.now();
 let delta=(now-lastTime)/1000;
@@ -140,18 +154,23 @@ requestAnimationFrame(loop);
 function update(delta){
 
 matchTime-=delta;
+
 if(matchTime<=0){
-matchTime=0;
+if(players[0].score===players[1].score && !overtime){
+overtime=true;
+matchTime=60; // 1 min overtime
+alert("OVERTIME!");
+}else{
 endMatch();
+}
 }
 
 if(ball.noPickup>0) ball.noPickup--;
 
 players.forEach((p,i)=>{
 
-if(p.stamina<100) p.stamina+=20*delta;
+if(p.stamina<100) p.stamina+=15*delta;
 if(p.stamina>100) p.stamina=100;
-
 if(p.dashCD>0) p.dashCD--;
 
 let speed=5;
@@ -164,17 +183,10 @@ if(keys[p.down]) p.dy=speed;
 
 /* DASH */
 if(keys[p.dash] && p.stamina>=25 && p.dashCD===0){
-p.dx*=2.5;
-p.dy*=2.5;
+p.dx*=2;
+p.dy*=2;
 p.stamina-=25;
 p.dashCD=120;
-
-let opp=players[1-i];
-if(opp.holding && dist(p,opp)<45){
-opp.holding=false;
-ball.holder=p;
-p.holding=true;
-}
 }
 
 p.x+=p.dx;
@@ -191,8 +203,8 @@ ball.y=ball.holder.y;
 }else{
 ball.x+=ball.vx;
 ball.y+=ball.vy;
-ball.vx*=0.985;
-ball.vy*=0.985;
+ball.vx*=0.99;
+ball.vy*=0.99;
 
 if(ball.noPickup===0){
 players.forEach(p=>{
@@ -204,31 +216,36 @@ p.holding=true;
 }
 }
 
-/* SHOOT (Costs stamina) */
+/* SHOOT (Balanced + stamina scaling) */
 players.forEach((p,i)=>{
 if(keys[p.shoot] && p.holding){
-p.shootLock=true;
-if(p.charge<70) p.charge++;
+if(p.charge<50) p.charge++;
 }
-if(!keys[p.shoot] && p.holding && p.shootLock){
-let cost=p.charge*0.4;
-if(p.stamina>=cost){
-p.stamina-=cost;
+if(!keys[p.shoot] && p.holding && p.charge>0){
+
+let staminaCost=5 + p.charge*0.6;
+
+if(p.stamina>=staminaCost){
+
+p.stamina-=staminaCost;
+
 let dir=(i===0)?1:-1;
-let power=8+(p.charge/4);
+let power=5 + (p.charge*0.2); // MUCH LOWER POWER
+
 ball.vx=dir*power;
 ball.vy=0;
+
 ball.holder=null;
 p.holding=false;
 ball.noPickup=20;
 }
+
 p.charge=0;
-p.shootLock=false;
 }
 });
 
 /* GOALS */
-let goalSize=160;
+let goalSize=150;
 
 if(ball.x<0 && Math.abs(ball.y-canvas.height/2)<goalSize){
 players[1].score++; reset();
@@ -236,16 +253,6 @@ players[1].score++; reset();
 if(ball.x>canvas.width && Math.abs(ball.y-canvas.height/2)<goalSize){
 players[0].score++; reset();
 }
-}
-
-function endMatch(){
-gameRunning=false;
-
-let result="DRAW!";
-if(players[0].score>players[1].score) result="PLAYER 1 WINS!";
-if(players[1].score>players[0].score) result="PLAYER 2 WINS!";
-
-alert("⏱ Match Over!\n"+result);
 }
 
 /* ---------------- DRAW ---------------- */
@@ -268,11 +275,7 @@ ctx.beginPath();
 ctx.arc(canvas.width/2,canvas.height/2,100,0,Math.PI*2);
 ctx.stroke();
 
-ctx.fillStyle="yellow";
-ctx.fillRect(0,canvas.height/2-160,10,320);
-ctx.fillRect(canvas.width-10,canvas.height/2-160,10,320);
-
-/* PLAYERS */
+/* Players */
 players.forEach(p=>{
 ctx.fillStyle=p.color;
 ctx.beginPath();
@@ -280,26 +283,26 @@ ctx.arc(p.x,p.y,28,0,Math.PI*2);
 ctx.fill();
 });
 
-/* BALL */
+/* Ball */
 ctx.fillStyle="white";
 ctx.beginPath();
 ctx.arc(ball.x,ball.y,12,0,Math.PI*2);
 ctx.fill();
 
-/* SCOREBOARD */
+/* Score */
 ctx.fillStyle="black";
 ctx.fillRect(canvas.width/2-170,15,340,60);
 ctx.fillStyle="white";
 ctx.font="32px Comic Sans MS";
 ctx.fillText(players[0].score+" - "+players[1].score,canvas.width/2-60,55);
 
-/* TIMER */
+/* Timer */
 let minutes=Math.floor(matchTime/60);
 let seconds=Math.floor(matchTime%60);
 if(seconds<10) seconds="0"+seconds;
-ctx.fillText(minutes+":"+seconds,canvas.width/2-30,100);
+ctx.fillText(minutes+":"+seconds,canvas.width/2-30,95);
 
-/* STAMINA BARS */
+/* Stamina */
 players.forEach((p,i)=>{
 let x=i===0?30:canvas.width-230;
 ctx.fillStyle="black";
@@ -308,14 +311,38 @@ ctx.fillStyle="lime";
 ctx.fillRect(x,30,(p.stamina/100)*200,20);
 });
 }
-g
+
+/* ---------------- PAUSE ---------------- */
+
+function togglePause(){
+if(!gameRunning) return;
+paused=!paused;
+document.getElementById("pauseMenu").style.display=paused?"block":"none";
+}
+
+function resumeGame(){
+paused=false;
+document.getElementById("pauseMenu").style.display="none";
+}
+
+function backToMenu(){
+location.reload();
+}
+
+/* ---------------- HELPERS ---------------- */
+
 function reset(){
 ball.x=canvas.width/2;
 ball.y=canvas.height/2;
 ball.vx=0;ball.vy=0;
 ball.holder=null;
-ball.noPickup=30;
-players.forEach(p=>{p.holding=false;p.charge=0;p.shootLock=false;});
+ball.noPickup=20;
+players.forEach(p=>{p.holding=false;p.charge=0;});
+}
+
+function endMatch(){
+gameRunning=false;
+alert("Match Over!");
 }
 
 function dist(a,b){
