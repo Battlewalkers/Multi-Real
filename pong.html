@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Multi - Pro Soccer</title>
+<title>Multi - Competitive Soccer</title>
 <style>
 body{
   margin:0;
@@ -16,7 +16,7 @@ canvas{ display:block; }
   position:absolute;
   width:100%;
   text-align:center;
-  top:20%;
+  top:18%;
 }
 button{
   padding:12px 25px;
@@ -33,41 +33,16 @@ button:hover{ background:#fdd835; }
 <body>
 
 <div id="mainMenu" class="menu">
-  <h1>⚽ Multi Pro Soccer</h1>
-  <button onclick="showTeamMenu()">Play</button><br>
-  <button onclick="showHow()">How To Play</button>
-</div>
-
-<div id="howMenu" class="menu" style="display:none;">
-<h2>Controls</h2>
-<p>
-Player 1:<br>
-Arrow Keys = Move<br>
-Right Shift = Dash<br>
-. = Hold for Power Shot
-</p>
-<p>
-Player 2:<br>
-WASD = Move<br>
-F = Dash<br>
-G = Hold for Power Shot
-</p>
-<button onclick="backMain()">Back</button>
+  <h1>⚽ Multi Competitive</h1>
+  <button onclick="startTeamSelect()">Play</button>
 </div>
 
 <div id="teamMenu" class="menu" style="display:none;">
-<h2>Select Your Team</h2>
-<button onclick="selectTeam('blue')">Blue</button>
-<button onclick="selectTeam('red')">Red</button>
-<button onclick="selectTeam('purple')">Purple</button>
-<button onclick="selectTeam('orange')">Orange</button>
-</div>
-
-<div id="modeMenu" class="menu" style="display:none;">
-<h2>Select Mode</h2>
-<button onclick="startGame('2p')">2 Player</button>
-<button onclick="startGame('ai')">VS AI</button>
-<button onclick="startGame('tournament')">Tournament</button>
+<h2 id="teamTitle">Player 1 - Pick Team</h2>
+<button onclick="pickTeam('blue')">Blue</button>
+<button onclick="pickTeam('red')">Red</button>
+<button onclick="pickTeam('purple')">Purple</button>
+<button onclick="pickTeam('orange')">Orange</button>
 </div>
 
 <canvas id="game"></canvas>
@@ -82,80 +57,113 @@ let keys={};
 window.addEventListener("keydown",e=>keys[e.key]=true);
 window.addEventListener("keyup",e=>keys[e.key]=false);
 
-let players=[],ball,mode="2p",bracket=0,playerTeam="blue";
+let players=[],ball;
+let selectingPlayer=1;
+let p1Team=null;
+let p2Team=null;
+let matchTime=180; // 3 minutes
+let gameRunning=false;
 
-/* ---------- MENUS ---------- */
+/* ---------------- TEAM SELECT ---------------- */
 
-function hideMenus(){
-document.querySelectorAll(".menu").forEach(m=>m.style.display="none");
+function startTeamSelect(){
+document.getElementById("mainMenu").style.display="none";
+document.getElementById("teamMenu").style.display="block";
 }
-function showTeamMenu(){ hideMenus(); document.getElementById("teamMenu").style.display="block"; }
-function showHow(){ hideMenus(); document.getElementById("howMenu").style.display="block"; }
-function backMain(){ hideMenus(); document.getElementById("mainMenu").style.display="block"; }
-function selectTeam(t){ playerTeam=t; hideMenus(); document.getElementById("modeMenu").style.display="block"; }
-function startGame(m){ mode=m; hideMenus(); init(); loop(); }
 
-/* ---------- INIT ---------- */
+function pickTeam(team){
+
+if(selectingPlayer===1){
+p1Team=team;
+selectingPlayer=2;
+document.getElementById("teamTitle").innerText="Player 2 - Pick Team";
+return;
+}
+
+if(selectingPlayer===2){
+if(team===p1Team){
+alert("Team already chosen!");
+return;
+}
+p2Team=team;
+document.getElementById("teamMenu").style.display="none";
+startGame();
+}
+}
+
+/* ---------------- INIT ---------------- */
+
+function startGame(){
+init();
+gameRunning=true;
+loop();
+}
 
 function init(){
 players=[
 {
-x:150,y:canvas.height/2,color:playerTeam,
+x:150,y:canvas.height/2,color:p1Team,
 left:"ArrowLeft",right:"ArrowRight",up:"ArrowUp",down:"ArrowDown",
 dash:"Shift",shoot:".",
 stamina:100,holding:false,charge:0,score:0,dashCD:0,shootLock:false
 },
 {
-x:canvas.width-150,y:canvas.height/2,
-color:(mode==="2p")?"white":"black",
+x:canvas.width-150,y:canvas.height/2,color:p2Team,
 left:"a",right:"d",up:"w",down:"s",
 dash:"f",shoot:"g",
-stamina:100,holding:false,charge:0,score:0,dashCD:0,
-ai:(mode!=="2p"),shootLock:false
+stamina:100,holding:false,charge:0,score:0,dashCD:0,shootLock:false
 }
 ];
 
-ball={
-x:canvas.width/2,
-y:canvas.height/2,
-vx:0,vy:0,
-holder:null,
-noPickup:0
-};
+ball={x:canvas.width/2,y:canvas.height/2,vx:0,vy:0,holder:null,noPickup:0};
+matchTime=180;
 }
 
-/* ---------- LOOP ---------- */
+/* ---------------- LOOP ---------------- */
+
+let lastTime=Date.now();
 
 function loop(){
-update();
+if(!gameRunning) return;
+
+let now=Date.now();
+let delta=(now-lastTime)/1000;
+lastTime=now;
+
+update(delta);
 draw();
 requestAnimationFrame(loop);
 }
 
-/* ---------- UPDATE ---------- */
+/* ---------------- UPDATE ---------------- */
 
-function update(){
+function update(delta){
+
+matchTime-=delta;
+if(matchTime<=0){
+matchTime=0;
+endMatch();
+}
 
 if(ball.noPickup>0) ball.noPickup--;
 
 players.forEach((p,i)=>{
 
-if(p.stamina<100) p.stamina+=0.25;
+if(p.stamina<100) p.stamina+=20*delta;
+if(p.stamina>100) p.stamina=100;
+
 if(p.dashCD>0) p.dashCD--;
 
 let speed=5;
 p.dx=0;p.dy=0;
 
-if(p.ai){
-aiMove(p,i);
-}else{
 if(keys[p.left]) p.dx=-speed;
 if(keys[p.right]) p.dx=speed;
 if(keys[p.up]) p.dy=-speed;
 if(keys[p.down]) p.dy=speed;
-}
 
-if(keys[p.dash] && p.stamina>25 && p.dashCD===0){
+/* DASH */
+if(keys[p.dash] && p.stamina>=25 && p.dashCD===0){
 p.dx*=2.5;
 p.dy*=2.5;
 p.stamina-=25;
@@ -176,7 +184,7 @@ p.x=Math.max(25,Math.min(canvas.width-25,p.x));
 p.y=Math.max(25,Math.min(canvas.height-25,p.y));
 });
 
-/* BALL MOVEMENT */
+/* BALL */
 if(ball.holder){
 ball.x=ball.holder.x;
 ball.y=ball.holder.y;
@@ -196,13 +204,16 @@ p.holding=true;
 }
 }
 
-/* POWER SHOT FIXED */
+/* SHOOT (Costs stamina) */
 players.forEach((p,i)=>{
 if(keys[p.shoot] && p.holding){
 p.shootLock=true;
 if(p.charge<70) p.charge++;
 }
 if(!keys[p.shoot] && p.holding && p.shootLock){
+let cost=p.charge*0.4;
+if(p.stamina>=cost){
+p.stamina-=cost;
 let dir=(i===0)?1:-1;
 let power=8+(p.charge/4);
 ball.vx=dir*power;
@@ -210,6 +221,7 @@ ball.vy=0;
 ball.holder=null;
 p.holding=false;
 ball.noPickup=20;
+}
 p.charge=0;
 p.shootLock=false;
 }
@@ -222,42 +234,21 @@ if(ball.x<0 && Math.abs(ball.y-canvas.height/2)<goalSize){
 players[1].score++; reset();
 }
 if(ball.x>canvas.width && Math.abs(ball.y-canvas.height/2)<goalSize){
-players[0].score++;
-if(mode==="tournament"){
-bracket++;
-if(bracket>=3){
-alert("🏆 TOURNAMENT CHAMPION!");
-bracket=0;
-}
-}
-reset();
+players[0].score++; reset();
 }
 }
 
-/* ---------- AI ---------- */
+function endMatch(){
+gameRunning=false;
 
-function aiMove(p,i){
-let target=ball.holder?ball.holder:ball;
-let speed=4;
-p.dx=Math.sign(target.x-p.x)*speed;
-p.dy=Math.sign(target.y-p.y)*speed;
+let result="DRAW!";
+if(players[0].score>players[1].score) result="PLAYER 1 WINS!";
+if(players[1].score>players[0].score) result="PLAYER 2 WINS!";
 
-if(p.stamina>25 && p.dashCD===0 && Math.random()<0.02){
-p.dx*=2.5;
-p.dy*=2.5;
-p.stamina-=25;
-p.dashCD=120;
-
-let opp=players[1-i];
-if(opp.holding && dist(p,opp)<45){
-opp.holding=false;
-ball.holder=p;
-p.holding=true;
-}
-}
+alert("⏱ Match Over!\n"+result);
 }
 
-/* ---------- DRAW ---------- */
+/* ---------------- DRAW ---------------- */
 
 function draw(){
 
@@ -281,6 +272,7 @@ ctx.fillStyle="yellow";
 ctx.fillRect(0,canvas.height/2-160,10,320);
 ctx.fillRect(canvas.width-10,canvas.height/2-160,10,320);
 
+/* PLAYERS */
 players.forEach(p=>{
 ctx.fillStyle=p.color;
 ctx.beginPath();
@@ -288,6 +280,7 @@ ctx.arc(p.x,p.y,28,0,Math.PI*2);
 ctx.fill();
 });
 
+/* BALL */
 ctx.fillStyle="white";
 ctx.beginPath();
 ctx.arc(ball.x,ball.y,12,0,Math.PI*2);
@@ -295,20 +288,27 @@ ctx.fill();
 
 /* SCOREBOARD */
 ctx.fillStyle="black";
-ctx.fillRect(canvas.width/2-150,15,300,60);
+ctx.fillRect(canvas.width/2-170,15,340,60);
 ctx.fillStyle="white";
 ctx.font="32px Comic Sans MS";
 ctx.fillText(players[0].score+" - "+players[1].score,canvas.width/2-60,55);
 
-/* STAMINA */
+/* TIMER */
+let minutes=Math.floor(matchTime/60);
+let seconds=Math.floor(matchTime%60);
+if(seconds<10) seconds="0"+seconds;
+ctx.fillText(minutes+":"+seconds,canvas.width/2-30,100);
+
+/* STAMINA BARS */
 players.forEach((p,i)=>{
+let x=i===0?30:canvas.width-230;
 ctx.fillStyle="black";
-ctx.fillRect(i===0?30:canvas.width-230,30,200,20);
+ctx.fillRect(x,30,200,20);
 ctx.fillStyle="lime";
-ctx.fillRect(i===0?30:canvas.width-230,30,p.stamina*2,20);
+ctx.fillRect(x,30,(p.stamina/100)*200,20);
 });
 }
-
+g
 function reset(){
 ball.x=canvas.width/2;
 ball.y=canvas.height/2;
