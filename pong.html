@@ -2,8 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Multi - Soccer</title>
-
+<title>Multi - Pro Soccer</title>
 <style>
 body{
   margin:0;
@@ -12,18 +11,13 @@ body{
   background:#1b5e20;
   color:white;
 }
-
-canvas{
-  display:block;
-}
-
+canvas{ display:block; }
 .menu{
   position:absolute;
   width:100%;
   text-align:center;
   top:20%;
 }
-
 button{
   padding:12px 25px;
   margin:8px;
@@ -33,274 +27,301 @@ button{
   background:#FFEB3B;
   cursor:pointer;
 }
-
 button:hover{ background:#fdd835; }
 </style>
 </head>
 <body>
 
+<!-- MAIN MENU -->
 <div id="mainMenu" class="menu">
-  <h1>⚽ Multi Soccer</h1>
-  <button onclick="showTeamSelect()">Play</button><br>
+  <h1>⚽ Multi Pro Soccer</h1>
+  <button onclick="showTeamMenu()">Play</button><br>
+  <button onclick="showHow()">How To Play</button>
 </div>
 
+<!-- HOW TO PLAY -->
+<div id="howMenu" class="menu" style="display:none;">
+<h2>Controls</h2>
+<p>
+Player 1:<br>
+Arrow Keys = Move<br>
+Right Shift = Dash<br>
+. = Power Shot
+</p>
+<p>
+Player 2:<br>
+WASD = Move<br>
+F = Dash<br>
+G = Power Shot
+</p>
+<button onclick="backMain()">Back</button>
+</div>
+
+<!-- TEAM SELECT -->
 <div id="teamMenu" class="menu" style="display:none;">
-  <h2>Select Your Team</h2>
-  <button onclick="selectTeam('blue')">Blue Sharks</button>
-  <button onclick="selectTeam('red')">Red Dragons</button>
-  <button onclick="selectTeam('purple')">Purple Ninjas</button>
-  <button onclick="selectTeam('orange')">Orange Tigers</button>
+<h2>Select Your Team</h2>
+<button onclick="selectTeam('blue')">Blue</button>
+<button onclick="selectTeam('red')">Red</button>
+<button onclick="selectTeam('purple')">Purple</button>
+<button onclick="selectTeam('orange')">Orange</button>
 </div>
 
+<!-- MODE SELECT -->
 <div id="modeMenu" class="menu" style="display:none;">
-  <h2>Select Mode</h2>
-  <button onclick="startGame('friendly')">Friendly</button>
-  <button onclick="startGame('tournament')">Tournament</button>
+<h2>Select Mode</h2>
+<button onclick="startGame('2p')">2 Player</button>
+<button onclick="startGame('ai')">VS AI</button>
+<button onclick="startGame('tournament')">Tournament</button>
 </div>
 
 <canvas id="game"></canvas>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let keys = {};
+let keys={};
 window.addEventListener("keydown",e=>keys[e.key]=true);
 window.addEventListener("keyup",e=>keys[e.key]=false);
 
-let player, opponent, ball;
-let gameMode="friendly";
-let bracketStage=0;
-let playerTeam="blue";
+let players=[],ball,mode="2p",bracket=0,playerTeam="blue";
 
-/* ---------------- MENUS ---------------- */
+/* ---------- MENUS ---------- */
 
 function hideMenus(){
-  document.getElementById("mainMenu").style.display="none";
-  document.getElementById("teamMenu").style.display="none";
-  document.getElementById("modeMenu").style.display="none";
+  document.querySelectorAll(".menu").forEach(m=>m.style.display="none");
 }
+function showTeamMenu(){ hideMenus(); document.getElementById("teamMenu").style.display="block"; }
+function showHow(){ hideMenus(); document.getElementById("howMenu").style.display="block"; }
+function backMain(){ hideMenus(); document.getElementById("mainMenu").style.display="block"; }
+function selectTeam(t){ playerTeam=t; hideMenus(); document.getElementById("modeMenu").style.display="block"; }
 
-function showTeamSelect(){
-  hideMenus();
-  document.getElementById("teamMenu").style.display="block";
-}
-
-function selectTeam(team){
-  playerTeam=team;
-  hideMenus();
-  document.getElementById("modeMenu").style.display="block";
-}
-
-function startGame(mode){
-  gameMode=mode;
+function startGame(m){
+  mode=m;
   hideMenus();
   init();
   loop();
 }
 
-/* ---------------- INIT ---------------- */
+/* ---------- INIT ---------- */
 
 function init(){
-  player={
-    x:150,
-    y:canvas.height/2,
-    color:playerTeam,
-    stamina:100,
-    holding:false,
-    charge:0,
-    score:0
-  };
+players=[
+{
+x:150,y:canvas.height/2,color:playerTeam,
+left:"ArrowLeft",right:"ArrowRight",up:"ArrowUp",down:"ArrowDown",
+dash:"Shift",shoot:".",
+stamina:100,holding:false,charge:0,score:0,dashCD:0
+},
+{
+x:canvas.width-150,y:canvas.height/2,color:"white",
+left:"a",right:"d",up:"w",down:"s",
+dash:"f",shoot:"g",
+stamina:100,holding:false,charge:0,score:0,dashCD:0,ai:(mode!=="2p")
+}
+];
 
-  opponent={
-    x:canvas.width-150,
-    y:canvas.height/2,
-    color:"white",
-    stamina:100,
-    holding:false,
-    score:0
-  };
-
-  ball={
-    x:canvas.width/2,
-    y:canvas.height/2,
-    vx:0,
-    vy:0,
-    holder:null
-  };
+ball={x:canvas.width/2,y:canvas.height/2,vx:0,vy:0,holder:null};
 }
 
-/* ---------------- LOOP ---------------- */
+/* ---------- LOOP ---------- */
 
 function loop(){
-  update();
-  draw();
-  requestAnimationFrame(loop);
+update();
+draw();
+requestAnimationFrame(loop);
 }
 
-/* ---------------- UPDATE ---------------- */
+/* ---------- UPDATE ---------- */
 
 function update(){
 
-  let speed=5;
+players.forEach((p,i)=>{
 
-  // movement
-  if(keys["ArrowLeft"]) player.x-=speed;
-  if(keys["ArrowRight"]) player.x+=speed;
-  if(keys["ArrowUp"]) player.y-=speed;
-  if(keys["ArrowDown"]) player.y+=speed;
+if(p.stamina<100) p.stamina+=0.2;
+if(p.dashCD>0) p.dashCD--;
 
-  // DASH (cost stamina)
-  if(keys["Shift"] && player.stamina>20){
-    player.x += (keys["ArrowRight"]?10:0);
-    player.x -= (keys["ArrowLeft"]?10:0);
-    player.y += (keys["ArrowDown"]?10:0);
-    player.y -= (keys["ArrowUp"]?10:0);
-    player.stamina-=1.5;
-  }
+let speed=5;
+p.dx=0;p.dy=0;
 
-  // stamina regen
-  if(player.stamina<100) player.stamina+=0.3;
-
-  // keep inside screen
-  player.x=Math.max(20,Math.min(canvas.width-20,player.x));
-  player.y=Math.max(20,Math.min(canvas.height-20,player.y));
-
-  // AI simple follow
-  opponent.x += (ball.x>opponent.x?3:-3);
-  opponent.y += (ball.y>opponent.y?3:-3);
-
-  // BALL HOLD
-  if(ball.holder){
-    ball.x=ball.holder.x;
-    ball.y=ball.holder.y;
-  }else{
-    ball.x+=ball.vx;
-    ball.y+=ball.vy;
-    ball.vx*=0.98;
-    ball.vy*=0.98;
-
-    if(dist(player,ball)<30){
-      ball.holder=player;
-      player.holding=true;
-    }
-    if(dist(opponent,ball)<30){
-      ball.holder=opponent;
-      opponent.holding=true;
-    }
-  }
-
-  // POWER SHOT (hold .)
-  if(keys["."] && player.holding){
-    if(player.charge<50) player.charge++;
-  }else if(player.charge>0 && player.holding){
-    ball.vx=10+player.charge/2;
-    ball.vy=0;
-    ball.holder=null;
-    player.holding=false;
-    player.charge=0;
-  }
-
-  // GOALS
-  let goalSize=120;
-
-  if(ball.x<0 && Math.abs(ball.y-canvas.height/2)<goalSize){
-    opponent.score++;
-    reset();
-  }
-
-  if(ball.x>canvas.width && Math.abs(ball.y-canvas.height/2)<goalSize){
-    player.score++;
-    if(gameMode==="tournament"){
-      bracketStage++;
-      if(bracketStage>=2){
-        alert("🏆 YOU WIN THE TOURNAMENT!");
-        bracketStage=0;
-      }
-    }
-    reset();
-  }
+if(p.ai){
+aiMove(p,i);
+}else{
+if(keys[p.left]) p.dx=-speed;
+if(keys[p.right]) p.dx=speed;
+if(keys[p.up]) p.dy=-speed;
+if(keys[p.down]) p.dy=speed;
 }
 
-function reset(){
-  ball.x=canvas.width/2;
-  ball.y=canvas.height/2;
-  ball.vx=0;
-  ball.vy=0;
-  ball.holder=null;
-  player.holding=false;
-  opponent.holding=false;
+if(keys[p.dash] && p.stamina>20 && p.dashCD===0){
+p.dx*=2.5;
+p.dy*=2.5;
+p.stamina-=25;
+p.dashCD=120;
+
+// steal
+let opp=players[1-i];
+if(opp.holding && dist(p,opp)<40){
+opp.holding=false;
+ball.holder=p;
+p.holding=true;
+}
 }
 
-/* ---------------- DRAW ---------------- */
+p.x+=p.dx;
+p.y+=p.dy;
+
+p.x=Math.max(20,Math.min(canvas.width-20,p.x));
+p.y=Math.max(20,Math.min(canvas.height-20,p.y));
+});
+
+/* BALL */
+if(ball.holder){
+ball.x=ball.holder.x;
+ball.y=ball.holder.y;
+}else{
+ball.x+=ball.vx;
+ball.y+=ball.vy;
+ball.vx*=0.98;
+ball.vy*=0.98;
+
+players.forEach(p=>{
+if(dist(p,ball)<30){
+ball.holder=p;
+p.holding=true;
+}
+});
+}
+
+/* POWER SHOT */
+players.forEach((p,i)=>{
+if(keys[p.shoot] && p.holding){
+if(p.charge<60) p.charge++;
+}else if(p.charge>0 && p.holding){
+let dir=(i===0)?1:-1;
+ball.vx=dir*(8+p.charge/3);
+ball.vy=0;
+ball.holder=null;
+p.holding=false;
+p.charge=0;
+}
+});
+
+/* GOALS */
+let goalSize=140;
+
+if(ball.x<0 && Math.abs(ball.y-canvas.height/2)<goalSize){
+players[1].score++; reset();
+}
+if(ball.x>canvas.width && Math.abs(ball.y-canvas.height/2)<goalSize){
+players[0].score++;
+if(mode==="tournament"){
+bracket++;
+if(bracket>=2){
+alert("🏆 TOURNAMENT WINNER!");
+bracket=0;
+}
+}
+reset();
+}
+}
+
+/* ---------- AI ---------- */
+
+function aiMove(p,i){
+let target=ball.holder?ball.holder:ball;
+let speed=4;
+
+p.dx=Math.sign(target.x-p.x)*speed;
+p.dy=Math.sign(target.y-p.y)*speed;
+
+// AI dash every few seconds
+if(p.stamina>25 && p.dashCD===0 && Math.random()<0.02){
+p.dx*=2.5;
+p.dy*=2.5;
+p.stamina-=25;
+p.dashCD=120;
+
+// steal
+let opp=players[1-i];
+if(opp.holding && dist(p,opp)<40){
+opp.holding=false;
+ball.holder=p;
+p.holding=true;
+}
+}
+}
+
+/* ---------- DRAW ---------- */
 
 function draw(){
 
-  // Grass stripes
-  for(let i=0;i<canvas.height;i+=40){
-    ctx.fillStyle=(i/40)%2==0?"#2e7d32":"#388e3c";
-    ctx.fillRect(0,i,canvas.width,40);
-  }
-
-  // Middle line
-  ctx.strokeStyle="white";
-  ctx.lineWidth=4;
-  ctx.beginPath();
-  ctx.moveTo(canvas.width/2,0);
-  ctx.lineTo(canvas.width/2,canvas.height);
-  ctx.stroke();
-
-  // Center circle
-  ctx.beginPath();
-  ctx.arc(canvas.width/2,canvas.height/2,80,0,Math.PI*2);
-  ctx.stroke();
-
-  // Goals
-  ctx.fillStyle="yellow";
-  ctx.fillRect(0,canvas.height/2-120,10,240);
-  ctx.fillRect(canvas.width-10,canvas.height/2-120,10,240);
-
-  // Players
-  drawPlayer(player);
-  drawPlayer(opponent);
-
-  // Ball
-  ctx.fillStyle="white";
-  ctx.beginPath();
-  ctx.arc(ball.x,ball.y,12,0,Math.PI*2);
-  ctx.fill();
-
-  // SCOREBOARD (fixed)
-  ctx.fillStyle="black";
-  ctx.fillRect(canvas.width/2-120,10,240,50);
-  ctx.fillStyle="white";
-  ctx.font="30px Comic Sans MS";
-  ctx.fillText(player.score+"  -  "+opponent.score,canvas.width/2-60,45);
-
-  // STAMINA BAR
-  ctx.fillStyle="black";
-  ctx.fillRect(20,20,200,20);
-  ctx.fillStyle="lime";
-  ctx.fillRect(20,20,player.stamina*2,20);
-
-  // TOURNAMENT INFO
-  if(gameMode==="tournament"){
-    ctx.fillText("Round: "+(bracketStage+1)+"/2",canvas.width-200,40);
-  }
+// grass stripes
+for(let i=0;i<canvas.height;i+=40){
+ctx.fillStyle=(i/40)%2?"#2e7d32":"#388e3c";
+ctx.fillRect(0,i,canvas.width,40);
 }
 
-function drawPlayer(p){
-  ctx.fillStyle=p.color;
-  ctx.beginPath();
-  ctx.arc(p.x,p.y,25,0,Math.PI*2);
-  ctx.fill();
+// center line
+ctx.strokeStyle="white";
+ctx.lineWidth=4;
+ctx.beginPath();
+ctx.moveTo(canvas.width/2,0);
+ctx.lineTo(canvas.width/2,canvas.height);
+ctx.stroke();
+
+// center circle
+ctx.beginPath();
+ctx.arc(canvas.width/2,canvas.height/2,90,0,Math.PI*2);
+ctx.stroke();
+
+// goals
+ctx.fillStyle="yellow";
+ctx.fillRect(0,canvas.height/2-140,10,280);
+ctx.fillRect(canvas.width-10,canvas.height/2-140,10,280);
+
+// players
+players.forEach(p=>{
+ctx.fillStyle=p.color;
+ctx.beginPath();
+ctx.arc(p.x,p.y,25,0,Math.PI*2);
+ctx.fill();
+});
+
+// ball
+ctx.fillStyle="white";
+ctx.beginPath();
+ctx.arc(ball.x,ball.y,12,0,Math.PI*2);
+ctx.fill();
+
+// scoreboard
+ctx.fillStyle="black";
+ctx.fillRect(canvas.width/2-120,10,240,50);
+ctx.fillStyle="white";
+ctx.font="28px Comic Sans MS";
+ctx.fillText(players[0].score+" - "+players[1].score,canvas.width/2-50,45);
+
+// stamina bars
+players.forEach((p,i)=>{
+ctx.fillStyle="black";
+ctx.fillRect(i===0?20:canvas.width-220,20,200,20);
+ctx.fillStyle="lime";
+ctx.fillRect(i===0?20:canvas.width-220,20,p.stamina*2,20);
+});
+}
+
+function reset(){
+ball.x=canvas.width/2;
+ball.y=canvas.height/2;
+ball.vx=0;ball.vy=0;
+ball.holder=null;
+players.forEach(p=>p.holding=false);
 }
 
 function dist(a,b){
-  return Math.hypot(a.x-b.x,a.y-b.y);
+return Math.hypot(a.x-b.x,a.y-b.y);
 }
 </script>
 </body>
