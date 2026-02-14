@@ -5,36 +5,36 @@
 <title>Multi Competitive Soccer</title>
 <style>
 body{
-  margin:0;
-  overflow:hidden;
-  font-family:Comic Sans MS,cursive;
-  background:#1b5e20;
-  color:white;
+margin:0;
+overflow:hidden;
+font-family:Comic Sans MS,cursive;
+background:#1b5e20;
+color:white;
 }
-canvas{ display:block; }
+canvas{display:block;}
 .menu{
-  position:absolute;
-  width:100%;
-  text-align:center;
-  top:20%;
+position:absolute;
+width:100%;
+text-align:center;
+top:25%;
 }
 button{
-  padding:12px 25px;
-  margin:8px;
-  font-size:18px;
-  border:none;
-  border-radius:10px;
-  background:#FFEB3B;
-  cursor:pointer;
+padding:12px 25px;
+margin:8px;
+font-size:18px;
+border:none;
+border-radius:10px;
+background:#FFEB3B;
+cursor:pointer;
 }
-button:hover{ background:#fdd835; }
+button:hover{background:#fdd835;}
 </style>
 </head>
 <body>
 
 <div id="mainMenu" class="menu">
-  <h1>⚽ Multi Competitive</h1>
-  <button onclick="startTeamSelect()">Play</button>
+<h1>⚽ Multi Competitive</h1>
+<button onclick="startTeamSelect()">Play Ranked Match</button>
 </div>
 
 <div id="teamMenu" class="menu" style="display:none;">
@@ -48,7 +48,7 @@ button:hover{ background:#fdd835; }
 <div id="pauseMenu" class="menu" style="display:none;">
 <h2>Paused</h2>
 <button onclick="resumeGame()">Resume</button>
-<button onclick="backToMenu()">Back to Menu</button>
+<button onclick="exitMatch()">Exit Match</button>
 </div>
 
 <canvas id="game"></canvas>
@@ -66,17 +66,26 @@ if(e.key==="Escape") togglePause();
 });
 window.addEventListener("keyup",e=>keys[e.key]=false);
 
+/* ================= GLOBAL ================= */
+
 let players=[],ball;
 let selectingPlayer=1;
 let p1Team=null,p2Team=null;
 let matchTime=180;
 let overtime=false;
-let gameRunning=false;
-let paused=false;
+let gameState="menu"; // menu, intro, playing, paused, ended
 
-/* ---------------- TEAM SELECT ---------------- */
+let ELO1=1000,ELO2=1000;
+
+let stats={
+p1:{shots:0,goals:0,fouls:0,yellow:0,red:0},
+p2:{shots:0,goals:0,fouls:0,yellow:0,red:0}
+};
+
+/* ================= TEAM SELECT ================= */
 
 function startTeamSelect(){
+gameState="select";
 document.getElementById("mainMenu").style.display="none";
 document.getElementById("teamMenu").style.display="block";
 }
@@ -94,17 +103,21 @@ return;
 }
 p2Team=team;
 document.getElementById("teamMenu").style.display="none";
-startGame();
+startIntro();
 }
 
-/* ---------------- GAME INIT ---------------- */
+/* ================= INTRO ================= */
 
-function startGame(){
+function startIntro(){
+gameState="intro";
+setTimeout(()=>{
 init();
-gameRunning=true;
-paused=false;
+gameState="playing";
 loop();
+},2000);
 }
+
+/* ================= INIT ================= */
 
 function init(){
 players=[
@@ -112,13 +125,13 @@ players=[
 x:150,y:canvas.height/2,color:p1Team,
 left:"ArrowLeft",right:"ArrowRight",up:"ArrowUp",down:"ArrowDown",
 dash:"Shift",shoot:".",
-stamina:100,holding:false,charge:0,score:0,dashCD:0,shootLock:false
+stamina:100,holding:false,charge:0,score:0,dashCD:0
 },
 {
 x:canvas.width-150,y:canvas.height/2,color:p2Team,
 left:"a",right:"d",up:"w",down:"s",
 dash:"f",shoot:"g",
-stamina:100,holding:false,charge:0,score:0,dashCD:0,shootLock:false
+stamina:100,holding:false,charge:0,score:0,dashCD:0
 }
 ];
 
@@ -127,29 +140,23 @@ matchTime=180;
 overtime=false;
 }
 
-/* ---------------- LOOP ---------------- */
+/* ================= LOOP ================= */
 
 let lastTime=Date.now();
 
 function loop(){
-if(!gameRunning) return;
-
-if(paused){
-draw();
-requestAnimationFrame(loop);
-return;
-}
+if(gameState==="menu"||gameState==="ended") return;
 
 let now=Date.now();
 let delta=(now-lastTime)/1000;
 lastTime=now;
 
-update(delta);
+if(gameState==="playing") update(delta);
 draw();
 requestAnimationFrame(loop);
 }
 
-/* ---------------- UPDATE ---------------- */
+/* ================= UPDATE ================= */
 
 function update(delta){
 
@@ -158,35 +165,45 @@ matchTime-=delta;
 if(matchTime<=0){
 if(players[0].score===players[1].score && !overtime){
 overtime=true;
-matchTime=60; // 1 min overtime
-alert("OVERTIME!");
+matchTime=60;
+alert("⚽ OVERTIME - Golden Goal!");
 }else{
 endMatch();
 }
 }
 
-if(ball.noPickup>0) ball.noPickup--;
+/* Stamina FIXED */
+players.forEach(p=>{
+if(p.stamina<100){
+p.stamina+=20*delta;
+if(p.stamina>100)p.stamina=100;
+}
+});
 
+/* Movement */
 players.forEach((p,i)=>{
-
-if(p.stamina<100) p.stamina+=15*delta;
-if(p.stamina>100) p.stamina=100;
-if(p.dashCD>0) p.dashCD--;
-
 let speed=5;
 p.dx=0;p.dy=0;
 
-if(keys[p.left]) p.dx=-speed;
-if(keys[p.right]) p.dx=speed;
-if(keys[p.up]) p.dy=-speed;
-if(keys[p.down]) p.dy=speed;
+if(keys[p.left])p.dx=-speed;
+if(keys[p.right])p.dx=speed;
+if(keys[p.up])p.dy=-speed;
+if(keys[p.down])p.dy=speed;
 
-/* DASH */
-if(keys[p.dash] && p.stamina>=25 && p.dashCD===0){
+/* Dash */
+if(keys[p.dash]&&p.stamina>=25&&p.dashCD<=0){
 p.dx*=2;
 p.dy*=2;
 p.stamina-=25;
-p.dashCD=120;
+p.dashCD=1;
+}
+
+/* Foul detection */
+let opp=players[1-i];
+if(keys[p.dash]&&dist(p,opp)<35){
+stats["p"+(i+1)].fouls++;
+if(stats["p"+(i+1)].fouls>=3)stats["p"+(i+1)].yellow++;
+if(stats["p"+(i+1)].fouls>=6)stats["p"+(i+1)].red++;
 }
 
 p.x+=p.dx;
@@ -196,7 +213,7 @@ p.x=Math.max(25,Math.min(canvas.width-25,p.x));
 p.y=Math.max(25,Math.min(canvas.height-25,p.y));
 });
 
-/* BALL */
+/* Ball */
 if(ball.holder){
 ball.x=ball.holder.x;
 ball.y=ball.holder.y;
@@ -206,7 +223,6 @@ ball.y+=ball.vy;
 ball.vx*=0.99;
 ball.vy*=0.99;
 
-if(ball.noPickup===0){
 players.forEach(p=>{
 if(dist(p,ball)<30){
 ball.holder=p;
@@ -214,51 +230,52 @@ p.holding=true;
 }
 });
 }
-}
 
-/* SHOOT (Balanced + stamina scaling) */
+/* Shooting balanced */
 players.forEach((p,i)=>{
-if(keys[p.shoot] && p.holding){
-if(p.charge<50) p.charge++;
+if(keys[p.shoot]&&p.holding){
+if(p.charge<40)p.charge++;
 }
-if(!keys[p.shoot] && p.holding && p.charge>0){
-
-let staminaCost=5 + p.charge*0.6;
-
-if(p.stamina>=staminaCost){
-
-p.stamina-=staminaCost;
-
+if(!keys[p.shoot]&&p.holding&&p.charge>0){
+let cost=5+p.charge*0.5;
+if(p.stamina>=cost){
+p.stamina-=cost;
+stats["p"+(i+1)].shots++;
 let dir=(i===0)?1:-1;
-let power=5 + (p.charge*0.2); // MUCH LOWER POWER
-
+let power=4+p.charge*0.15;
 ball.vx=dir*power;
 ball.vy=0;
-
 ball.holder=null;
 p.holding=false;
 ball.noPickup=20;
 }
-
 p.charge=0;
 }
 });
 
-/* GOALS */
+/* Goals */
 let goalSize=150;
 
-if(ball.x<0 && Math.abs(ball.y-canvas.height/2)<goalSize){
-players[1].score++; reset();
+if(ball.x<0&&Math.abs(ball.y-canvas.height/2)<goalSize){
+players[1].score++;
+stats.p2.goals++;
+if(overtime)endMatch();
+reset();
 }
-if(ball.x>canvas.width && Math.abs(ball.y-canvas.height/2)<goalSize){
-players[0].score++; reset();
+
+if(ball.x>canvas.width&&Math.abs(ball.y-canvas.height/2)<goalSize){
+players[0].score++;
+stats.p1.goals++;
+if(overtime)endMatch();
+reset();
 }
 }
 
-/* ---------------- DRAW ---------------- */
+/* ================= DRAW ================= */
 
 function draw(){
 
+/* Field */
 for(let i=0;i<canvas.height;i+=50){
 ctx.fillStyle=(i/50)%2?"#2e7d32":"#388e3c";
 ctx.fillRect(0,i,canvas.width,50);
@@ -271,9 +288,10 @@ ctx.moveTo(canvas.width/2,0);
 ctx.lineTo(canvas.width/2,canvas.height);
 ctx.stroke();
 
-ctx.beginPath();
-ctx.arc(canvas.width/2,canvas.height/2,100,0,Math.PI*2);
-ctx.stroke();
+/* GOALS (RESTORED) */
+ctx.fillStyle="yellow";
+ctx.fillRect(0,canvas.height/2-150,10,300);
+ctx.fillRect(canvas.width-10,canvas.height/2-150,10,300);
 
 /* Players */
 players.forEach(p=>{
@@ -293,16 +311,16 @@ ctx.fill();
 ctx.fillStyle="black";
 ctx.fillRect(canvas.width/2-170,15,340,60);
 ctx.fillStyle="white";
-ctx.font="32px Comic Sans MS";
-ctx.fillText(players[0].score+" - "+players[1].score,canvas.width/2-60,55);
+ctx.font="30px Comic Sans MS";
+ctx.fillText(players[0].score+" - "+players[1].score,canvas.width/2-50,55);
 
 /* Timer */
-let minutes=Math.floor(matchTime/60);
-let seconds=Math.floor(matchTime%60);
-if(seconds<10) seconds="0"+seconds;
-ctx.fillText(minutes+":"+seconds,canvas.width/2-30,95);
+let m=Math.floor(matchTime/60);
+let s=Math.floor(matchTime%60);
+if(s<10)s="0"+s;
+ctx.fillText(m+":"+s,canvas.width/2-25,95);
 
-/* Stamina */
+/* Stamina bars */
 players.forEach((p,i)=>{
 let x=i===0?30:canvas.width-230;
 ctx.fillStyle="black";
@@ -310,39 +328,56 @@ ctx.fillRect(x,30,200,20);
 ctx.fillStyle="lime";
 ctx.fillRect(x,30,(p.stamina/100)*200,20);
 });
+
+/* ELO */
+ctx.fillText("ELO: "+ELO1,30,100);
+ctx.fillText("ELO: "+ELO2,canvas.width-150,100);
 }
 
-/* ---------------- PAUSE ---------------- */
+/* ================= MATCH END ================= */
 
-function togglePause(){
-if(!gameRunning) return;
-paused=!paused;
-document.getElementById("pauseMenu").style.display=paused?"block":"none";
+function endMatch(){
+gameState="ended";
+
+if(players[0].score>players[1].score){
+ELO1+=10;ELO2-=10;
+alert("Player 1 Wins!");
+}else if(players[1].score>players[0].score){
+ELO2+=10;ELO1-=10;
+alert("Player 2 Wins!");
+}else{
+alert("Draw!");
 }
 
-function resumeGame(){
-paused=false;
-document.getElementById("pauseMenu").style.display="none";
-}
+alert("Stats:\nP1 Goals:"+stats.p1.goals+"\nP2 Goals:"+stats.p2.goals);
 
-function backToMenu(){
+gameState="menu";
 location.reload();
 }
 
-/* ---------------- HELPERS ---------------- */
+/* ================= PAUSE ================= */
+
+function togglePause(){
+if(gameState!=="playing")return;
+gameState="paused";
+document.getElementById("pauseMenu").style.display="block";
+}
+
+function resumeGame(){
+gameState="playing";
+document.getElementById("pauseMenu").style.display="none";
+}
+
+function exitMatch(){
+location.reload();
+}
 
 function reset(){
 ball.x=canvas.width/2;
 ball.y=canvas.height/2;
 ball.vx=0;ball.vy=0;
 ball.holder=null;
-ball.noPickup=20;
-players.forEach(p=>{p.holding=false;p.charge=0;});
-}
-
-function endMatch(){
-gameRunning=false;
-alert("Match Over!");
+players.forEach(p=>p.holding=false);
 }
 
 function dist(a,b){
