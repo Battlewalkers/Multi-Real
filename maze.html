@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Maze Champion v2</title>
+<title>Maze Champion</title>
 <style>
 body{
     margin:0;
@@ -72,10 +72,7 @@ let boss=null,projectiles=[];
 let score=0,timeLeft=90,health=3;
 let gameState="maze";
 
-let moveCooldown=0;
-let enemyCooldown=0;
-
-let player={x:1,y:1,speed:1,shield:false};
+let player={x:1,y:1,speed:0.15,shield:false,px:1,py:1};
 
 function generateMaze(){
 maze=[];
@@ -111,7 +108,8 @@ enemies.push({x:cols-2,y:2+i*5,dir:1});
 function startGame(){
 generateMaze();
 spawnObjects();
-setInterval(gameLoop,1000/30); // slower 30 FPS
+requestAnimationFrame(gameLoop);
+setInterval(()=>{if(timeLeft>0)timeLeft--},1000);
 }
 
 function gameLoop(){
@@ -120,61 +118,51 @@ ctx.clearRect(0,0,600,600);
 if(gameState=="maze"){
 updateMaze();
 drawMaze();
-}else{
+}else if(gameState=="boss"){
 updateBoss();
 drawBoss();
 }
 
 document.getElementById("ui").innerText=
 "Score: "+score+" | Health: "+health+" | Time: "+timeLeft;
+
+requestAnimationFrame(gameLoop);
 }
 
-setInterval(()=>{
-if(timeLeft>0)timeLeft--;
-},1000);
-
 function updateMaze(){
-
-if(moveCooldown<=0){
 movePlayer();
-moveCooldown=10; // slower movement
-}else moveCooldown--;
-
-if(enemyCooldown<=0){
 moveEnemies();
-enemyCooldown=20; // slower enemies
-}else enemyCooldown--;
 
 dots=dots.filter(d=>{
-if(d.x==player.x&&d.y==player.y){score+=10;return false;}
+if(Math.floor(d.x)==Math.floor(player.px)&&Math.floor(d.y)==Math.floor(player.py)){score+=10;return false;}
 return true;
 });
 
 traps.forEach(t=>{
-if(t.x==player.x&&t.y==player.y&&!player.shield){
+if(t.x==Math.floor(player.px)&&t.y==Math.floor(player.py)&&!player.shield){
 health--;
-player.x=1;player.y=1;
+player.px=1;player.py=1;
 }
 });
 
 powerups=powerups.filter(p=>{
-if(p.x==player.x&&p.y==player.y){
-if(p.type=="speed")player.speed=2;
+if(p.x==Math.floor(player.px)&&p.y==Math.floor(player.py)){
+if(p.type=="speed")player.speed=0.3;
 if(p.type=="shield")player.shield=true;
-setTimeout(()=>{player.speed=1;player.shield=false},5000);
+setTimeout(()=>{player.speed=0.15;player.shield=false},5000);
 return false;
 }
 return true;
 });
 
 enemies.forEach(e=>{
-if(e.x==player.x&&e.y==player.y&&!player.shield){
+if(Math.floor(e.x)==Math.floor(player.px)&&Math.floor(e.y)==Math.floor(player.py)&&!player.shield){
 health--;
-player.x=1;player.y=1;
+player.px=1;player.py=1;
 }
 });
 
-if(maze[player.y][player.x]==2){
+if(maze[Math.floor(player.py)][Math.floor(player.px)]==2){
 startBoss();
 }
 
@@ -182,70 +170,41 @@ if(health<=0){alert("Game Over");location.reload();}
 }
 
 function movePlayer(){
-let nx=player.x;
-let ny=player.y;
+let dx=0,dy=0;
+if(keys["w"])dy=-player.speed;
+if(keys["s"])dy=player.speed;
+if(keys["a"])dx=-player.speed;
+if(keys["d"])dx=player.speed;
 
-if(keys["w"])ny-=player.speed;
-if(keys["s"])ny+=player.speed;
-if(keys["a"])nx-=player.speed;
-if(keys["d"])nx+=player.speed;
-
-if(maze[ny][nx]!=1){
-player.x=nx;
-player.y=ny;
-}
+let nx=player.px+dx;
+let ny=player.py+dy;
+if(maze[Math.floor(ny)][Math.floor(nx)]!=1){player.px=nx;player.py=ny;}
 }
 
 function moveEnemies(){
 enemies.forEach(e=>{
-if(Math.random()<0.3)e.dir*=-1;
-let nx=e.x+e.dir;
-if(maze[e.y][nx]==0)e.x=nx;
+if(Math.random()<0.02)e.dir*=-1;
+let nx=e.x+0.05*e.dir;
+if(maze[Math.floor(e.y)][Math.floor(nx)]==0)e.x=nx;
 });
 }
 
 function drawMaze(){
 for(let y=0;y<rows;y++){
 for(let x=0;x<cols;x++){
-if(maze[y][x]==1){
-ctx.fillStyle="blue";
-ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
-}
-if(maze[y][x]==2){
-ctx.fillStyle="purple";
-ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
-}
+if(maze[y][x]==1){ctx.fillStyle="blue";ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);}
+if(maze[y][x]==2){ctx.fillStyle="purple";ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);}
 }
 }
 
-dots.forEach(d=>{
-ctx.fillStyle="yellow";
-ctx.beginPath();
-ctx.arc(d.x*tileSize+15,d.y*tileSize+15,4,0,Math.PI*2);
-ctx.fill();
-});
-
-traps.forEach(t=>{
-ctx.fillStyle="red";
-ctx.fillRect(t.x*tileSize+10,t.y*tileSize+10,10,10);
-});
-
-powerups.forEach(p=>{
-ctx.fillStyle=p.type=="speed"?"lime":"cyan";
-ctx.fillRect(p.x*tileSize+8,p.y*tileSize+8,14,14);
-});
-
-enemies.forEach(e=>{
-ctx.fillStyle="pink";
-ctx.beginPath();
-ctx.arc(e.x*tileSize+15,e.y*tileSize+15,10,0,Math.PI*2);
-ctx.fill();
-});
+dots.forEach(d=>{ctx.fillStyle="yellow";ctx.beginPath();ctx.arc(d.x*tileSize+15,d.y*tileSize+15,4,0,Math.PI*2);ctx.fill();});
+traps.forEach(t=>{ctx.fillStyle="red";ctx.fillRect(t.x*tileSize+10,t.y*tileSize+10,10,10);});
+powerups.forEach(p=>{ctx.fillStyle=p.type=="speed"?"lime":"cyan";ctx.fillRect(p.x*tileSize+8,p.y*tileSize+8,14,14);});
+enemies.forEach(e=>{ctx.fillStyle="pink";ctx.beginPath();ctx.arc(e.x*tileSize+15,e.y*tileSize+15,10,0,Math.PI*2);ctx.fill();});
 
 ctx.fillStyle=player.shield?"cyan":"orange";
 ctx.beginPath();
-ctx.arc(player.x*tileSize+15,player.y*tileSize+15,12,0,Math.PI*2);
-ctx.fill();
+ctx.arc(player.px*tileSize+15,player.py*tileSize+15,12,0,Math.PI*2);ctx.fill();
 }
 
 function startBoss(){
@@ -255,26 +214,19 @@ projectiles=[];
 }
 
 function updateBoss(){
-if(Math.random()<0.03){
+if(Math.random()<0.05){
 projectiles.push({x:boss.x,y:boss.y,vx:(Math.random()-0.5)*3,vy:2});
 }
 
 projectiles.forEach(p=>{
 p.x+=p.vx;
 p.y+=p.vy;
-if(Math.abs(p.x-player.x*30)<20 && Math.abs(p.y-player.y*30)<20){
-health--;
-}
+if(Math.abs(p.x-player.px*30)<20 && Math.abs(p.y-player.py*30)<20){health--;}
 });
 
-if(keys[" "] && boss.health>0){
-boss.health--;
-}
+if(keys[" "] && boss.health>0){boss.health-=0.2;}
 
-if(boss.health<=0){
-alert("YOU WIN!");
-location.reload();
-}
+if(boss.health<=0){alert("YOU WIN!");location.reload();}
 }
 
 function drawBoss(){
@@ -284,13 +236,10 @@ ctx.fillRect(0,0,600,600);
 ctx.fillStyle="black";
 ctx.fillRect(boss.x-40,boss.y-40,80,80);
 
-projectiles.forEach(p=>{
-ctx.fillStyle="white";
-ctx.fillRect(p.x,p.y,6,6);
-});
+projectiles.forEach(p=>{ctx.fillStyle="white";ctx.fillRect(p.x,p.y,6,6);});
 
 ctx.fillStyle="orange";
-ctx.fillRect(player.x*30,player.y*30,20,20);
+ctx.fillRect(player.px*30,player.py*30,20,20);
 }
 
 startGame();
