@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Maze Champion</title>
+<style>
+body{margin:0;background:black;color:white;text-align:center;font-family:Arial;}
+canvas{background:#111;display:block;margin:0 auto;}
+</style>
+</head>
+<body>
+
+<h2 id="ui"></h2>
+<canvas id="game" width="600" height="600"></canvas>
+
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+const tileSize=30;
+const rows=20;
+const cols=20;
+
+let keys={};
+document.addEventListener("keydown",e=>keys[e.key]=true);
+document.addEventListener("keyup",e=>keys[e.key]=false);
+
+let maze=[];
+let dots=[];
+let traps=[];
+let powerups=[];
+let enemies=[];
+let boss=null;
+
+let score=0;
+let timeLeft=90;
+let health=3;
+let gameState="maze";
+
+let player={
+x:1,y:1,
+speed:2,
+shield:false
+};
+
+function generateMaze(){
+maze=[];
+for(let y=0;y<rows;y++){
+let row=[];
+for(let x=0;x<cols;x++){
+if(x==0||y==0||x==cols-1||y==rows-1||Math.random()<0.1){
+row.push(1);
+}else row.push(0);
+}
+maze.push(row);
+}
+maze[1][1]=0;
+maze[rows-2][cols-2]=2; // exit
+}
+
+function spawnObjects(){
+dots=[];
+traps=[];
+powerups=[];
+enemies=[];
+for(let y=1;y<rows-1;y++){
+for(let x=1;x<cols-1;x++){
+if(maze[y][x]==0){
+if(Math.random()<0.4)dots.push({x,y});
+if(Math.random()<0.05)traps.push({x,y});
+if(Math.random()<0.03)powerups.push({x,y,type:Math.random()<0.5?"speed":"shield"});
+}
+}
+}
+for(let i=0;i<3;i++){
+enemies.push({x:cols-2,y:1+i*3,dir:1});
+}
+}
+
+function startGame(){
+generateMaze();
+spawnObjects();
+gameLoop();
+}
+
+function gameLoop(){
+ctx.clearRect(0,0,600,600);
+
+if(gameState=="maze"){
+updateMaze();
+drawMaze();
+}else if(gameState=="boss"){
+updateBoss();
+drawBoss();
+}
+
+document.getElementById("ui").innerText=
+"Score: "+score+" | Health: "+health+" | Time: "+timeLeft;
+
+requestAnimationFrame(gameLoop);
+}
+
+function updateMaze(){
+movePlayer();
+moveEnemies();
+
+if(frame%60==0 && timeLeft>0)timeLeft--;
+if(timeLeft<=0)health=0;
+
+dots=dots.filter(d=>{
+if(d.x==player.x&&d.y==player.y){
+score+=10;
+return false;
+}
+return true;
+});
+
+traps.forEach(t=>{
+if(t.x==player.x&&t.y==player.y&&!player.shield){
+health--;
+player.x=1;player.y=1;
+}
+});
+
+powerups=powerups.filter(p=>{
+if(p.x==player.x&&p.y==player.y){
+if(p.type=="speed")player.speed=4;
+if(p.type=="shield")player.shield=true;
+setTimeout(()=>{player.speed=2;player.shield=false},5000);
+return false;
+}
+return true;
+});
+
+enemies.forEach(e=>{
+if(e.x==player.x&&e.y==player.y&&!player.shield){
+health--;
+player.x=1;player.y=1;
+}
+});
+
+if(maze[player.y][player.x]==2){
+startBoss();
+}
+
+if(health<=0)alert("Game Over");
+}
+
+function movePlayer(){
+let nx=player.x;
+let ny=player.y;
+
+if(keys["w"])ny--;
+if(keys["s"])ny++;
+if(keys["a"])nx--;
+if(keys["d"])nx++;
+
+if(maze[ny][nx]!=1){
+player.x=nx;
+player.y=ny;
+}
+}
+
+function moveEnemies(){
+enemies.forEach(e=>{
+if(Math.random()<0.02)e.dir*=-1;
+let nx=e.x+e.dir;
+if(maze[e.y][nx]==0)e.x=nx;
+});
+}
+
+function drawMaze(){
+for(let y=0;y<rows;y++){
+for(let x=0;x<cols;x++){
+if(maze[y][x]==1){
+ctx.fillStyle="blue";
+ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
+}
+if(maze[y][x]==2){
+ctx.fillStyle="purple";
+ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
+}
+}
+}
+
+dots.forEach(d=>{
+ctx.fillStyle="yellow";
+ctx.beginPath();
+ctx.arc(d.x*tileSize+15,d.y*tileSize+15,4,0,Math.PI*2);
+ctx.fill();
+});
+
+traps.forEach(t=>{
+ctx.fillStyle="red";
+ctx.fillRect(t.x*tileSize+10,t.y*tileSize+10,10,10);
+});
+
+powerups.forEach(p=>{
+ctx.fillStyle=p.type=="speed"?"lime":"cyan";
+ctx.fillRect(p.x*tileSize+8,p.y*tileSize+8,14,14);
+});
+
+enemies.forEach(e=>{
+ctx.fillStyle="pink";
+ctx.beginPath();
+ctx.arc(e.x*tileSize+15,e.y*tileSize+15,10,0,Math.PI*2);
+ctx.fill();
+});
+
+ctx.fillStyle=player.shield?"cyan":"orange";
+ctx.beginPath();
+ctx.arc(player.x*tileSize+15,player.y*tileSize+15,12,0,Math.PI*2);
+ctx.fill();
+}
+
+function startBoss(){
+gameState="boss";
+boss={x:300,y:100,health:50};
+}
+
+let projectiles=[];
+
+function updateBoss(){
+if(frame%60==0){
+projectiles.push({x:boss.x,y:boss.y,vx:(Math.random()-0.5)*4,vy:3});
+}
+
+projectiles.forEach(p=>{
+p.x+=p.vx;
+p.y+=p.vy;
+if(Math.abs(p.x-player.x*30)<20 && Math.abs(p.y-player.y*30)<20){
+health--;
+}
+});
+
+if(keys[" "]){
+boss.health--;
+}
+
+if(boss.health<=0){
+alert("YOU WIN!");
+location.reload();
+}
+}
+
+function drawBoss(){
+ctx.fillStyle="darkred";
+ctx.fillRect(0,0,600,600);
+
+ctx.fillStyle="black";
+ctx.fillRect(boss.x-40,boss.y-40,80,80);
+
+projectiles.forEach(p=>{
+ctx.fillStyle="white";
+ctx.fillRect(p.x,p.y,6,6);
+});
+
+ctx.fillStyle="orange";
+ctx.fillRect(player.x*30,player.y*30,20,20);
+}
+
+let frame=0;
+setInterval(()=>frame++,16);
+
+startGame();
+</script>
+
+</body>
+</html>
