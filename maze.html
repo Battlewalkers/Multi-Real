@@ -2,16 +2,58 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Maze Champion</title>
+<title>Maze Champion v2</title>
 <style>
-body{margin:0;background:black;color:white;text-align:center;font-family:Arial;}
-canvas{background:#111;display:block;margin:0 auto;}
+body{
+    margin:0;
+    background:black;
+    color:white;
+    font-family:Arial;
+    display:flex;
+}
+#leftPanel{
+    width:250px;
+    padding:15px;
+    background:#111;
+}
+#gameContainer{
+    flex:1;
+    text-align:center;
+}
+canvas{
+    background:#000;
+    display:block;
+    margin:0 auto;
+}
+h3{color:yellow;}
 </style>
 </head>
 <body>
 
+<div id="leftPanel">
+<h3>🟡 Maze Champion</h3>
+<p><b>GOAL:</b><br>
+Collect dots, avoid enemies, reach the purple portal.</p>
+
+<p><b>CONTROLS:</b><br>
+W A S D → Move<br>
+SPACE → Attack boss</p>
+
+<p><b>POWERUPS:</b><br>
+🟢 Green = Speed boost<br>
+🔵 Cyan = Shield</p>
+
+<p><b>AVOID:</b><br>
+🔴 Red traps<br>
+👻 Pink enemies</p>
+
+<p>After portal → Boss Fight!</p>
+</div>
+
+<div id="gameContainer">
 <h2 id="ui"></h2>
 <canvas id="game" width="600" height="600"></canvas>
+</div>
 
 <script>
 const canvas=document.getElementById("game");
@@ -25,62 +67,51 @@ let keys={};
 document.addEventListener("keydown",e=>keys[e.key]=true);
 document.addEventListener("keyup",e=>keys[e.key]=false);
 
-let maze=[];
-let dots=[];
-let traps=[];
-let powerups=[];
-let enemies=[];
-let boss=null;
-
-let score=0;
-let timeLeft=90;
-let health=3;
+let maze=[],dots=[],traps=[],powerups=[],enemies=[];
+let boss=null,projectiles=[];
+let score=0,timeLeft=90,health=3;
 let gameState="maze";
 
-let player={
-x:1,y:1,
-speed:2,
-shield:false
-};
+let moveCooldown=0;
+let enemyCooldown=0;
+
+let player={x:1,y:1,speed:1,shield:false};
 
 function generateMaze(){
 maze=[];
 for(let y=0;y<rows;y++){
 let row=[];
 for(let x=0;x<cols;x++){
-if(x==0||y==0||x==cols-1||y==rows-1||Math.random()<0.1){
+if(x==0||y==0||x==cols-1||y==rows-1||Math.random()<0.08){
 row.push(1);
 }else row.push(0);
 }
 maze.push(row);
 }
 maze[1][1]=0;
-maze[rows-2][cols-2]=2; // exit
+maze[rows-2][cols-2]=2;
 }
 
 function spawnObjects(){
-dots=[];
-traps=[];
-powerups=[];
-enemies=[];
+dots=[];traps=[];powerups=[];enemies=[];
 for(let y=1;y<rows-1;y++){
 for(let x=1;x<cols-1;x++){
 if(maze[y][x]==0){
-if(Math.random()<0.4)dots.push({x,y});
-if(Math.random()<0.05)traps.push({x,y});
-if(Math.random()<0.03)powerups.push({x,y,type:Math.random()<0.5?"speed":"shield"});
+if(Math.random()<0.35)dots.push({x,y});
+if(Math.random()<0.04)traps.push({x,y});
+if(Math.random()<0.02)powerups.push({x,y,type:Math.random()<0.5?"speed":"shield"});
 }
 }
 }
-for(let i=0;i<3;i++){
-enemies.push({x:cols-2,y:1+i*3,dir:1});
+for(let i=0;i<2;i++){
+enemies.push({x:cols-2,y:2+i*5,dir:1});
 }
 }
 
 function startGame(){
 generateMaze();
 spawnObjects();
-gameLoop();
+setInterval(gameLoop,1000/30); // slower 30 FPS
 }
 
 function gameLoop(){
@@ -89,29 +120,33 @@ ctx.clearRect(0,0,600,600);
 if(gameState=="maze"){
 updateMaze();
 drawMaze();
-}else if(gameState=="boss"){
+}else{
 updateBoss();
 drawBoss();
 }
 
 document.getElementById("ui").innerText=
 "Score: "+score+" | Health: "+health+" | Time: "+timeLeft;
-
-requestAnimationFrame(gameLoop);
 }
+
+setInterval(()=>{
+if(timeLeft>0)timeLeft--;
+},1000);
 
 function updateMaze(){
-movePlayer();
-moveEnemies();
 
-if(frame%60==0 && timeLeft>0)timeLeft--;
-if(timeLeft<=0)health=0;
+if(moveCooldown<=0){
+movePlayer();
+moveCooldown=10; // slower movement
+}else moveCooldown--;
+
+if(enemyCooldown<=0){
+moveEnemies();
+enemyCooldown=20; // slower enemies
+}else enemyCooldown--;
 
 dots=dots.filter(d=>{
-if(d.x==player.x&&d.y==player.y){
-score+=10;
-return false;
-}
+if(d.x==player.x&&d.y==player.y){score+=10;return false;}
 return true;
 });
 
@@ -124,9 +159,9 @@ player.x=1;player.y=1;
 
 powerups=powerups.filter(p=>{
 if(p.x==player.x&&p.y==player.y){
-if(p.type=="speed")player.speed=4;
+if(p.type=="speed")player.speed=2;
 if(p.type=="shield")player.shield=true;
-setTimeout(()=>{player.speed=2;player.shield=false},5000);
+setTimeout(()=>{player.speed=1;player.shield=false},5000);
 return false;
 }
 return true;
@@ -143,17 +178,17 @@ if(maze[player.y][player.x]==2){
 startBoss();
 }
 
-if(health<=0)alert("Game Over");
+if(health<=0){alert("Game Over");location.reload();}
 }
 
 function movePlayer(){
 let nx=player.x;
 let ny=player.y;
 
-if(keys["w"])ny--;
-if(keys["s"])ny++;
-if(keys["a"])nx--;
-if(keys["d"])nx++;
+if(keys["w"])ny-=player.speed;
+if(keys["s"])ny+=player.speed;
+if(keys["a"])nx-=player.speed;
+if(keys["d"])nx+=player.speed;
 
 if(maze[ny][nx]!=1){
 player.x=nx;
@@ -163,7 +198,7 @@ player.y=ny;
 
 function moveEnemies(){
 enemies.forEach(e=>{
-if(Math.random()<0.02)e.dir*=-1;
+if(Math.random()<0.3)e.dir*=-1;
 let nx=e.x+e.dir;
 if(maze[e.y][nx]==0)e.x=nx;
 });
@@ -215,14 +250,13 @@ ctx.fill();
 
 function startBoss(){
 gameState="boss";
-boss={x:300,y:100,health:50};
+boss={x:300,y:100,health:40};
+projectiles=[];
 }
 
-let projectiles=[];
-
 function updateBoss(){
-if(frame%60==0){
-projectiles.push({x:boss.x,y:boss.y,vx:(Math.random()-0.5)*4,vy:3});
+if(Math.random()<0.03){
+projectiles.push({x:boss.x,y:boss.y,vx:(Math.random()-0.5)*3,vy:2});
 }
 
 projectiles.forEach(p=>{
@@ -233,7 +267,7 @@ health--;
 }
 });
 
-if(keys[" "]){
+if(keys[" "] && boss.health>0){
 boss.health--;
 }
 
@@ -244,7 +278,7 @@ location.reload();
 }
 
 function drawBoss(){
-ctx.fillStyle="darkred";
+ctx.fillStyle="#200";
 ctx.fillRect(0,0,600,600);
 
 ctx.fillStyle="black";
@@ -258,9 +292,6 @@ ctx.fillRect(p.x,p.y,6,6);
 ctx.fillStyle="orange";
 ctx.fillRect(player.x*30,player.y*30,20,20);
 }
-
-let frame=0;
-setInterval(()=>frame++,16);
 
 startGame();
 </script>
