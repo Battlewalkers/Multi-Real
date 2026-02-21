@@ -1,185 +1,283 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multi Games</title>
-
+<title>Ultimate Soccer Manager</title>
 <style>
-body {
-  margin: 0;
-  background: #f5f5f5;
-  font-family: 'Comic Sans MS', cursive, sans-serif;
+body{
+    margin:0;
+    font-family:Arial;
+    text-align:center;
+    background:green;
+    color:white;
 }
-
-header {
-  background: #4CAF50;
-  color: white;
-  padding: 20px;
-  font-size: 28px;
-  text-align: center;
+button{
+    padding:15px;
+    margin:10px;
+    font-size:18px;
+    cursor:pointer;
 }
-
-footer {
-  background: #4CAF50;
-  color: white;
-  padding: 15px;
-  text-align: center;
-  margin-top: 40px;
+#gameCanvas{
+    background:#2e8b57;
+    display:none;
+    margin:auto;
+    border:4px solid white;
 }
-
-.games {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 25px;
-  padding: 40px;
-  max-width: 1200px;
-  margin: auto;
+#menu, #playMenu, #howToPlay, #careerScreen, #shopScreen{
+    display:none;
 }
-
-.game-card {
-  background: #FFEB3B;
-  padding: 25px;
-  border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  text-align: center;
-}
-
-button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-button:hover {
-  background: #43a047;
+.statBox{
+    border:1px solid white;
+    padding:5px;
+    margin:5px;
 }
 </style>
-
 </head>
-
 <body>
 
-<header>🎮 Multi Games</header>
-
-<div class="games">
-
-  <div class="game-card">
-    <h3>🖱️ Clicker Game</h3>
-    <p>Click and beat your high score!</p>
-    <button onclick="location.href='clicker.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>🧠 Memory Game</h3>
-    <p>Match the cards and train your brain.</p>
-    <button onclick="location.href='memory.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>♟️ Chess</h3>
-    <p>Classic strategy game.</p>
-    <button onclick="location.href='chess.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>⚡ Reaction Game</h3>
-    <p>Test your speed!</p>
-    <button onclick="location.href='reaction.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>♟️ Tic Tac Toe</h3>
-    <p>Classic 2-player game.</p>
-    <button onclick="location.href='tictactoe.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>🐍 Snake</h3>
-    <p>Eat food and grow!</p>
-    <button onclick="location.href='snake.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>✊ Rock Paper Scissors</h3>
-    <p>Beat the computer.</p>
-    <button onclick="location.href='rps.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>⚽ Soccer</h3>
-    <p>Retro arcade fun.</p>
-    <button onclick="location.href='pong.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>🌀 Maze</h3>
-    <p>Find your way out.</p>
-    <button onclick="location.href='maze.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>❓ Trivia Quiz</h3>
-    <p>Test your knowledge.</p>
-    <button onclick="location.href='quiz.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>🎈 Balloon Pop</h3>
-    <p>Pop them fast!</p>
-    <button onclick="location.href='balloon.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>🔢 Number Guess</h3>
-    <p>Guess the number.</p>
-    <button onclick="location.href='numberguess.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>🐹 Whack-A-Mole</h3>
-    <p>Fast reactions!</p>
-    <button onclick="location.href='whack.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>🎵 Simon Says</h3>
-    <p>Repeat the pattern.</p>
-    <button onclick="location.href='simon.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>➕ Math Challenge</h3>
-    <p>Solve quickly.</p>
-    <button onclick="location.href='math.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>🔤 Word Scramble</h3>
-    <p>Unscramble words.</p>
-    <button onclick="location.href='wordscramble.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>⚡ Reaction Timer</h3>
-    <p>Test your speed.</p>
-    <button onclick="location.href='reaction.html'">Play</button>
-  </div>
-
-  <div class="game-card">
-    <h3>🧱 Breakout</h3>
-    <p>Break all bricks.</p>
-    <button onclick="location.href='breakout.html'">Play</button>
-  </div>
-
+<div id="menu">
+<h1>⚽ Ultimate Soccer</h1>
+<button onclick="showPlay()">Play</button>
+<button onclick="showHow()">How To Play</button>
 </div>
 
-<footer>© 2026 Multi</footer>
+<div id="playMenu">
+<h2>Select Background Color</h2>
+<input type="color" id="bgPicker" value="#2e8b57"><br>
+<button onclick="startCareer()">Career Mode</button>
+<button onclick="startMatch()">Friendly</button>
+<button onclick="backToMenu()">Back</button>
+</div>
 
+<div id="howToPlay">
+<h2>How To Play</h2>
+<p>
+WASD - Move<br>
+J - Shoot (Hold for power)<br>
+K - Tackle<br>
+L - Sprint<br><br>
+In Career Mode you buy players, manage contracts, earn money and win leagues!
+</p>
+<button onclick="backToMenu()">Back</button>
+</div>
+
+<div id="careerScreen">
+<h2>Career Mode</h2>
+<p id="moneyDisplay"></p>
+<button onclick="openShop()">Buy Players</button>
+<button onclick="playCareerMatch()">Play League Match</button>
+<button onclick="backToMenu()">Back</button>
+<div id="teamList"></div>
+</div>
+
+<div id="shopScreen">
+<h2>Transfer Market</h2>
+<div id="playerMarket"></div>
+<button onclick="backToCareer()">Back</button>
+</div>
+
+<canvas id="gameCanvas" width="900" height="500"></canvas>
+
+<script>
+
+let money = 1000000;
+let team = [];
+let market = [];
+let canvas = document.getElementById("gameCanvas");
+let ctx = canvas.getContext("2d");
+let keys = {};
+let player, ball, enemies = [];
+let stamina = 100;
+let score = 0;
+let enemyScore = 0;
+let controlNearest = false;
+let multiplayer = false;
+
+document.getElementById("menu").style.display="block";
+
+function showPlay(){
+    document.getElementById("menu").style.display="none";
+    document.getElementById("playMenu").style.display="block";
+}
+
+function showHow(){
+    document.getElementById("menu").style.display="none";
+    document.getElementById("howToPlay").style.display="block";
+}
+
+function backToMenu(){
+    hideAll();
+    document.getElementById("menu").style.display="block";
+}
+
+function hideAll(){
+    document.getElementById("menu").style.display="none";
+    document.getElementById("playMenu").style.display="none";
+    document.getElementById("howToPlay").style.display="none";
+    document.getElementById("careerScreen").style.display="none";
+    document.getElementById("shopScreen").style.display="none";
+    canvas.style.display="none";
+}
+
+function startCareer(){
+    hideAll();
+    document.getElementById("careerScreen").style.display="block";
+    generateMarket();
+    updateCareer();
+}
+
+function openShop(){
+    document.getElementById("careerScreen").style.display="none";
+    document.getElementById("shopScreen").style.display="block";
+    showMarket();
+}
+
+function backToCareer(){
+    document.getElementById("shopScreen").style.display="none";
+    document.getElementById("careerScreen").style.display="block";
+    updateCareer();
+}
+
+function generateMarket(){
+    market=[];
+    for(let i=0;i<80;i++){
+        market.push({
+            name:"Player_"+(i+1),
+            attack:Math.floor(Math.random()*100),
+            defense:Math.floor(Math.random()*100),
+            stamina:Math.floor(Math.random()*100),
+            price:Math.floor(Math.random()*500000)+100000,
+            contract:3
+        });
+    }
+}
+
+function showMarket(){
+    let div=document.getElementById("playerMarket");
+    div.innerHTML="";
+    market.forEach((p,i)=>{
+        let box=document.createElement("div");
+        box.className="statBox";
+        box.innerHTML=
+        p.name+
+        "<br>Attack:"+p.attack+
+        "<br>Defense:"+p.defense+
+        "<br>Stamina:"+p.stamina+
+        "<br>Price:$"+p.price+
+        "<br><button onclick='buyPlayer("+i+")'>Buy</button>";
+        div.appendChild(box);
+    });
+}
+
+function buyPlayer(i){
+    let p=market[i];
+    if(money>=p.price){
+        money-=p.price;
+        team.push(p);
+        market.splice(i,1);
+        showMarket();
+        alert("Bought "+p.name);
+    }else alert("Not enough money!");
+}
+
+function updateCareer(){
+    document.getElementById("moneyDisplay").innerText="Money: $"+money;
+    let list=document.getElementById("teamList");
+    list.innerHTML="<h3>Your Team</h3>";
+    team.forEach((p,i)=>{
+        list.innerHTML+=p.name+" (Contract:"+p.contract+" seasons)<br>";
+    });
+}
+
+function playCareerMatch(){
+    if(team.length==0){
+        alert("Buy at least 1 player!");
+        return;
+    }
+    startMatch();
+}
+
+function startMatch(){
+    hideAll();
+    canvas.style.display="block";
+    canvas.style.background=document.getElementById("bgPicker").value;
+    player={x:100,y:250,size:20};
+    ball={x:450,y:250,size:10};
+    enemies=[];
+    for(let i=0;i<5;i++){
+        enemies.push({x:600+Math.random()*200,y:Math.random()*400});
+    }
+    stamina=100;
+    score=0;
+    enemyScore=0;
+    gameLoop();
+}
+
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+function gameLoop(){
+    ctx.clearRect(0,0,900,500);
+
+    // Movement
+    if(keys["w"]) player.y-=3;
+    if(keys["s"]) player.y+=3;
+    if(keys["a"]) player.x-=3;
+    if(keys["d"]) player.x+=3;
+
+    if(keys["l"] && stamina>0){
+        player.x+=2;
+        stamina-=0.5;
+    }else stamina+=0.2;
+
+    // Draw player
+    ctx.fillStyle="blue";
+    ctx.beginPath();
+    ctx.arc(player.x,player.y,player.size,0,Math.PI*2);
+    ctx.fill();
+
+    // Draw ball
+    ctx.fillStyle="white";
+    ctx.beginPath();
+    ctx.arc(ball.x,ball.y,ball.size,0,Math.PI*2);
+    ctx.fill();
+
+    // Ball collision
+    let dx=player.x-ball.x;
+    let dy=player.y-ball.y;
+    if(Math.sqrt(dx*dx+dy*dy)<25){
+        ball.x+=dx*-0.1;
+        ball.y+=dy*-0.1;
+    }
+
+    // AI enemies
+    ctx.fillStyle="red";
+    enemies.forEach(e=>{
+        e.x-=1;
+        ctx.beginPath();
+        ctx.arc(e.x,e.y,20,0,Math.PI*2);
+        ctx.fill();
+    });
+
+    // Goals
+    if(ball.x>880){score++;reset();}
+    if(ball.x<20){enemyScore++;reset();}
+
+    ctx.fillStyle="white";
+    ctx.fillText("Score: "+score+" - "+enemyScore,400,20);
+
+    // Stamina bar
+    ctx.fillStyle="yellow";
+    ctx.fillRect(20,20,stamina*2,10);
+
+    requestAnimationFrame(gameLoop);
+}
+
+function reset(){
+    ball.x=450;
+    ball.y=250;
+}
+
+</script>
 </body>
 </html>
