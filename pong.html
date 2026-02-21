@@ -2,150 +2,81 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Soccer Career</title>
+<title>ULTRA PRO Soccer Career</title>
 <style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:#0b1c2d;
-    color:white;
-    text-align:center;
-}
-button{
-    padding:10px 15px;
-    margin:5px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    font-weight:bold;
-}
+body{margin:0;font-family:Arial;background:#0e1a2b;color:white;text-align:center;}
+button{padding:8px 14px;margin:5px;border:none;border-radius:6px;font-weight:bold;cursor:pointer;}
 .hidden{display:none;}
-.card{
-    background:#132b45;
-    margin:10px;
-    padding:10px;
-    border-radius:10px;
-}
-canvas{
-    background:green;
-    display:block;
-    margin:10px auto;
-    border:3px solid white;
-}
-.section-title{
-    margin-top:20px;
-    font-size:20px;
-    text-decoration:underline;
-}
+canvas{background:#1f7a1f;display:block;margin:10px auto;border:3px solid white;}
+.card{background:#132b45;margin:10px;padding:10px;border-radius:10px;}
 </style>
 </head>
 <body>
 
-<!-- MAIN MENU -->
 <div id="menu">
-<h1>⚽ Ultimate Soccer Career</h1>
+<h1>⚽ ULTRA PRO Soccer Career</h1>
 <button onclick="startCareer()">Start Career</button>
 <button onclick="showHow()">How To Play</button>
 </div>
 
-<!-- HOW TO PLAY -->
 <div id="how" class="hidden">
-<h1>How To Play</h1>
-
-<div class="section-title">Career Mode</div>
-<p>You start with 10 Million budget.</p>
-<p>Buy players from transfer market.</p>
-<p>Sell players anytime.</p>
-<p>Upgrade stadium to earn more prize money.</p>
-<p>Sign sponsors for bonus income.</p>
-
-<div class="section-title">Playing Matches</div>
-<p>You control ONE player from your team.</p>
-<p>Use WASD to move.</p>
-<p>Press SPACE to shoot.</p>
-<p>Score more goals than opponent before time ends.</p>
-
-<div class="section-title">League System</div>
-<p>Each season has 5 matches.</p>
-<p>Win = 3 points.</p>
-<p>Draw = 1 point.</p>
-<p>Top of league wins trophy + money.</p>
-
-<div class="section-title">Player Growth</div>
-<p>Your controlled player improves when scoring goals.</p>
-
+<h2>How To Play</h2>
+<h3>Career</h3>
+<p>Start with 10M. Buy players. Improve team.</p>
+<h3>Match</h3>
+<p>5v5 real match. 1 minute per match.</p>
+<p>WASD move, SPACE shoot/dive.</p>
+<h3>Divisions</h3>
+<p>Win league to promote. Finish last → relegation.</p>
+<h3>Champions League</h3>
+<p>Win Division 1 to unlock Champions League.</p>
+<h3>Stamina</h3>
+<p>Running drains stamina. Low stamina = slower.</p>
+<h3>Weather</h3>
+<p>Rain = slippery ball. Snow = slower players.</p>
 <button onclick="backMenu()">Back</button>
 </div>
 
-<!-- CAREER -->
 <div id="career" class="hidden">
-<h2 id="seasonText"></h2>
-<h3 id="moneyText"></h3>
-<h3 id="leagueText"></h3>
-
-<button onclick="generateMarket()">Refresh Market</button>
+<h3 id="info"></h3>
 <button onclick="playMatch()">Play Match</button>
-<button onclick="upgradeStadium()">Upgrade Stadium</button>
-<button onclick="getSponsor()">Get Sponsor ($2M)</button>
 <button onclick="backMenu()">Main Menu</button>
-
-<div class="card">
-<h3>Transfer Market</h3>
-<div id="market"></div>
 </div>
 
-<div class="card">
-<h3>Your Team</h3>
-<div id="team"></div>
-</div>
-</div>
-
-<!-- GAME -->
 <div id="game" class="hidden">
-<h2 id="scoreBoard"></h2>
-<canvas id="field" width="800" height="500"></canvas>
+<h2 id="scoreboard"></h2>
+<canvas id="field" width="1000" height="600"></canvas>
 </div>
 
 <script>
 let money=10000000;
+let division=3;
 let season=1;
-let stadiumLevel=1;
-let sponsor=false;
-let leaguePoints=0;
-let matchesPlayed=0;
+let points=0;
+let matchCount=0;
+let championsUnlocked=false;
 
-let team=[];
-let market=[];
-let controlledPlayer=null;
+let weatherTypes=["Sunny","Rain","Snow"];
+let weather="Sunny";
 
-const first=["Leo","Max","Noah","Liam","Ethan","James","Lucas"];
-const last=["Silva","Ronal","Smith","Garcia","Khan","Lopez"];
+let canvas=document.getElementById("field");
+let ctx=canvas.getContext("2d");
 
-function randomName(){
-return first[Math.floor(Math.random()*first.length)]+" "+
-last[Math.floor(Math.random()*last.length)];
-}
-function randomRating(){ return Math.floor(Math.random()*30)+70;}
-function price(r){return r*100000;}
-
-function updateUI(){
-document.getElementById("moneyText").innerText="Budget: $"+(money/1000000).toFixed(2)+"M";
-document.getElementById("seasonText").innerText="Season "+season+" | Stadium Lv."+stadiumLevel;
-document.getElementById("leagueText").innerText="League Points: "+leaguePoints+" | Matches: "+matchesPlayed+"/5";
-}
+let keys={};
+document.addEventListener("keydown",e=>keys[e.key]=true);
+document.addEventListener("keyup",e=>keys[e.key]=false);
 
 function startCareer(){
 document.getElementById("menu").classList.add("hidden");
 document.getElementById("career").classList.remove("hidden");
-updateUI();
-generateMarket();
-renderTeam();
+updateInfo();
 }
 
 function showHow(){
 document.getElementById("menu").classList.add("hidden");
 document.getElementById("how").classList.remove("hidden");
 }
+
 function backMenu(){
 document.getElementById("how").classList.add("hidden");
 document.getElementById("career").classList.add("hidden");
@@ -153,179 +84,186 @@ document.getElementById("game").classList.add("hidden");
 document.getElementById("menu").classList.remove("hidden");
 }
 
-function generateMarket(){
-market=[];
+function updateInfo(){
+document.getElementById("info").innerText=
+"Season "+season+" | Division "+division+
+" | Points: "+points+" | Money: $"+(money/1000000).toFixed(1)+"M";
+}
+
+function randomWeather(){
+weather=weatherTypes[Math.floor(Math.random()*weatherTypes.length)];
+}
+
+let playerTeam=[];
+let enemyTeam=[];
+let controlledIndex=1;
+let timeLeft=60;
+let score=0;
+let enemyScore=0;
+
+function createTeams(){
+playerTeam=[];
+enemyTeam=[];
 for(let i=0;i<5;i++){
-let r=randomRating();
-market.push({name:randomName(),rating:r,price:price(r)});
-}
-renderMarket();
-}
-
-function renderMarket(){
-let div=document.getElementById("market");
-div.innerHTML="";
-market.forEach((p,i)=>{
-div.innerHTML+=`${p.name} | ${p.rating} | $${(p.price/1000000).toFixed(2)}M
-<button onclick="buy(${i})">Buy</button><br>`;
-});
-}
-
-function renderTeam(){
-let div=document.getElementById("team");
-div.innerHTML="";
-team.forEach((p,i)=>{
-div.innerHTML+=`${p.name} | ${p.rating}
-<button onclick="selectPlayer(${i})">Control</button>
-<button onclick="sell(${i})">Sell</button><br>`;
-});
-}
-
-function buy(i){
-let p=market[i];
-if(money>=p.price){
-money-=p.price;
-team.push(p);
-market.splice(i,1);
-updateUI();
-renderMarket();
-renderTeam();
-}
-}
-
-function sell(i){
-money+=Math.floor(team[i].price*0.7);
-team.splice(i,1);
-renderTeam();
-updateUI();
-}
-
-function selectPlayer(i){
-controlledPlayer=team[i];
-alert("You control "+controlledPlayer.name);
-}
-
-function upgradeStadium(){
-let cost=5000000*stadiumLevel;
-if(money>=cost){
-money-=cost;
-stadiumLevel++;
-updateUI();
-}
-}
-
-function getSponsor(){
-if(!sponsor){
-money+=2000000;
-sponsor=true;
-updateUI();
+playerTeam.push({x:200,y:100+i*100,stamina:100,gk:i==0});
+enemyTeam.push({x:800,y:100+i*100,stamina:100,gk:i==0});
 }
 }
 
 function playMatch(){
-if(!controlledPlayer){alert("Select a player to control!");return;}
+randomWeather();
+createTeams();
+score=0;enemyScore=0;
+timeLeft=60;
 document.getElementById("career").classList.add("hidden");
 document.getElementById("game").classList.remove("hidden");
-startGame();
-}
-
-let canvas=document.getElementById("field");
-let ctx=canvas.getContext("2d");
-
-let player={x:100,y:250,size:15};
-let ball={x:400,y:250,size:8,vx:0,vy:0};
-let enemy={x:700,y:250,size:15};
-let score=0;
-let enemyScore=0;
-let time=60;
-
-let keys={};
-
-document.addEventListener("keydown",e=>keys[e.key]=true);
-document.addEventListener("keyup",e=>keys[e.key]=false);
-
-function startGame(){
-score=0;enemyScore=0;time=60;
-player.x=100;player.y=250;
-ball.x=400;ball.y=250;
 gameLoop();
 }
 
+let ball={x:500,y:300,vx:0,vy:0};
+
 function gameLoop(){
-ctx.clearRect(0,0,800,500);
+ctx.clearRect(0,0,1000,600);
 
-ctx.fillStyle="white";
-ctx.fillRect(0,200,10,100);
-ctx.fillRect(790,200,10,100);
+drawField();
+drawWeather();
 
-if(keys["w"])player.y-=3;
-if(keys["s"])player.y+=3;
-if(keys["a"])player.x-=3;
-if(keys["d"])player.x+=3;
+updatePlayer();
+updateAI(enemyTeam, -1);
+updateAI(playerTeam.slice(1),1);
+
+updateBall();
+
+drawTeams();
+drawBall();
+
+document.getElementById("scoreboard").innerText=
+"DIV "+division+" | "+weather+
+" | YOU "+score+" - "+enemyScore+" AI | Time: "+timeLeft;
+
+if(frame%60==0 && timeLeft>0) timeLeft--;
+
+frame++;
+if(timeLeft<=0){
+endMatch();
+return;
+}
+
+requestAnimationFrame(gameLoop);
+}
+
+let frame=0;
+
+function updatePlayer(){
+let p=playerTeam[controlledIndex];
+let speed=2*(p.stamina/100);
+
+if(keys["w"])p.y-=speed;
+if(keys["s"])p.y+=speed;
+if(keys["a"])p.x-=speed;
+if(keys["d"])p.x+=speed;
 
 if(keys[" "]){
-ball.vx=(ball.x<400?5:-5);
-ball.vy=0;
+ball.vx=6;
 }
+
+if(p.stamina>0 && (keys["w"]||keys["a"]||keys["s"]||keys["d"])) p.stamina-=0.1;
+if(p.stamina<100) p.stamina+=0.05;
+
+if(Math.abs(p.x-ball.x)<15 && Math.abs(p.y-ball.y)<15){
+ball.vx=5;
+ball.vy=(Math.random()*4-2);
+}
+}
+
+function updateAI(team,dir){
+team.forEach(p=>{
+let speed=1.5;
+p.y+=(ball.y-p.y)*0.02;
+p.x+=(ball.x-p.x)*0.01*dir;
+});
+}
+
+function updateBall(){
+if(weather=="Rain"){ball.vx*=0.99;}
+if(weather=="Snow"){ball.vx*=0.95;}
 
 ball.x+=ball.vx;
 ball.y+=ball.vy;
 
-if(Math.abs(player.x-ball.x)<20 && Math.abs(player.y-ball.y)<20){
-ball.vx=3;
-ball.vy=(Math.random()*4-2);
-}
-
-enemy.y+=(ball.y-enemy.y)*0.02;
-
-if(ball.x<=0){enemyScore++;resetBall();}
-if(ball.x>=800){score++;controlledPlayer.rating+=1;resetBall();}
-
-ctx.fillStyle="blue";
-ctx.beginPath();ctx.arc(player.x,player.y,15,0,Math.PI*2);ctx.fill();
-
-ctx.fillStyle="red";
-ctx.beginPath();ctx.arc(enemy.x,enemy.y,15,0,Math.PI*2);ctx.fill();
-
-ctx.fillStyle="white";
-ctx.beginPath();ctx.arc(ball.x,ball.y,8,0,Math.PI*2);ctx.fill();
-
-document.getElementById("scoreBoard").innerText=
-"YOU "+score+" - "+enemyScore+" AI | Time: "+time;
-
-time-=0.016;
-if(time<=0){
-endMatch();
-return;
-}
-requestAnimationFrame(gameLoop);
+if(ball.x<0){enemyScore++;resetBall();}
+if(ball.x>1000){score++;resetBall();}
+if(ball.y<0||ball.y>600) ball.vy*=-1;
 }
 
 function resetBall(){
-ball.x=400;ball.y=250;
-ball.vx=0;ball.vy=0;
+ball.x=500;ball.y=300;ball.vx=0;ball.vy=0;
+}
+
+function drawField(){
+ctx.fillStyle="#1f7a1f";
+ctx.fillRect(0,0,1000,600);
+ctx.strokeStyle="white";
+ctx.strokeRect(0,0,1000,600);
+ctx.beginPath();
+ctx.moveTo(500,0);
+ctx.lineTo(500,600);
+ctx.stroke();
+}
+
+function drawTeams(){
+playerTeam.forEach((p,i)=>{
+ctx.fillStyle=p.gk?"yellow":"blue";
+ctx.beginPath();
+ctx.arc(p.x,p.y,15,0,Math.PI*2);
+ctx.fill();
+});
+enemyTeam.forEach(p=>{
+ctx.fillStyle=p.gk?"orange":"red";
+ctx.beginPath();
+ctx.arc(p.x,p.y,15,0,Math.PI*2);
+ctx.fill();
+});
+}
+
+function drawBall(){
+ctx.fillStyle="white";
+ctx.beginPath();
+ctx.arc(ball.x,ball.y,8,0,Math.PI*2);
+ctx.fill();
+}
+
+function drawWeather(){
+ctx.fillStyle="white";
+if(weather=="Rain"){
+for(let i=0;i<50;i++)
+ctx.fillRect(Math.random()*1000,Math.random()*600,2,5);
+}
+if(weather=="Snow"){
+for(let i=0;i<50;i++)
+ctx.fillRect(Math.random()*1000,Math.random()*600,3,3);
+}
 }
 
 function endMatch(){
-matchesPlayed++;
-if(score>enemyScore){leaguePoints+=3;money+=2000000*stadiumLevel;}
-else if(score==enemyScore){leaguePoints+=1;}
+matchCount++;
+if(score>enemyScore){points+=3;money+=2000000;}
+else if(score==enemyScore){points+=1;}
 
-if(matchesPlayed>=5){
-if(leaguePoints>=10){
-alert("You won the League! +10M");
-money+=10000000;
-}
+if(matchCount>=5){
+if(points>=10 && division>1){division--;}
+if(points<3 && division<3){division++;}
+if(division==1 && points>=12) championsUnlocked=true;
+
 season++;
-matchesPlayed=0;
-leaguePoints=0;
+points=0;
+matchCount=0;
 }
-updateUI();
+
+updateInfo();
 document.getElementById("game").classList.add("hidden");
 document.getElementById("career").classList.remove("hidden");
-renderTeam();
 }
-
 </script>
 </body>
 </html>
