@@ -2,282 +2,202 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Soccer Manager</title>
+<title>Soccer Career Manager</title>
 <style>
 body{
-    margin:0;
-    font-family:Arial;
-    text-align:center;
-    background:green;
+    font-family: Arial;
+    background: linear-gradient(to right,#1e3c72,#2a5298);
     color:white;
+    text-align:center;
 }
 button{
-    padding:15px;
-    margin:10px;
-    font-size:18px;
-    cursor:pointer;
-}
-#gameCanvas{
-    background:#2e8b57;
-    display:none;
-    margin:auto;
-    border:4px solid white;
-}
-#menu, #playMenu, #howToPlay, #careerScreen, #shopScreen{
-    display:none;
-}
-.statBox{
-    border:1px solid white;
-    padding:5px;
+    padding:10px 20px;
     margin:5px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-weight:bold;
 }
+.menu{margin-top:100px;}
+.card{
+    background:rgba(255,255,255,0.1);
+    padding:10px;
+    margin:10px;
+    border-radius:10px;
+}
+.player{
+    background:rgba(0,0,0,0.4);
+    margin:5px;
+    padding:5px;
+    border-radius:5px;
+}
+.hidden{display:none;}
 </style>
 </head>
 <body>
 
-<div id="menu">
-<h1>⚽ Ultimate Soccer</h1>
-<button onclick="showPlay()">Play</button>
-<button onclick="showHow()">How To Play</button>
+<div id="mainMenu" class="menu">
+    <h1>⚽ Soccer Career Manager</h1>
+    <button onclick="showCareer()">Start Career</button>
+    <button onclick="showHowTo()">How To Play</button>
 </div>
 
-<div id="playMenu">
-<h2>Select Background Color</h2>
-<input type="color" id="bgPicker" value="#2e8b57"><br>
-<button onclick="startCareer()">Career Mode</button>
-<button onclick="startMatch()">Friendly</button>
-<button onclick="backToMenu()">Back</button>
+<div id="howTo" class="hidden">
+    <h2>How To Play</h2>
+    <p>You start with 10 Million.</p>
+    <p>Buy players from the market.</p>
+    <p>Players have random names and ratings.</p>
+    <p>Higher rating = better match performance.</p>
+    <p>Play matches to earn money.</p>
+    <p>Sell players anytime.</p>
+    <button onclick="backToMenu()">Back</button>
 </div>
 
-<div id="howToPlay">
-<h2>How To Play</h2>
-<p>
-WASD - Move<br>
-J - Shoot (Hold for power)<br>
-K - Tackle<br>
-L - Sprint<br><br>
-In Career Mode you buy players, manage contracts, earn money and win leagues!
-</p>
-<button onclick="backToMenu()">Back</button>
-</div>
+<div id="career" class="hidden">
+    <h2>Career Mode</h2>
+    <h3 id="moneyDisplay"></h3>
+    <button onclick="generateMarket()">Refresh Market</button>
+    <button onclick="playMatch()">Play Match</button>
+    <button onclick="backToMenu()">Main Menu</button>
 
-<div id="careerScreen">
-<h2>Career Mode</h2>
-<p id="moneyDisplay"></p>
-<button onclick="openShop()">Buy Players</button>
-<button onclick="playCareerMatch()">Play League Match</button>
-<button onclick="backToMenu()">Back</button>
-<div id="teamList"></div>
-</div>
+    <div class="card">
+        <h3>Transfer Market</h3>
+        <div id="market"></div>
+    </div>
 
-<div id="shopScreen">
-<h2>Transfer Market</h2>
-<div id="playerMarket"></div>
-<button onclick="backToCareer()">Back</button>
+    <div class="card">
+        <h3>Your Team</h3>
+        <div id="team"></div>
+    </div>
 </div>
-
-<canvas id="gameCanvas" width="900" height="500"></canvas>
 
 <script>
-
-let money = 1000000;
+let money = 10000000;
 let team = [];
 let market = [];
-let canvas = document.getElementById("gameCanvas");
-let ctx = canvas.getContext("2d");
-let keys = {};
-let player, ball, enemies = [];
-let stamina = 100;
-let score = 0;
-let enemyScore = 0;
-let controlNearest = false;
-let multiplayer = false;
 
-document.getElementById("menu").style.display="block";
+const firstNames = ["Liam","Noah","Oliver","Elijah","James","Lucas","Mason","Ethan","Leo","Mateo"];
+const lastNames = ["Smith","Garcia","Martinez","Brown","Lopez","Wilson","Anderson","Thomas","Taylor","Moore"];
 
-function showPlay(){
-    document.getElementById("menu").style.display="none";
-    document.getElementById("playMenu").style.display="block";
+function randomName(){
+    return firstNames[Math.floor(Math.random()*firstNames.length)] + " " +
+           lastNames[Math.floor(Math.random()*lastNames.length)];
 }
 
-function showHow(){
-    document.getElementById("menu").style.display="none";
-    document.getElementById("howToPlay").style.display="block";
+function randomRating(){
+    return Math.floor(Math.random()*40)+60; // 60-99
+}
+
+function playerPrice(rating){
+    return rating * 100000; // price based on rating
+}
+
+function updateMoney(){
+    document.getElementById("moneyDisplay").innerText = 
+        "Budget: $" + (money/1000000).toFixed(2) + "M";
+}
+
+function showCareer(){
+    document.getElementById("mainMenu").classList.add("hidden");
+    document.getElementById("career").classList.remove("hidden");
+    updateMoney();
+    generateMarket();
+    renderTeam();
+}
+
+function showHowTo(){
+    document.getElementById("mainMenu").classList.add("hidden");
+    document.getElementById("howTo").classList.remove("hidden");
 }
 
 function backToMenu(){
-    hideAll();
-    document.getElementById("menu").style.display="block";
-}
-
-function hideAll(){
-    document.getElementById("menu").style.display="none";
-    document.getElementById("playMenu").style.display="none";
-    document.getElementById("howToPlay").style.display="none";
-    document.getElementById("careerScreen").style.display="none";
-    document.getElementById("shopScreen").style.display="none";
-    canvas.style.display="none";
-}
-
-function startCareer(){
-    hideAll();
-    document.getElementById("careerScreen").style.display="block";
-    generateMarket();
-    updateCareer();
-}
-
-function openShop(){
-    document.getElementById("careerScreen").style.display="none";
-    document.getElementById("shopScreen").style.display="block";
-    showMarket();
-}
-
-function backToCareer(){
-    document.getElementById("shopScreen").style.display="none";
-    document.getElementById("careerScreen").style.display="block";
-    updateCareer();
+    document.getElementById("career").classList.add("hidden");
+    document.getElementById("howTo").classList.add("hidden");
+    document.getElementById("mainMenu").classList.remove("hidden");
 }
 
 function generateMarket(){
-    market=[];
-    for(let i=0;i<80;i++){
+    market = [];
+    for(let i=0;i<5;i++){
+        let rating = randomRating();
         market.push({
-            name:"Player_"+(i+1),
-            attack:Math.floor(Math.random()*100),
-            defense:Math.floor(Math.random()*100),
-            stamina:Math.floor(Math.random()*100),
-            price:Math.floor(Math.random()*500000)+100000,
-            contract:3
+            name: randomName(),
+            rating: rating,
+            price: playerPrice(rating)
         });
     }
+    renderMarket();
 }
 
-function showMarket(){
-    let div=document.getElementById("playerMarket");
+function renderMarket(){
+    let div = document.getElementById("market");
     div.innerHTML="";
-    market.forEach((p,i)=>{
-        let box=document.createElement("div");
-        box.className="statBox";
-        box.innerHTML=
-        p.name+
-        "<br>Attack:"+p.attack+
-        "<br>Defense:"+p.defense+
-        "<br>Stamina:"+p.stamina+
-        "<br>Price:$"+p.price+
-        "<br><button onclick='buyPlayer("+i+")'>Buy</button>";
-        div.appendChild(box);
+    market.forEach((p,index)=>{
+        div.innerHTML += `
+        <div class="player">
+            ${p.name} | Rating: ${p.rating} | Price: $${(p.price/1000000).toFixed(2)}M
+            <button onclick="buyPlayer(${index})">Buy</button>
+        </div>`;
     });
 }
 
-function buyPlayer(i){
-    let p=market[i];
-    if(money>=p.price){
-        money-=p.price;
-        team.push(p);
-        market.splice(i,1);
-        showMarket();
-        alert("Bought "+p.name);
-    }else alert("Not enough money!");
-}
-
-function updateCareer(){
-    document.getElementById("moneyDisplay").innerText="Money: $"+money;
-    let list=document.getElementById("teamList");
-    list.innerHTML="<h3>Your Team</h3>";
-    team.forEach((p,i)=>{
-        list.innerHTML+=p.name+" (Contract:"+p.contract+" seasons)<br>";
-    });
-}
-
-function playCareerMatch(){
+function renderTeam(){
+    let div = document.getElementById("team");
+    div.innerHTML="";
     if(team.length==0){
-        alert("Buy at least 1 player!");
+        div.innerHTML="No players yet.";
         return;
     }
-    startMatch();
-}
-
-function startMatch(){
-    hideAll();
-    canvas.style.display="block";
-    canvas.style.background=document.getElementById("bgPicker").value;
-    player={x:100,y:250,size:20};
-    ball={x:450,y:250,size:10};
-    enemies=[];
-    for(let i=0;i<5;i++){
-        enemies.push({x:600+Math.random()*200,y:Math.random()*400});
-    }
-    stamina=100;
-    score=0;
-    enemyScore=0;
-    gameLoop();
-}
-
-document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
-
-function gameLoop(){
-    ctx.clearRect(0,0,900,500);
-
-    // Movement
-    if(keys["w"]) player.y-=3;
-    if(keys["s"]) player.y+=3;
-    if(keys["a"]) player.x-=3;
-    if(keys["d"]) player.x+=3;
-
-    if(keys["l"] && stamina>0){
-        player.x+=2;
-        stamina-=0.5;
-    }else stamina+=0.2;
-
-    // Draw player
-    ctx.fillStyle="blue";
-    ctx.beginPath();
-    ctx.arc(player.x,player.y,player.size,0,Math.PI*2);
-    ctx.fill();
-
-    // Draw ball
-    ctx.fillStyle="white";
-    ctx.beginPath();
-    ctx.arc(ball.x,ball.y,ball.size,0,Math.PI*2);
-    ctx.fill();
-
-    // Ball collision
-    let dx=player.x-ball.x;
-    let dy=player.y-ball.y;
-    if(Math.sqrt(dx*dx+dy*dy)<25){
-        ball.x+=dx*-0.1;
-        ball.y+=dy*-0.1;
-    }
-
-    // AI enemies
-    ctx.fillStyle="red";
-    enemies.forEach(e=>{
-        e.x-=1;
-        ctx.beginPath();
-        ctx.arc(e.x,e.y,20,0,Math.PI*2);
-        ctx.fill();
+    team.forEach((p,index)=>{
+        div.innerHTML += `
+        <div class="player">
+            ${p.name} | Rating: ${p.rating}
+            <button onclick="sellPlayer(${index})">Sell</button>
+        </div>`;
     });
-
-    // Goals
-    if(ball.x>880){score++;reset();}
-    if(ball.x<20){enemyScore++;reset();}
-
-    ctx.fillStyle="white";
-    ctx.fillText("Score: "+score+" - "+enemyScore,400,20);
-
-    // Stamina bar
-    ctx.fillStyle="yellow";
-    ctx.fillRect(20,20,stamina*2,10);
-
-    requestAnimationFrame(gameLoop);
 }
 
-function reset(){
-    ball.x=450;
-    ball.y=250;
+function buyPlayer(index){
+    let p = market[index];
+    if(money >= p.price){
+        money -= p.price;
+        team.push(p);
+        market.splice(index,1);
+        updateMoney();
+        renderMarket();
+        renderTeam();
+    }else{
+        alert("Not enough money!");
+    }
 }
 
+function sellPlayer(index){
+    let p = team[index];
+    let sellPrice = Math.floor(p.price * 0.7);
+    money += sellPrice;
+    team.splice(index,1);
+    updateMoney();
+    renderTeam();
+}
+
+function playMatch(){
+    if(team.length==0){
+        alert("You need players!");
+        return;
+    }
+    let avgRating = team.reduce((sum,p)=>sum+p.rating,0)/team.length;
+    let result = Math.random()*100;
+
+    if(result < avgRating){
+        let reward = Math.floor(avgRating * 50000);
+        money += reward;
+        alert("You Won! Earned $" + (reward/1000000).toFixed(2)+"M");
+    }else{
+        alert("You Lost!");
+    }
+    updateMoney();
+}
 </script>
+
 </body>
 </html>
