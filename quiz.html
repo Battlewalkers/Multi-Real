@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ultimate Trivia Quiz</title>
+<style>
+body{font-family:Arial; text-align:center; background:#111; color:white;}
+button{margin:10px; padding:10px 20px; font-size:16px; cursor:pointer;}
+#questionBox{margin-top:50px;}
+#timer{font-size:20px; color:yellow;}
+.correct{background:green; color:white;}
+.wrong{background:red; color:white;}
+</style>
+</head>
+<body>
+
+<h1>Ultimate Trivia Quiz</h1>
+<div id="questionBox">
+<h2 id="question">Loading...</h2>
+<div id="answers"></div>
+<p id="timer"></p>
+<p id="score"></p>
+</div>
+
+<script>
+const questions=[
+{q:"What is the capital of France?",a:["Paris","London","Berlin","Rome"],correct:0},
+{q:"Which planet is closest to the Sun?",a:["Venus","Mercury","Earth","Mars"],correct:1},
+{q:"Who wrote 'Hamlet'?",a:["Shakespeare","Dante","Tolstoy","Hemingway"],correct:0},
+{q:"What is the largest ocean?",a:["Atlantic","Indian","Arctic","Pacific"],correct:3},
+{q:"Which element has the chemical symbol 'O'?",a:["Oxygen","Gold","Iron","Hydrogen"],correct:0}
+];
+
+let current=0;
+let score=0;
+let timeLeft=15;
+let timerInterval;
+
+function loadQuestion(){
+if(current>=questions.length){
+showFinalScore();
+return;
+}
+let q=questions[current];
+document.getElementById("question").innerText=q.q;
+const answersDiv=document.getElementById("answers");
+answersDiv.innerHTML="";
+q.a.forEach((ans,i)=>{
+    let btn=document.createElement("button");
+    btn.innerText=ans;
+    btn.onclick=()=>checkAnswer(i);
+    answersDiv.appendChild(btn);
+});
+timeLeft=15;
+document.getElementById("timer").innerText="Time Left: "+timeLeft+"s";
+clearInterval(timerInterval);
+timerInterval=setInterval(()=>{
+    timeLeft--;
+    document.getElementById("timer").innerText="Time Left: "+timeLeft+"s";
+    if(timeLeft<=0){clearInterval(timerInterval);checkAnswer(-1);}
+},1000);
+document.getElementById("score").innerText="Score: "+score;
+}
+
+function checkAnswer(selected){
+clearInterval(timerInterval);
+let q=questions[current];
+const buttons=document.querySelectorAll("#answers button");
+buttons.forEach((btn,i)=>{
+    if(i===q.correct) btn.classList.add("correct");
+    if(i===selected && selected!==q.correct) btn.classList.add("wrong");
+});
+if(selected===q.correct) score+=10;
+current++;
+setTimeout(loadQuestion,1500);
+}
+
+function showFinalScore(){
+document.getElementById("questionBox").innerHTML=
+`<h2>Quiz Over!</h2><p>Your Score: ${score}</p>`;
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
