@@ -2,45 +2,19 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ULTRA PRO Soccer Career</title>
+<title>LEGEND MODE Soccer</title>
 <style>
 body{margin:0;font-family:Arial;background:#0e1a2b;color:white;text-align:center;}
 button{padding:8px 14px;margin:5px;border:none;border-radius:6px;font-weight:bold;cursor:pointer;}
 .hidden{display:none;}
 canvas{background:#1f7a1f;display:block;margin:10px auto;border:3px solid white;}
-.card{background:#132b45;margin:10px;padding:10px;border-radius:10px;}
 </style>
 </head>
 <body>
 
 <div id="menu">
-<h1>⚽ ULTRA PRO Soccer Career</h1>
-<button onclick="startCareer()">Start Career</button>
-<button onclick="showHow()">How To Play</button>
-</div>
-
-<div id="how" class="hidden">
-<h2>How To Play</h2>
-<h3>Career</h3>
-<p>Start with 10M. Buy players. Improve team.</p>
-<h3>Match</h3>
-<p>5v5 real match. 1 minute per match.</p>
-<p>WASD move, SPACE shoot/dive.</p>
-<h3>Divisions</h3>
-<p>Win league to promote. Finish last → relegation.</p>
-<h3>Champions League</h3>
-<p>Win Division 1 to unlock Champions League.</p>
-<h3>Stamina</h3>
-<p>Running drains stamina. Low stamina = slower.</p>
-<h3>Weather</h3>
-<p>Rain = slippery ball. Snow = slower players.</p>
-<button onclick="backMenu()">Back</button>
-</div>
-
-<div id="career" class="hidden">
-<h3 id="info"></h3>
-<button onclick="playMatch()">Play Match</button>
-<button onclick="backMenu()">Main Menu</button>
+<h1>⚽ LEGEND MODE Soccer</h1>
+<button onclick="startGame()">Play Match</button>
 </div>
 
 <div id="game" class="hidden">
@@ -49,16 +23,6 @@ canvas{background:#1f7a1f;display:block;margin:10px auto;border:3px solid white;
 </div>
 
 <script>
-let money=10000000;
-let division=3;
-let season=1;
-let points=0;
-let matchCount=0;
-let championsUnlocked=false;
-
-let weatherTypes=["Sunny","Rain","Snow"];
-let weather="Sunny";
-
 let canvas=document.getElementById("field");
 let ctx=canvas.getContext("2d");
 
@@ -66,97 +30,80 @@ let keys={};
 document.addEventListener("keydown",e=>keys[e.key]=true);
 document.addEventListener("keyup",e=>keys[e.key]=false);
 
-function startCareer(){
-document.getElementById("menu").classList.add("hidden");
-document.getElementById("career").classList.remove("hidden");
-updateInfo();
-}
-
-function showHow(){
-document.getElementById("menu").classList.add("hidden");
-document.getElementById("how").classList.remove("hidden");
-}
-
-function backMenu(){
-document.getElementById("how").classList.add("hidden");
-document.getElementById("career").classList.add("hidden");
-document.getElementById("game").classList.add("hidden");
-document.getElementById("menu").classList.remove("hidden");
-}
-
-function updateInfo(){
-document.getElementById("info").innerText=
-"Season "+season+" | Division "+division+
-" | Points: "+points+" | Money: $"+(money/1000000).toFixed(1)+"M";
-}
-
-function randomWeather(){
-weather=weatherTypes[Math.floor(Math.random()*weatherTypes.length)];
-}
-
 let playerTeam=[];
 let enemyTeam=[];
 let controlledIndex=1;
+
+let ball={x:500,y:300,vx:0,vy:0};
+let score=0, enemyScore=0;
 let timeLeft=60;
-let score=0;
-let enemyScore=0;
+let frame=0;
+
+let replay=false;
+let replayFrames=[];
+let replayIndex=0;
+
+function startGame(){
+document.getElementById("menu").classList.add("hidden");
+document.getElementById("game").classList.remove("hidden");
+createTeams();
+timeLeft=60;
+score=0;enemyScore=0;
+frame=0;
+gameLoop();
+}
 
 function createTeams(){
 playerTeam=[];
 enemyTeam=[];
 for(let i=0;i<5;i++){
 playerTeam.push({x:200,y:100+i*100,stamina:100,gk:i==0});
-enemyTeam.push({x:800,y:100+i*100,stamina:100,gk:i==0});
+enemyTeam.push({x:800,y:100+i*100,gk:i==0});
 }
 }
-
-function playMatch(){
-randomWeather();
-createTeams();
-score=0;enemyScore=0;
-timeLeft=60;
-document.getElementById("career").classList.add("hidden");
-document.getElementById("game").classList.remove("hidden");
-gameLoop();
-}
-
-let ball={x:500,y:300,vx:0,vy:0};
 
 function gameLoop(){
 ctx.clearRect(0,0,1000,600);
 
+drawStadium();
+
+if(!replay){
+updateMatch();
+saveReplayFrame();
+}else{
+playReplay();
+}
+
 drawField();
-drawWeather();
-
-updatePlayer();
-updateAI(enemyTeam, -1);
-updateAI(playerTeam.slice(1),1);
-
-updateBall();
-
 drawTeams();
 drawBall();
 
 document.getElementById("scoreboard").innerText=
-"DIV "+division+" | "+weather+
-" | YOU "+score+" - "+enemyScore+" AI | Time: "+timeLeft;
+"YOU "+score+" - "+enemyScore+" | Time: "+timeLeft;
 
-if(frame%60==0 && timeLeft>0) timeLeft--;
+if(frame%60==0 && timeLeft>0 && !replay) timeLeft--;
 
 frame++;
-if(timeLeft<=0){
-endMatch();
-return;
-}
+if(timeLeft<=0 && !replay) return;
 
 requestAnimationFrame(gameLoop);
 }
 
-let frame=0;
+function updateMatch(){
+updatePlayer();
+smartAI(enemyTeam,false);
+smartAI(playerTeam,true);
+updateBall();
+}
 
 function updatePlayer(){
 let p=playerTeam[controlledIndex];
 let speed=2*(p.stamina/100);
+
+if(keys["Shift"] && p.stamina>20){
+speed*=2;
+p.stamina-=0.5;
+}
 
 if(keys["w"])p.y-=speed;
 if(keys["s"])p.y+=speed;
@@ -164,45 +111,92 @@ if(keys["a"])p.x-=speed;
 if(keys["d"])p.x+=speed;
 
 if(keys[" "]){
-ball.vx=6;
+ball.vx=8;
+ball.vy=(Math.random()*4-2);
 }
 
 if(p.stamina>0 && (keys["w"]||keys["a"]||keys["s"]||keys["d"])) p.stamina-=0.1;
 if(p.stamina<100) p.stamina+=0.05;
 
-if(Math.abs(p.x-ball.x)<15 && Math.abs(p.y-ball.y)<15){
-ball.vx=5;
+if(distance(p,ball)<18){
+ball.vx=6;
 ball.vy=(Math.random()*4-2);
 }
 }
 
-function updateAI(team,dir){
-team.forEach(p=>{
-let speed=1.5;
-p.y+=(ball.y-p.y)*0.02;
-p.x+=(ball.x-p.x)*0.01*dir;
+function smartAI(team,isAlly){
+team.forEach((p,i)=>{
+if(p.gk){
+goalkeeperLogic(p,isAlly);
+return;
+}
+let targetX=isAlly?ball.x-100:ball.x+100;
+let targetY=ball.y;
+
+p.x+=(targetX-p.x)*0.02;
+p.y+=(targetY-p.y)*0.02;
+
+if(distance(p,ball)<18){
+ball.vx=isAlly?6:-6;
+ball.vy=(Math.random()*4-2);
+}
 });
 }
 
-function updateBall(){
-if(weather=="Rain"){ball.vx*=0.99;}
-if(weather=="Snow"){ball.vx*=0.95;}
+function goalkeeperLogic(gk,isAlly){
+let goalX=isAlly?0:1000;
+gk.y+=(ball.y-gk.y)*0.05;
 
+if(Math.abs(ball.x-goalX)<100){
+gk.x+=(goalX-gk.x)*0.1;
+if(distance(gk,ball)<25){
+ball.vx*=-1.5; // dive save
+}
+}
+}
+
+function updateBall(){
 ball.x+=ball.vx;
 ball.y+=ball.vy;
+ball.vx*=0.99;
 
-if(ball.x<0){enemyScore++;resetBall();}
-if(ball.x>1000){score++;resetBall();}
+if(ball.x<0){enemyScore++;triggerReplay();}
+if(ball.x>1000){score++;triggerReplay();}
 if(ball.y<0||ball.y>600) ball.vy*=-1;
 }
 
+function triggerReplay(){
+replay=true;
+replayIndex=0;
+}
+
+function saveReplayFrame(){
+replayFrames.push(JSON.stringify({
+ball:{...ball},
+playerTeam:JSON.parse(JSON.stringify(playerTeam)),
+enemyTeam:JSON.parse(JSON.stringify(enemyTeam))
+}));
+if(replayFrames.length>300) replayFrames.shift();
+}
+
+function playReplay(){
+if(replayIndex>=replayFrames.length){
+replay=false;
+resetBall();
+return;
+}
+let frameData=JSON.parse(replayFrames[replayIndex]);
+ball=frameData.ball;
+playerTeam=frameData.playerTeam;
+enemyTeam=frameData.enemyTeam;
+replayIndex++;
+}
+
 function resetBall(){
-ball.x=500;ball.y=300;ball.vx=0;ball.vy=0;
+ball={x:500,y:300,vx:0,vy:0};
 }
 
 function drawField(){
-ctx.fillStyle="#1f7a1f";
-ctx.fillRect(0,0,1000,600);
 ctx.strokeStyle="white";
 ctx.strokeRect(0,0,1000,600);
 ctx.beginPath();
@@ -211,8 +205,21 @@ ctx.lineTo(500,600);
 ctx.stroke();
 }
 
+function drawStadium(){
+ctx.fillStyle="#1f7a1f";
+ctx.fillRect(0,0,1000,600);
+ctx.fillStyle="#444";
+ctx.fillRect(0,0,1000,50);
+ctx.fillRect(0,550,1000,50);
+for(let i=0;i<200;i++){
+ctx.fillStyle=["red","blue","yellow","white"][Math.floor(Math.random()*4)];
+ctx.fillRect(Math.random()*1000,Math.random()*50,3,3);
+ctx.fillRect(Math.random()*1000,550+Math.random()*50,3,3);
+}
+}
+
 function drawTeams(){
-playerTeam.forEach((p,i)=>{
+playerTeam.forEach(p=>{
 ctx.fillStyle=p.gk?"yellow":"blue";
 ctx.beginPath();
 ctx.arc(p.x,p.y,15,0,Math.PI*2);
@@ -233,36 +240,8 @@ ctx.arc(ball.x,ball.y,8,0,Math.PI*2);
 ctx.fill();
 }
 
-function drawWeather(){
-ctx.fillStyle="white";
-if(weather=="Rain"){
-for(let i=0;i<50;i++)
-ctx.fillRect(Math.random()*1000,Math.random()*600,2,5);
-}
-if(weather=="Snow"){
-for(let i=0;i<50;i++)
-ctx.fillRect(Math.random()*1000,Math.random()*600,3,3);
-}
-}
-
-function endMatch(){
-matchCount++;
-if(score>enemyScore){points+=3;money+=2000000;}
-else if(score==enemyScore){points+=1;}
-
-if(matchCount>=5){
-if(points>=10 && division>1){division--;}
-if(points<3 && division<3){division++;}
-if(division==1 && points>=12) championsUnlocked=true;
-
-season++;
-points=0;
-matchCount=0;
-}
-
-updateInfo();
-document.getElementById("game").classList.add("hidden");
-document.getElementById("career").classList.remove("hidden");
+function distance(a,b){
+return Math.hypot(a.x-b.x,a.y-b.y);
 }
 </script>
 </body>
